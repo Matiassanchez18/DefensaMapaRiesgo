@@ -1,0 +1,157 @@
+.reporte {
+  --rep-card: #1e293b;
+  --rep-fondo-campo: #0f172a;
+  --rep-borde: #334155;
+  --rep-texto: #f1f5f9;
+  --rep-suave: #94a3b8;
+  --rep-acento: #0284c7;
+  --rep-acento-hover: #0ea5e9;
+
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  color: var(--rep-texto);
+  box-sizing: border-box;
+}
+
+.reporte *,
+.reporte *::before,
+.reporte *::after {
+  box-sizing: border-box;
+}
+
+.reporte-card {
+  background: var(--rep-card);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.reporte-titulo {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.reporte-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.reporte-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--rep-borde);
+  border-radius: 0.75rem;
+  min-width: 0;
+}
+
+.reporte-grupo legend {
+  padding: 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--rep-acento-hover);
+}
+
+.reporte-fila {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.reporte-campo {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: var(--rep-texto);
+  background: var(--rep-fondo-campo);
+  border: 1px solid var(--rep-borde);
+  border-radius: 0.5rem;
+}
+
+.reporte-campo::placeholder {
+  color: var(--rep-suave);
+}
+
+.reporte-campo:focus {
+  outline: none;
+  border-color: var(--rep-acento-hover);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.35);
+}
+
+.reporte-pregunta {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--rep-suave);
+}
+
+.reporte-radios {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.reporte-radios label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reporte-archivo {
+  width: 100%;
+  font-size: 0.9rem;
+  color: var(--rep-suave);
+}
+
+.reporte-archivo::file-selector-button {
+  margin-right: 1rem;
+  padding: 0.5rem 1rem;
+  color: #fff;
+  background: var(--rep-acento);
+  border: 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.reporte-boton {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--rep-acento);
+  border: 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.reporte-boton:hover {
+  background: var(--rep-acento-hover);
+}
+
+@media (min-width: 576px) {
+  .reporte {
+    padding: 3rem 1rem;
+  }
+
+  .reporte-card {
+    padding: 2rem;
+  }
+
+  .reporte-titulo {
+    font-size: 1.875rem;
+  }
+
+  .reporte-fila {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .reporte-boton {
+    width: auto;
+  }
+}
