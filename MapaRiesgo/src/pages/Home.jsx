@@ -1,7 +1,7 @@
 import AccionesRapidas from "../Components/AccionesRapidas";
 import InformacionMapa from "../Components/InformacionMapa";
 import Navbar from "../Components/Navbar";
-import UltimoIncidente from "../Components/UltimoIncidente";
+import UltimoIncidente from "../components/UltimoIncidencia";
 import Footer from "../Components/Footer";
 
 
