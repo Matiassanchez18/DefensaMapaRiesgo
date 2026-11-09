@@ -37,7 +37,6 @@ function Mapa() {
       mapa.removeEventListener("mousedown", bloquearScroll);
       mapa.removeEventListener("mouseleave", habilitarScroll);
       document.removeEventListener("mouseup", habilitarScroll);
-
       habilitarScroll();
     };
   }, []);
@@ -72,26 +71,28 @@ function Mapa() {
 
         <div className="mapa-container">
           <div className="contendor-mapa">
-          <MapContainer
-  center={[-26.8241, -65.2226]}
-  zoom={13}
-  id="map"
-  scrollWheelZoom={true}
-  dragging={true}
-  touchZoom={true}
-  doubleClickZoom={true}
-  keyboard={true}
->
-  <TileLayer
-    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-    maxZoom={19}
-    attribution="OpenStreetMap"
-  />
+            <MapContainer
+              center={[-26.8241, -65.2226]}
+              zoom={13}
+              id="map"
+              scrollWheelZoom={true}
+              dragging={true}
+              touchZoom={true}
+              doubleClickZoom={true}
+              keyboard={true}
+            >
+              <TileLayer
+                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={19}
+                attribution="OpenStreetMap"
+              />
 
-  <ZonasRiesgo />
+              <ZonasRiesgo />
 
-  <UbicacionUsuario onUbicacionChange={setUbicacion} />
-</MapContainer>
+              <UbicacionUsuario
+                onUbicacionChange={setUbicacion}
+              />
+            </MapContainer>
 
             <button
               type="button"
@@ -111,9 +112,12 @@ function Mapa() {
             </button>
           </div>
 
-          {modal ? (
-            <Formulario darValor={darValor} ubicacion={ubicacion} />
-          ) : null}
+          {modal && (
+            <Formulario
+              darValor={darValor}
+              ubicacion={ubicacion}
+            />
+          )}
         </div>
       </div>
 

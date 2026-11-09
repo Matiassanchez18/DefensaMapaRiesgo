@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useMap, CircleMarker, Circle, Popup } from "react-leaflet";
 
@@ -19,19 +18,24 @@ function UbicacionUsuario({ onUbicacionChange }) {
 
         const coordenadas = [lat, lng];
 
+        console.log("Nueva ubicación:", coordenadas);
+
         setPosicion(coordenadas);
         onUbicacionChange(coordenadas);
 
         mapa.setView(coordenadas, mapa.getZoom());
       },
       (error) => {
-        console.error("Error al obtener ubicación:", error.message);
+        console.error("Error de geolocalización:", {
+          codigo: error.code,
+          mensaje: error.message,
+        });
       },
       {
-        enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 10000,
-      }
+        enableHighAccuracy: false,
+        maximumAge: 10000,
+        timeout: 30000,
+      },
     );
 
     return () => {

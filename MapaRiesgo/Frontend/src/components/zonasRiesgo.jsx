@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { Polygon, Popup } from "react-leaflet";
+import { Polygon, Popup, useMap } from "react-leaflet";
 
 const TAM_CELDA = 0.005;
 
@@ -22,6 +21,7 @@ function agruparPorCelda(reportes) {
 
     const fila = Math.floor(lat / TAM_CELDA);
     const columna = Math.floor(lng / TAM_CELDA);
+
     const clave = `${fila}_${columna}`;
 
     if (!celdas[clave]) {
@@ -35,6 +35,7 @@ function agruparPorCelda(reportes) {
 }
 
 function ZonasRiesgo() {
+  const mapa = useMap();
   const [reportes, setReportes] = useState([]);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ function ZonasRiesgo() {
         }
 
         const datos = await respuesta.json();
+
         setReportes(datos);
       } catch (error) {
         console.error("Error al cargar reportes:", error);
@@ -62,33 +64,44 @@ function ZonasRiesgo() {
     return () => clearInterval(intervalo);
   }, []);
 
+  useEffect(() => {
+    const posiciones = reportes
+      .filter(
+        (r) =>
+          Number.isFinite(Number(r.latitud)) &&
+          Number.isFinite(Number(r.longitud))
+      )
+      .map((r) => [
+        Number(r.latitud),
+        Number(r.longitud),
+      ]);
+
+    if (posiciones.length > 0) {
+      mapa.fitBounds(posiciones, {
+        padding: [40, 40],
+        maxZoom: 15,
+      });
+    }
+  }, [reportes, mapa]);
+
   const celdas = agruparPorCelda(reportes);
 
   return (
     <>
       {Object.entries(celdas).map(([clave, grupo]) => {
-        const cantidad = grupo.length;
+        const [fila, columna] = clave.split("_").map(Number);
 
-        // Calcular el centro de los reportes de la celda
-        const latitudes = grupo.map((r) => Number(r.latitud));
-        const longitudes = grupo.map((r) => Number(r.longitud));
-
-        const centroLat =
-          latitudes.reduce((a, b) => a + b, 0) / cantidad;
-
-        const centroLng =
-          longitudes.reduce((a, b) => a + b, 0) / cantidad;
-
-        // Dibujar el cuadrado centrado en esa ubicación
-        const mitad = TAM_CELDA / 2;
+        const sur = fila * TAM_CELDA;
+        const oeste = columna * TAM_CELDA;
 
         const posiciones = [
-          [centroLat - mitad, centroLng - mitad],
-          [centroLat - mitad, centroLng + mitad],
-          [centroLat + mitad, centroLng + mitad],
-          [centroLat + mitad, centroLng - mitad],
+          [sur, oeste],
+          [sur, oeste + TAM_CELDA],
+          [sur + TAM_CELDA, oeste + TAM_CELDA],
+          [sur + TAM_CELDA, oeste],
         ];
 
+        const cantidad = grupo.length;
         const color = colorZona(cantidad);
 
         const nivel =
@@ -105,7 +118,7 @@ function ZonasRiesgo() {
             key={clave}
             positions={posiciones}
             pathOptions={{
-              color: color,
+              color,
               fillColor: color,
               fillOpacity: 0.4,
               opacity: 0.8,
@@ -118,10 +131,6 @@ function ZonasRiesgo() {
               Reportes registrados: {cantidad}
               <br />
               Nivel: {nivel}
-              <br />
-              Latitud: {centroLat.toFixed(6)}
-              <br />
-              Longitud: {centroLng.toFixed(6)}
             </Popup>
           </Polygon>
         );
