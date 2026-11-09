@@ -1,7 +1,11 @@
 
 import "../style/Formulario.css";
 
-function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
+function Formulario({
+  darValor,
+  ubicacion,
+  seleccionarEnMapa,
+}) {
   const ocultarModal = () => {
     darValor(false);
   };
@@ -10,7 +14,7 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
     e.preventDefault();
 
     if (!ubicacion) {
-      alert("Seleccioná una ubicación en el mapa antes de enviar.");
+      alert("No se pudo obtener ninguna ubicación.");
       return;
     }
 
@@ -104,6 +108,7 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                   <input type="radio" name="testigos" value="si" required />
                   Sí
                 </label>
+
                 <label className="reporte-opcion">
                   <input type="radio" name="testigos" value="no" />
                   No
@@ -126,6 +131,12 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
             <div className="reporte-campo">
               <label>Ubicación del incidente</label>
 
+              <p>
+                {ubicacion
+                  ? "Se utilizará tu ubicación GPS actual o el punto que marques en el mapa."
+                  : "Todavía no se pudo obtener tu ubicación."}
+              </p>
+
               <button
                 type="button"
                 className="reporte-input-icono"
@@ -134,12 +145,6 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                 <i className="bi bi-geo-alt"></i>
                 Seleccionar ubicación en el mapa
               </button>
-
-              <p>
-                {ubicacion
-                  ? "Ubicación seleccionada correctamente."
-                  : "Todavía no seleccionaste una ubicación."}
-              </p>
             </div>
 
             <div className="reporte-acciones">
@@ -151,7 +156,10 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                 Cancelar
               </button>
 
-              <button type="submit" className="reporte-btn-enviar">
+              <button
+                type="submit"
+                className="reporte-btn-enviar"
+              >
                 Enviar reporte
               </button>
             </div>

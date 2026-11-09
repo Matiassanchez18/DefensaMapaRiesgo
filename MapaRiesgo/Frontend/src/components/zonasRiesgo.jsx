@@ -1,7 +1,9 @@
+
 import { useEffect, useState } from "react";
-import { Polygon, Popup, useMap } from "react-leaflet";
+import { Polygon, Popup } from "react-leaflet";
 
 const TAM_CELDA = 0.005;
+const ANGULO = 12;
 
 function colorZona(cantidad) {
   if (cantidad >= 12) return "#800000";
@@ -34,8 +36,19 @@ function agruparPorCelda(reportes) {
   return celdas;
 }
 
+function rotarPunto(cx, cy, x, y, angulo) {
+  const rad = (angulo * Math.PI) / 180;
+
+  const dx = x - cx;
+  const dy = y - cy;
+
+  return {
+    lat: cx + dx * Math.cos(rad) - dy * Math.sin(rad),
+    lng: cy + dx * Math.sin(rad) + dy * Math.cos(rad),
+  };
+}
+
 function ZonasRiesgo() {
-  const mapa = useMap();
   const [reportes, setReportes] = useState([]);
 
   useEffect(() => {
@@ -48,7 +61,6 @@ function ZonasRiesgo() {
         }
 
         const datos = await respuesta.json();
-
         setReportes(datos);
       } catch (error) {
         console.error("Error al cargar reportes:", error);
@@ -62,20 +74,6 @@ function ZonasRiesgo() {
     return () => clearInterval(intervalo);
   }, []);
 
-  useEffect(() => {
-    const posiciones = reportes
-      .filter(
-        (r) =>
-          Number.isFinite(Number(r.latitud)) &&
-          Number.isFinite(Number(r.longitud)),
-      )
-      .map((r) => [Number(r.latitud), Number(r.longitud)]);
-
-    if (posiciones.length > 0) {
-        
-    }
-  }, [reportes, mapa]);
-
   const celdas = agruparPorCelda(reportes);
 
   return (
@@ -86,12 +84,19 @@ function ZonasRiesgo() {
         const sur = fila * TAM_CELDA;
         const oeste = columna * TAM_CELDA;
 
+        const norte = sur + TAM_CELDA;
+        const este = oeste + TAM_CELDA;
+
+        const centroLat = (sur + norte) / 2;
+        const centroLng = (oeste + este) / 2;
+
+        // Rotamos las cuatro esquinas de la celda.
         const posiciones = [
-          [sur, oeste],
-          [sur, oeste + TAM_CELDA],
-          [sur + TAM_CELDA, oeste + TAM_CELDA],
-          [sur + TAM_CELDA, oeste],
-        ];
+          rotarPunto(centroLat, centroLng, sur, oeste, ANGULO),
+          rotarPunto(centroLat, centroLng, sur, este, ANGULO),
+          rotarPunto(centroLat, centroLng, norte, este, ANGULO),
+          rotarPunto(centroLat, centroLng, norte, oeste, ANGULO),
+        ].map((p) => [p.lat, p.lng]);
 
         const cantidad = grupo.length;
         const color = colorZona(cantidad);

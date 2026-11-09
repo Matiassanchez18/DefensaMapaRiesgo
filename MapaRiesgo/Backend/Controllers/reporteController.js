@@ -64,30 +64,19 @@ const {
 };
 
 const obtenerReportes = (req, res) => {
-  const sql = `
-    SELECT
-      id_reporte,
-      id_delito,
-      latitud,
-      longitud,
-      descripcion,
-      fecha,
-      hora,
-      estado
-    FROM reporte
-    WHERE latitud IS NOT NULL
-      AND longitud IS NOT NULL
-  `;
+  const sql = "SELECT * FROM reporte";
 
   db.query(sql, (error, resultados) => {
     if (error) {
-      console.error("Error al obtener reportes:", error);
+      console.error("ERROR MYSQL:", error);
 
       return res.status(500).json({
-        mensaje: "Error al obtener los reportes",
-        detalle: error.sqlMessage,
+        mensaje: "Error al obtener reportes",
+        detalle: error.message,
       });
     }
+
+    console.log("Reportes obtenidos:", resultados.length);
 
     res.status(200).json(resultados);
   });

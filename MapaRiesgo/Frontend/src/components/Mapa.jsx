@@ -15,48 +15,74 @@ import SeleccionarUbicacion from "./SeleccionarUbicacion";
 function Mapa() {
   const [modal, setModal] = useState(false);
   const [ubicacion, setUbicacion] = useState(null);
+  const [errorGPS, setErrorGPS] = useState("");
 
-  // Ubicación elegida para el incidente
   const [posicionSeleccionada, setPosicionSeleccionada] = useState(null);
-
-  // Activa o desactiva la selección mediante clic
   const [seleccionandoUbicacion, setSeleccionandoUbicacion] = useState(false);
 
-  // Obtener y seguir la ubicación GPS
   useEffect(() => {
+    console.log("Geolocalización disponible:", !!navigator.geolocation);
+    console.log("Contexto seguro:", window.isSecureContext);
+
     if (!navigator.geolocation) {
-      console.error("Tu navegador no admite geolocalización");
+      setErrorGPS("Tu navegador no permite utilizar la geolocalización.");
       return;
     }
 
-    const idSeguimiento = navigator.geolocation.watchPosition(
-      (resultado) => {
-        const coordenadas = [
-          resultado.coords.latitude,
-          resultado.coords.longitude,
+    if (!window.isSecureContext) {
+      setErrorGPS(
+        "La conexión no es segura. Necesitás abrir la web mediante HTTPS."
+      );
+      return;
+    }
+
+    console.log("Solicitando ubicación...");
+
+    const id = navigator.geolocation.watchPosition(
+      (position) => {
+        const nuevaUbicacion = [
+          position.coords.latitude,
+          position.coords.longitude,
         ];
 
-        setUbicacion(coordenadas);
+        console.log("Coordenadas recibidas:", nuevaUbicacion);
+
+        setErrorGPS("");
+        setUbicacion(nuevaUbicacion);
       },
       (error) => {
-        console.error("Error de geolocalización:", {
-          codigo: error.code,
-          mensaje: error.message,
-        });
+        console.log("ERROR GPS:", error.code, error.message);
+
+        switch (error.code) {
+          case 1:
+            setErrorGPS(
+              "Permiso de ubicación denegado. Revisá los permisos de Chrome."
+            );
+            break;
+          case 2:
+            setErrorGPS(
+              "No se pudo determinar la ubicación. Revisá que el GPS esté activado."
+            );
+            break;
+          case 3:
+            setErrorGPS("Se agotó el tiempo de espera para obtener tu ubicación.");
+            break;
+          default:
+            setErrorGPS("Ocurrió un error al obtener tu ubicación.");
+        }
       },
       {
         enableHighAccuracy: true,
-        maximumAge: 5000,
-        timeout: 30000,
+        maximumAge: 10000,
+        timeout: 60000,
       }
     );
 
     return () => {
-      navigator.geolocation.clearWatch(idSeguimiento);
+      navigator.geolocation.clearWatch(id);
     };
   }, []);
 
-  // Controlar el desplazamiento de la página al arrastrar el mapa
   useEffect(() => {
     if (!ubicacion) return;
 
@@ -82,7 +108,6 @@ function Mapa() {
       mapa.removeEventListener("mousedown", bloquearScroll);
       mapa.removeEventListener("mouseleave", habilitarScroll);
       document.removeEventListener("mouseup", habilitarScroll);
-
       habilitarScroll();
     };
   }, [ubicacion !== null]);
@@ -95,18 +120,20 @@ function Mapa() {
     setModal(!modal);
   };
 
-  // Se ejecuta desde el botón del formulario
   const seleccionarEnMapa = () => {
     setModal(false);
     setSeleccionandoUbicacion(true);
   };
 
-  // Se ejecuta cuando el usuario hace clic en el mapa
   const finalizarSeleccion = (coordenadas) => {
     setPosicionSeleccionada(coordenadas);
     setSeleccionandoUbicacion(false);
     setModal(true);
   };
+
+  // Si hay un punto marcado manualmente, tiene prioridad.
+  // Si no, se utilizan las coordenadas del GPS.
+  const coordenadasReporte = posicionSeleccionada || ubicacion;
 
   return (
     <div>
@@ -151,21 +178,29 @@ function Mapa() {
 
                 <UbicacionUsuario posicion={ubicacion} />
 
-                {/* Selección del punto del incidente */}
                 {seleccionandoUbicacion && (
                   <SeleccionarUbicacion
                     finalizarSeleccion={finalizarSeleccion}
                   />
                 )}
 
-                {/* Marcador permanente del punto seleccionado */}
                 {posicionSeleccionada && (
                   <Marker position={posicionSeleccionada} />
                 )}
               </MapContainer>
             ) : (
-              <div className="flex h-full min-h-[400px] items-center justify-center text-white">
-                Obteniendo tu ubicación...
+              <div className="flex h-full min-h-[400px] flex-col items-center justify-center gap-3 text-white">
+                <p>{errorGPS || "Obteniendo tu ubicación..."}</p>
+
+                {errorGPS && (
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-white"
+                  >
+                    Volver a intentar
+                  </button>
+                )}
               </div>
             )}
 
@@ -197,7 +232,7 @@ function Mapa() {
           {modal && ubicacion && (
             <Formulario
               darValor={darValor}
-              ubicacion={posicionSeleccionada}
+              ubicacion={coordenadasReporte}
               seleccionarEnMapa={seleccionarEnMapa}
             />
           )}
