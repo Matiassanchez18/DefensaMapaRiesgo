@@ -2,7 +2,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import PaginaMapa from "./Pages/PaginaMapa";
-import Home from "./Pages/Home";
+import Home from "./pages/Home";
 import Reporte from "./Components/Reporte";
 import Denuncias from "./Pages/Denuncia";
 
