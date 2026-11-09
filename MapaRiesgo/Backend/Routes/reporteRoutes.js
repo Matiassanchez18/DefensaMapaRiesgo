@@ -3,7 +3,7 @@ const router = express.Router();
 
 const { agregarReporte } = require("../Controllers/reporteController");
 
-const validarReporte = require("../MiddleWare/validarReporte");
+const validarReporte = require("../MiddleWare/ValidarReporte");
 
 router.post("/", validarReporte, agregarReporte);
 
