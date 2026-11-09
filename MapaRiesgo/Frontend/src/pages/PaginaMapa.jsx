@@ -1,4 +1,4 @@
-import Mapa from "../Components/Mapa"
+import Mapa from "../components/Mapa"
 
 function PaginaMapa(){
     return(

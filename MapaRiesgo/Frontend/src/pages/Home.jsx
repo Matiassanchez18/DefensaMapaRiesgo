@@ -2,8 +2,7 @@ import AccionesRapidas from "../Components/AccionesRapidas";
 import InformacionMapa from "../Components/InformacionMapa";
 import Navbar from "../Components/Navbar";
 import UltimoIncidente from "../components/UltimoIncidencia";
-import Footer from "../Components/Footer";
-
+import Footer from "../components/Footer";
 
 function Home() {
   const incidenteReciente = {
