@@ -8,7 +8,10 @@ return(
 
 <div>
 <Navbar></Navbar>
+<div className="my-5 mb-20">
 <Outlet></Outlet>
+
+</div>
 <Footer></Footer>
 
 </div>

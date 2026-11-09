@@ -1,6 +1,12 @@
-import {NavLink} from "react-router-dom"
- 
+
+import { NavLink } from "react-router-dom";
+
 function Footer() {
+  const estiloNav = ({ isActive }) =>
+    `flex min-h-[55px] flex-col items-center justify-center gap-0.5 no-underline transition md:min-h-[65px] lg:min-h-[45px] ${
+      isActive ? "text-white" : "text-gray-400 hover:text-white"
+    }`;
+
   return (
     <div>
       <footer className="fixed bottom-0 left-0 z-50 w-full bg-[#1b2b3a] text-[#f1f3f5]">
@@ -36,30 +42,21 @@ function Footer() {
         </div>
 
         <nav className="grid grid-cols-3 text-center lg:py-0">
-          <NavLink
-            to="/"
-            className="flex min-h-[55px] flex-col items-center justify-center gap-0.5 text-gray-400 no-underline transition hover:text-white md:min-h-[65px] lg:min-h-[45px]"
-          >
+          <NavLink to="/" end className={estiloNav}>
             <i className="bi bi-house-fill text-2xl lg:text-lg"></i>
             <small className="text-xs leading-tight md:text-[13px] lg:text-[10px]">
               Inicio
             </small>
           </NavLink>
 
-          <NavLink
-            to="/mapa"
-            className="flex min-h-[55px] flex-col items-center justify-center gap-0.5 text-[#14daaf] no-underline transition hover:text-white md:min-h-[65px] lg:min-h-[45px]"
-          >
+          <NavLink to="/mapa" className={estiloNav}>
             <i className="bi bi-geo-alt-fill text-2xl lg:text-lg"></i>
             <small className="text-xs leading-tight md:text-[13px] lg:text-[10px]">
               Mapa
             </small>
           </NavLink>
 
-          <NavLink
-            to="/denuncia"
-            className="flex min-h-[55px] flex-col items-center justify-center gap-0.5 text-gray-400 no-underline transition hover:text-white md:min-h-[65px] lg:min-h-[45px]"
-          >
+          <NavLink to="/denuncia" className={estiloNav}>
             <i className="bi bi-plus-lg text-2xl lg:text-lg"></i>
             <small className="text-xs leading-tight md:text-[13px] lg:text-[10px]">
               Denuncia
@@ -70,4 +67,5 @@ function Footer() {
     </div>
   );
 }
+
 export default Footer;

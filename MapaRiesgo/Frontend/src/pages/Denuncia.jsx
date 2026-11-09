@@ -5,7 +5,7 @@ function Denuncia() {
   return (
     <>
       <main>
-        <Reporte />
+        <Reporte/>
       </main>
       
     </>
