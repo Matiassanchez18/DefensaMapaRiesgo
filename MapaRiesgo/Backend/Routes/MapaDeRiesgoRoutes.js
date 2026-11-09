@@ -2,13 +2,12 @@
 const express = require("express");
 const router = express.Router();
 
-const validarReporte = require("../middlewares/validarReporte");
+const {
+  obtenerDelitos,
+  agregarDelito,
+} = require("../controllers/delitoController");
 
-router.post("/", validarReporte, (req, res) => {
-  res.json({
-    mensaje: "Reporte validado correctamente",
-    datos: req.body,
-  });
-});
+router.get("/", obtenerDelitos);
+router.post("/", agregarDelito);
 
 module.exports = router;
