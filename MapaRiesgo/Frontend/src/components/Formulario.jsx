@@ -5,28 +5,52 @@ function Formulario({ darValor }) {
     darValor(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const datosFormulario = new FormData(e.target);
 
     const reporte = {
-      id_delito: datosFormulario.get("id_delito"),
+      id_delito: Number(datosFormulario.get("id_delito")),
       direccion: datosFormulario.get("direccion"),
       descripcion: datosFormulario.get("descripcion"),
       testigos: datosFormulario.get("testigos") === "si",
     };
 
-    console.log("Datos del reporte:", reporte);
+    try {
+      const respuesta = await fetch("http://localhost:3000/api/reportes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reporte),
+      });
 
-    // Acá después conectamos el formulario con el backend.
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        console.log("Respuesta del backend:", datos);
+        console.log(
+          "Errores de validación:",
+          JSON.stringify(datos.errores, null, 2),
+        );
+
+        throw new Error(datos.mensaje || "Error al guardar el reporte");
+      }
+      alert("¡Reporte guardado correctamente!");
+
+      e.target.reset();
+      ocultarModal();
+    } catch (error) {
+      console.error("Error al guardar el reporte:", error);
+      alert(error.message);
+    }
   };
 
   return (
     <div className="modal">
       <div className="form-reporte">
         <div className="reporte-card">
-
           <button
             type="button"
             className="reporte-cerrar"
@@ -41,9 +65,9 @@ function Formulario({ darValor }) {
           </div>
 
           <form className="reporte-form" onSubmit={handleSubmit}>
-
             <div className="reporte-campo">
               <label htmlFor="id_delito">Tipo de delito</label>
+
               <select
                 id="id_delito"
                 name="id_delito"
@@ -61,6 +85,7 @@ function Formulario({ darValor }) {
 
             <div className="reporte-campo">
               <label htmlFor="direccion">Dirección o referencia</label>
+
               <input
                 type="text"
                 id="direccion"
@@ -76,21 +101,12 @@ function Formulario({ darValor }) {
 
               <div className="reporte-opciones">
                 <label className="reporte-opcion">
-                  <input
-                    type="radio"
-                    name="testigos"
-                    value="si"
-                    required
-                  />
+                  <input type="radio" name="testigos" value="si" required />
                   Sí
                 </label>
 
                 <label className="reporte-opcion">
-                  <input
-                    type="radio"
-                    name="testigos"
-                    value="no"
-                  />
+                  <input type="radio" name="testigos" value="no" />
                   No
                 </label>
               </div>
@@ -98,6 +114,7 @@ function Formulario({ darValor }) {
 
             <div className="reporte-campo">
               <label htmlFor="descripcion">Descripción del hecho</label>
+
               <textarea
                 id="descripcion"
                 name="descripcion"
@@ -117,14 +134,10 @@ function Formulario({ darValor }) {
                 Cancelar
               </button>
 
-              <button
-                type="submit"
-                className="reporte-btn-enviar"
-              >
+              <button type="submit" className="reporte-btn-enviar">
                 Enviar reporte
               </button>
             </div>
-
           </form>
         </div>
       </div>

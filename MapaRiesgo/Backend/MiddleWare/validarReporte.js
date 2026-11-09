@@ -36,7 +36,6 @@ const validarReporte = (req, res, next) => {
   }
 
   req.body = resultado.data;
-
   next();
 };
 
