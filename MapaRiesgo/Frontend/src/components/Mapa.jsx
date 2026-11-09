@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 
@@ -13,10 +14,44 @@ import UbicacionUsuario from "./UbicacionUsuario";
 function Mapa() {
   const [modal, setModal] = useState(false);
   const [ubicacion, setUbicacion] = useState(null);
+  const [errorGPS, setErrorGPS] = useState("");
 
   useEffect(() => {
-    const mapa = document.querySelector(".leaflet-container");
+    if (!navigator.geolocation) {
+      setErrorGPS("Tu navegador no admite geolocalización.");
+      return;
+    }
 
+    const idSeguimiento = navigator.geolocation.watchPosition(
+      (resultado) => {
+        const coordenadas = [
+          resultado.coords.latitude,
+          resultado.coords.longitude,
+        ];
+
+        setUbicacion(coordenadas);
+        setErrorGPS("");
+      },
+      (error) => {
+        console.error("Error de geolocalización:", error);
+        setErrorGPS("No se pudo obtener tu ubicación. Revisá los permisos del navegador.");
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 30000,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(idSeguimiento);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!ubicacion) return;
+
+    const mapa = document.querySelector(".leaflet-container");
     if (!mapa) return;
 
     const bloquearScroll = () => {
@@ -39,7 +74,7 @@ function Mapa() {
       document.removeEventListener("mouseup", habilitarScroll);
       habilitarScroll();
     };
-  }, []);
+  }, [ubicacion !== null]);
 
   const darValor = (dato) => {
     setModal(dato);
@@ -71,32 +106,37 @@ function Mapa() {
 
         <div className="mapa-container">
           <div className="contendor-mapa">
-            <MapContainer
-              center={[-26.8241, -65.2226]}
-              zoom={13}
-              id="map"
-              scrollWheelZoom={true}
-              dragging={true}
-              touchZoom={true}
-              doubleClickZoom={true}
-              keyboard={true}
-            >
-              <TileLayer
-                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                maxZoom={19}
-                attribution="OpenStreetMap"
-              />
+            {ubicacion ? (
+              <MapContainer
+                center={ubicacion}
+                zoom={16}
+                id="map"
+                scrollWheelZoom={true}
+                dragging={true}
+                touchZoom={true}
+                doubleClickZoom={true}
+                keyboard={true}
+              >
+                <TileLayer
+                  url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  maxZoom={19}
+                  attribution="OpenStreetMap"
+                />
 
-              <ZonasRiesgo />
+                <ZonasRiesgo />
 
-              <UbicacionUsuario
-                onUbicacionChange={setUbicacion}
-              />
-            </MapContainer>
+                <UbicacionUsuario posicion={ubicacion} />
+              </MapContainer>
+            ) : (
+              <div className="flex h-full min-h-[400px] items-center justify-center text-white">
+                {errorGPS || "Obteniendo tu ubicación..."}
+              </div>
+            )}
 
             <button
               type="button"
               onClick={modalHandle}
+              disabled={!ubicacion}
               className="botonReporte flex items-center gap-2 rounded-full bg-[#032f5c] px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-[#064078] active:scale-95"
             >
               <i className="bi bi-plus-lg text-lg"></i>
@@ -112,12 +152,9 @@ function Mapa() {
             </button>
           </div>
 
-          {modal && (
-            <Formulario
-              darValor={darValor}
-              ubicacion={ubicacion}
-            />
-          )}
+          {modal && ubicacion ? (
+            <Formulario darValor={darValor} ubicacion={ubicacion} />
+          ) : null}
         </div>
       </div>
 

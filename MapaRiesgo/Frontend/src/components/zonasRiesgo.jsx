@@ -41,9 +41,7 @@ function ZonasRiesgo() {
   useEffect(() => {
     const cargarReportes = async () => {
       try {
-        const respuesta = await fetch(
-          "http://localhost:3000/api/reportes"
-        );
+        const respuesta = await fetch("http://localhost:3000/api/reportes");
 
         if (!respuesta.ok) {
           throw new Error("No se pudieron obtener los reportes");
@@ -69,18 +67,12 @@ function ZonasRiesgo() {
       .filter(
         (r) =>
           Number.isFinite(Number(r.latitud)) &&
-          Number.isFinite(Number(r.longitud))
+          Number.isFinite(Number(r.longitud)),
       )
-      .map((r) => [
-        Number(r.latitud),
-        Number(r.longitud),
-      ]);
+      .map((r) => [Number(r.latitud), Number(r.longitud)]);
 
     if (posiciones.length > 0) {
-      mapa.fitBounds(posiciones, {
-        padding: [40, 40],
-        maxZoom: 15,
-      });
+        
     }
   }, [reportes, mapa]);
 
