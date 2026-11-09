@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 
@@ -31,7 +30,7 @@ function Mapa() {
 
     if (!window.isSecureContext) {
       setErrorGPS(
-        "La conexión no es segura. Necesitás abrir la web mediante HTTPS."
+        "La conexión no es segura. Necesitás abrir la web mediante HTTPS.",
       );
       return;
     }
@@ -56,16 +55,18 @@ function Mapa() {
         switch (error.code) {
           case 1:
             setErrorGPS(
-              "Permiso de ubicación denegado. Revisá los permisos de Chrome."
+              "Permiso de ubicación denegado. Revisá los permisos de Chrome.",
             );
             break;
           case 2:
             setErrorGPS(
-              "No se pudo determinar la ubicación. Revisá que el GPS esté activado."
+              "No se pudo determinar la ubicación. Revisá que el GPS esté activado.",
             );
             break;
           case 3:
-            setErrorGPS("Se agotó el tiempo de espera para obtener tu ubicación.");
+            setErrorGPS(
+              "Se agotó el tiempo de espera para obtener tu ubicación.",
+            );
             break;
           default:
             setErrorGPS("Ocurrió un error al obtener tu ubicación.");
@@ -75,7 +76,7 @@ function Mapa() {
         enableHighAccuracy: true,
         maximumAge: 10000,
         timeout: 60000,
-      }
+      },
     );
 
     return () => {
@@ -131,8 +132,6 @@ function Mapa() {
     setModal(true);
   };
 
-  // Si hay un punto marcado manualmente, tiene prioridad.
-  // Si no, se utilizan las coordenadas del GPS.
   const coordenadasReporte = posicionSeleccionada || ubicacion;
 
   return (
@@ -173,8 +172,10 @@ function Mapa() {
                   maxZoom={19}
                   attribution="OpenStreetMap"
                 />
-
-                <ZonasRiesgo />
+                <ZonasRiesgo
+                  seleccionandoUbicacion={seleccionandoUbicacion}
+                  finalizarSeleccion={finalizarSeleccion}
+                />
 
                 <UbicacionUsuario posicion={ubicacion} />
 

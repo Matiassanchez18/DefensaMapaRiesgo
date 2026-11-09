@@ -23,7 +23,6 @@ function agruparPorCelda(reportes) {
 
     const fila = Math.floor(lat / TAM_CELDA);
     const columna = Math.floor(lng / TAM_CELDA);
-
     const clave = `${fila}_${columna}`;
 
     if (!celdas[clave]) {
@@ -38,7 +37,6 @@ function agruparPorCelda(reportes) {
 
 function rotarPunto(cx, cy, x, y, angulo) {
   const rad = (angulo * Math.PI) / 180;
-
   const dx = x - cx;
   const dy = y - cy;
 
@@ -48,7 +46,10 @@ function rotarPunto(cx, cy, x, y, angulo) {
   };
 }
 
-function ZonasRiesgo() {
+function ZonasRiesgo({
+  seleccionandoUbicacion,
+  finalizarSeleccion,
+}) {
   const [reportes, setReportes] = useState([]);
 
   useEffect(() => {
@@ -83,14 +84,12 @@ function ZonasRiesgo() {
 
         const sur = fila * TAM_CELDA;
         const oeste = columna * TAM_CELDA;
-
         const norte = sur + TAM_CELDA;
         const este = oeste + TAM_CELDA;
 
         const centroLat = (sur + norte) / 2;
         const centroLng = (oeste + este) / 2;
 
-        // Rotamos las cuatro esquinas de la celda.
         const posiciones = [
           rotarPunto(centroLat, centroLng, sur, oeste, ANGULO),
           rotarPunto(centroLat, centroLng, sur, este, ANGULO),
@@ -114,6 +113,17 @@ function ZonasRiesgo() {
           <Polygon
             key={clave}
             positions={posiciones}
+            bubblingMouseEvents={false}
+            eventHandlers={{
+              click: (e) => {
+                if (seleccionandoUbicacion) {
+                  finalizarSeleccion([
+                    e.latlng.lat,
+                    e.latlng.lng,
+                  ]);
+                }
+              },
+            }}
             pathOptions={{
               color,
               fillColor: color,
@@ -122,13 +132,24 @@ function ZonasRiesgo() {
               weight: 1,
             }}
           >
-            <Popup>
-              <strong>Zona de riesgo</strong>
-              <br />
-              Reportes registrados: {cantidad}
-              <br />
-              Nivel: {nivel}
-            </Popup>
+            {!seleccionandoUbicacion && (
+              <Popup>
+                <strong>Zona de riesgo</strong>
+                <br />
+                Reportes registrados: {cantidad}
+                <br />
+                Nivel: {nivel}
+                <br />
+                <strong>Últimos reportes:</strong>
+
+                {grupo.slice(-3).reverse().map((reporte) => (
+                  <div key={reporte.id_reporte}>
+                    <hr />
+                    {reporte.descripcion}
+                  </div>
+                ))}
+              </Popup>
+            )}
           </Polygon>
         );
       })}
