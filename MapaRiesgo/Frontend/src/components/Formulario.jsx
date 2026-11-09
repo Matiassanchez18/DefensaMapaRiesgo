@@ -1,6 +1,7 @@
+
 import "../style/Formulario.css";
 
-function Formulario({ darValor, ubicacion }) {
+function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
   const ocultarModal = () => {
     darValor(false);
   };
@@ -8,12 +9,8 @@ function Formulario({ darValor, ubicacion }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Ubicación del usuario:", ubicacion);
-
     if (!ubicacion) {
-      alert(
-        "No se pudo obtener tu ubicación. Permití el acceso a la ubicación.",
-      );
+      alert("Seleccioná una ubicación en el mapa antes de enviar.");
       return;
     }
 
@@ -28,8 +25,6 @@ function Formulario({ darValor, ubicacion }) {
       longitud: ubicacion[1],
     };
 
-    console.log("Datos que se envían:", reporte);
-
     try {
       const respuesta = await fetch("http://localhost:3000/api/reportes", {
         method: "POST",
@@ -42,12 +37,6 @@ function Formulario({ darValor, ubicacion }) {
       const datos = await respuesta.json();
 
       if (!respuesta.ok) {
-        console.log("Respuesta del backend:", datos);
-        console.log(
-          "Errores de validación:",
-          JSON.stringify(datos.errores, null, 2),
-        );
-
         throw new Error(datos.mensaje || "Error al guardar el reporte");
       }
 
@@ -81,7 +70,6 @@ function Formulario({ darValor, ubicacion }) {
           <form className="reporte-form" onSubmit={handleSubmit}>
             <div className="reporte-campo">
               <label htmlFor="id_delito">Tipo de delito</label>
-
               <select
                 id="id_delito"
                 name="id_delito"
@@ -99,7 +87,6 @@ function Formulario({ darValor, ubicacion }) {
 
             <div className="reporte-campo">
               <label htmlFor="direccion">Dirección o referencia</label>
-
               <input
                 type="text"
                 id="direccion"
@@ -112,13 +99,11 @@ function Formulario({ darValor, ubicacion }) {
 
             <div className="reporte-campo">
               <label>¿Hubo testigos?</label>
-
               <div className="reporte-opciones">
                 <label className="reporte-opcion">
                   <input type="radio" name="testigos" value="si" required />
                   Sí
                 </label>
-
                 <label className="reporte-opcion">
                   <input type="radio" name="testigos" value="no" />
                   No
@@ -128,7 +113,6 @@ function Formulario({ darValor, ubicacion }) {
 
             <div className="reporte-campo">
               <label htmlFor="descripcion">Descripción del hecho</label>
-
               <textarea
                 id="descripcion"
                 name="descripcion"
@@ -137,6 +121,25 @@ function Formulario({ darValor, ubicacion }) {
                 rows="4"
                 required
               />
+            </div>
+
+            <div className="reporte-campo">
+              <label>Ubicación del incidente</label>
+
+              <button
+                type="button"
+                className="reporte-input-icono"
+                onClick={seleccionarEnMapa}
+              >
+                <i className="bi bi-geo-alt"></i>
+                Seleccionar ubicación en el mapa
+              </button>
+
+              <p>
+                {ubicacion
+                  ? "Ubicación seleccionada correctamente."
+                  : "Todavía no seleccionaste una ubicación."}
+              </p>
             </div>
 
             <div className="reporte-acciones">

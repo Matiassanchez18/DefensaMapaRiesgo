@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer } from "react-leaflet";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
 import "../Style/Mapa.css";
@@ -10,15 +10,22 @@ import ReporteMapa from "./ReporteMapa";
 import Formulario from "./Formulario";
 import Footer from "./Footer";
 import UbicacionUsuario from "./UbicacionUsuario";
+import SeleccionarUbicacion from "./SeleccionarUbicacion";
 
 function Mapa() {
   const [modal, setModal] = useState(false);
   const [ubicacion, setUbicacion] = useState(null);
-  const [errorGPS, setErrorGPS] = useState("");
 
+  // Ubicación elegida para el incidente
+  const [posicionSeleccionada, setPosicionSeleccionada] = useState(null);
+
+  // Activa o desactiva la selección mediante clic
+  const [seleccionandoUbicacion, setSeleccionandoUbicacion] = useState(false);
+
+  // Obtener y seguir la ubicación GPS
   useEffect(() => {
     if (!navigator.geolocation) {
-      setErrorGPS("Tu navegador no admite geolocalización.");
+      console.error("Tu navegador no admite geolocalización");
       return;
     }
 
@@ -30,15 +37,16 @@ function Mapa() {
         ];
 
         setUbicacion(coordenadas);
-        setErrorGPS("");
       },
       (error) => {
-        console.error("Error de geolocalización:", error);
-        setErrorGPS("No se pudo obtener tu ubicación. Revisá los permisos del navegador.");
+        console.error("Error de geolocalización:", {
+          codigo: error.code,
+          mensaje: error.message,
+        });
       },
       {
         enableHighAccuracy: true,
-        maximumAge: 0,
+        maximumAge: 5000,
         timeout: 30000,
       }
     );
@@ -48,10 +56,12 @@ function Mapa() {
     };
   }, []);
 
+  // Controlar el desplazamiento de la página al arrastrar el mapa
   useEffect(() => {
     if (!ubicacion) return;
 
     const mapa = document.querySelector(".leaflet-container");
+
     if (!mapa) return;
 
     const bloquearScroll = () => {
@@ -72,6 +82,7 @@ function Mapa() {
       mapa.removeEventListener("mousedown", bloquearScroll);
       mapa.removeEventListener("mouseleave", habilitarScroll);
       document.removeEventListener("mouseup", habilitarScroll);
+
       habilitarScroll();
     };
   }, [ubicacion !== null]);
@@ -82,6 +93,19 @@ function Mapa() {
 
   const modalHandle = () => {
     setModal(!modal);
+  };
+
+  // Se ejecuta desde el botón del formulario
+  const seleccionarEnMapa = () => {
+    setModal(false);
+    setSeleccionandoUbicacion(true);
+  };
+
+  // Se ejecuta cuando el usuario hace clic en el mapa
+  const finalizarSeleccion = (coordenadas) => {
+    setPosicionSeleccionada(coordenadas);
+    setSeleccionandoUbicacion(false);
+    setModal(true);
   };
 
   return (
@@ -109,7 +133,7 @@ function Mapa() {
             {ubicacion ? (
               <MapContainer
                 center={ubicacion}
-                zoom={16}
+                zoom={17}
                 id="map"
                 scrollWheelZoom={true}
                 dragging={true}
@@ -126,10 +150,22 @@ function Mapa() {
                 <ZonasRiesgo />
 
                 <UbicacionUsuario posicion={ubicacion} />
+
+                {/* Selección del punto del incidente */}
+                {seleccionandoUbicacion && (
+                  <SeleccionarUbicacion
+                    finalizarSeleccion={finalizarSeleccion}
+                  />
+                )}
+
+                {/* Marcador permanente del punto seleccionado */}
+                {posicionSeleccionada && (
+                  <Marker position={posicionSeleccionada} />
+                )}
               </MapContainer>
             ) : (
               <div className="flex h-full min-h-[400px] items-center justify-center text-white">
-                {errorGPS || "Obteniendo tu ubicación..."}
+                Obteniendo tu ubicación...
               </div>
             )}
 
@@ -150,11 +186,21 @@ function Mapa() {
             >
               <i className="bi bi-arrows-angle-expand"></i>
             </button>
+
+            {seleccionandoUbicacion && (
+              <div className="absolute top-4 left-1/2 z-[1000] -translate-x-1/2 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-lg">
+                Hacé clic en el mapa para marcar el incidente
+              </div>
+            )}
           </div>
 
-          {modal && ubicacion ? (
-            <Formulario darValor={darValor} ubicacion={ubicacion} />
-          ) : null}
+          {modal && ubicacion && (
+            <Formulario
+              darValor={darValor}
+              ubicacion={posicionSeleccionada}
+              seleccionarEnMapa={seleccionarEnMapa}
+            />
+          )}
         </div>
       </div>
 
