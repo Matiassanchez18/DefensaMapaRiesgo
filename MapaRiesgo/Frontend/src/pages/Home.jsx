@@ -1,6 +1,5 @@
 import AccionesRapidas from "../Components/AccionesRapidas";
 import InformacionMapa from "../Components/InformacionMapa";
-import Navbar from "../Components/Navbar";
 import UltimoIncidente from "../components/UltimoIncidencia";
 import Footer from "../components/Footer";
 
@@ -14,7 +13,6 @@ function Home() {
 
   return (
     <div>
-      <Navbar />
       <main className="mx-auto mt-6 w-full max-w-6xl space-y-6 px-4 pb-10">
         <UltimoIncidente incidente={incidenteReciente}></UltimoIncidente>
         <AccionesRapidas />

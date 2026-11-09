@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import "../Style/Mapa.css";
 
@@ -69,20 +68,18 @@ function ReporteMapa({ ubicacion }) {
   const celdaUsuario = obtenerCelda(ubicacion[0], ubicacion[1]);
 
   const reportesZona = reportes.filter((reporte) => {
-    return (
-      obtenerCelda(reporte.latitud, reporte.longitud) === celdaUsuario
-    );
+    return obtenerCelda(reporte.latitud, reporte.longitud) === celdaUsuario;
   });
 
   const esZonaPeligrosa = reportesZona.length >= 4;
 
   const reportesOrdenados = [...reportesZona].sort((a, b) => {
     const fechaA = new Date(
-      `${String(a.fecha).slice(0, 10)}T${a.hora || "00:00:00"}`
+      `${String(a.fecha).slice(0, 10)}T${a.hora || "00:00:00"}`,
     ).getTime();
 
     const fechaB = new Date(
-      `${String(b.fecha).slice(0, 10)}T${b.hora || "00:00:00"}`
+      `${String(b.fecha).slice(0, 10)}T${b.hora || "00:00:00"}`,
     ).getTime();
 
     return fechaB - fechaA;
@@ -102,25 +99,28 @@ function ReporteMapa({ ubicacion }) {
     <div className="card-reporte">
       <div className="mb-4 w-full max-w-xl mx-auto p-2 mt-2">
         <div className="rounded-xl border border-gray-700 bg-[#1b263b] p-4 shadow-md">
-
-          <h2 className={`mb-3 flex items-center gap-2 text-lg font-semibold ${
-            esZonaPeligrosa ? "text-red-500" : "text-blue-400"
-          }`}>
+          <h2
+            className={`mb-3 flex items-center gap-2 text-lg font-semibold ${
+              esZonaPeligrosa ? "text-red-500" : "text-blue-400"
+            }`}
+          >
             {esZonaPeligrosa
               ? "Estás en una zona peligrosa"
               : "Último hecho delictivo en tu zona"}
 
-            <i className={`bi ${
-              esZonaPeligrosa
-                ? "bi-exclamation-circle"
-                : "bi-shield-exclamation"
-            }`}></i>
+            <i
+              className={`bi ${
+                esZonaPeligrosa
+                  ? "bi-exclamation-circle"
+                  : "bi-shield-exclamation"
+              }`}
+            ></i>
           </h2>
 
           {ultimoReporte ? (
             <>
               <p className="mb-3 flex items-center gap-2 text-sm text-gray-300">
-               <b>Ultimo hecho:</b> 
+                <b>Ultimo hecho:</b>
                 <i className="bi bi-exclamation-triangle text-yellow-400"></i>
                 {nombresDelitos[Number(ultimoReporte.id_delito)] || "Delito"}
                 <i className="bi bi-circle-fill text-red-500"></i>
@@ -132,7 +132,8 @@ function ReporteMapa({ ubicacion }) {
 
               {ultimoReporte.hora && (
                 <p className="mb-2 text-sm text-gray-300">
-                  <strong>Hora:</strong> {String(ultimoReporte.hora).slice(0, 8)}
+                  <strong>Hora:</strong>{" "}
+                  {String(ultimoReporte.hora).slice(0, 8)}
                 </p>
               )}
 
@@ -151,7 +152,6 @@ function ReporteMapa({ ubicacion }) {
               No hay hechos delictivos registrados en tu zona.
             </p>
           )}
-
         </div>
       </div>
     </div>
