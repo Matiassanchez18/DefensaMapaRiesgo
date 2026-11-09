@@ -367,7 +367,7 @@ function Mapa() {
       </div>
 
       <div className="container card-reporte mx-auto mt-4 px-4">
-        <ReporteMapa />
+       <ReporteMapa ubicacion={ubicacion} />
       </div>
 
       <Footer />

@@ -10,49 +10,62 @@ function Formulario({
     darValor(false);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ 
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!ubicacion) {
-      alert("No se pudo obtener ninguna ubicación.");
-      return;
-    }
+  if (!ubicacion) {
+    alert("No se pudo obtener ninguna ubicación.");
+    return;
+  }
 
-    const datosFormulario = new FormData(e.target);
+  const datosFormulario = new FormData(e.target);
 
-    const reporte = {
-      id_delito: Number(datosFormulario.get("id_delito")),
-      direccion: datosFormulario.get("direccion"),
-      descripcion: datosFormulario.get("descripcion"),
-      testigos: datosFormulario.get("testigos") === "si",
-      latitud: ubicacion[0],
-      longitud: ubicacion[1],
-    };
+  const reporte = {
+    id_delito: Number(datosFormulario.get("id_delito")),
+    direccion: datosFormulario.get("direccion").trim(),
+    descripcion: datosFormulario.get("descripcion").trim(),
+    testigos: datosFormulario.get("testigos") === "si",
+    latitud: Number(ubicacion[0]),
+    longitud: Number(ubicacion[1]),
+  };
 
-    try {
-      const respuesta = await fetch("http://localhost:3000/api/reportes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(reporte),
-      });
+  console.log("Datos enviados:", reporte);
 
-      const datos = await respuesta.json();
+  try {
+    const respuesta = await fetch("http://localhost:3000/api/reportes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(reporte),
+    });
 
-      if (!respuesta.ok) {
-        throw new Error(datos.mensaje || "Error al guardar el reporte");
+    const datos = await respuesta.json();
+
+    if (!respuesta.ok) {
+      if (datos.errores && datos.errores.length > 0) {
+        const mensajes = datos.errores
+          .map((error) => `${error.campo}: ${error.mensaje}`)
+          .join("\n");
+
+        throw new Error(mensajes);
       }
 
-      alert("¡Reporte guardado correctamente!");
-
-      e.target.reset();
-      ocultarModal();
-    } catch (error) {
-      console.error("Error al guardar el reporte:", error);
-      alert(error.message);
+      throw new Error(datos.mensaje || "Error al guardar el reporte");
     }
-  };
+
+    alert("¡Reporte guardado correctamente!");
+
+    e.target.reset();
+    ocultarModal();
+
+  } catch (error) {
+    console.error("Error al guardar el reporte:", error);
+    alert(error.message);
+  }
+};
+
 
   return (
     <div className="modal">
