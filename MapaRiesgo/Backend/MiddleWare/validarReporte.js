@@ -20,6 +20,14 @@ const reporteSchema = z.object({
   testigos: z.boolean({
     error: "Indicá si hubo testigos",
   }),
+
+  latitud: z.coerce.number()
+    .min(-90)
+    .max(90),
+
+  longitud: z.coerce.number()
+    .min(-180)
+    .max(180),
 });
 
 const validarReporte = (req, res, next) => {

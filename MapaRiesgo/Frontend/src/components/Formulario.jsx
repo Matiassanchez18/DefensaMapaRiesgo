@@ -1,12 +1,21 @@
 import "../style/Formulario.css";
 
-function Formulario({ darValor }) {
+function Formulario({ darValor, ubicacion }) {
   const ocultarModal = () => {
     darValor(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log("Ubicación del usuario:", ubicacion);
+
+    if (!ubicacion) {
+      alert(
+        "No se pudo obtener tu ubicación. Permití el acceso a la ubicación.",
+      );
+      return;
+    }
 
     const datosFormulario = new FormData(e.target);
 
@@ -15,7 +24,11 @@ function Formulario({ darValor }) {
       direccion: datosFormulario.get("direccion"),
       descripcion: datosFormulario.get("descripcion"),
       testigos: datosFormulario.get("testigos") === "si",
+      latitud: ubicacion[0],
+      longitud: ubicacion[1],
     };
+
+    console.log("Datos que se envían:", reporte);
 
     try {
       const respuesta = await fetch("http://localhost:3000/api/reportes", {
@@ -37,6 +50,7 @@ function Formulario({ darValor }) {
 
         throw new Error(datos.mensaje || "Error al guardar el reporte");
       }
+
       alert("¡Reporte guardado correctamente!");
 
       e.target.reset();

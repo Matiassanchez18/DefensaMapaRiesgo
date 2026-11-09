@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useMap, CircleMarker, Circle, Popup } from "react-leaflet";
 
-function UbicacionUsuario() {
+function UbicacionUsuario({ onUbicacionChange }) {
   const mapa = useMap();
   const [posicion, setPosicion] = useState(null);
 
@@ -20,7 +20,9 @@ function UbicacionUsuario() {
         const coordenadas = [lat, lng];
 
         setPosicion(coordenadas);
-        mapa.setView(coordenadas, 17);
+        onUbicacionChange(coordenadas);
+
+        mapa.setView(coordenadas, mapa.getZoom());
       },
       (error) => {
         console.error("Error al obtener ubicación:", error.message);
@@ -35,7 +37,7 @@ function UbicacionUsuario() {
     return () => {
       navigator.geolocation.clearWatch(idSeguimiento);
     };
-  }, [mapa]);
+  }, [mapa, onUbicacionChange]);
 
   if (!posicion) return null;
 

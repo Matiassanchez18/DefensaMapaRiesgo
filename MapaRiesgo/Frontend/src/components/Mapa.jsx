@@ -4,6 +4,7 @@ import { MapContainer, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "../Style/Mapa.css";
 
+import ZonasRiesgo from "./zonasRiesgo";
 import ReporteMapa from "./ReporteMapa";
 import Formulario from "./Formulario";
 import Footer from "./Footer";
@@ -11,6 +12,7 @@ import UbicacionUsuario from "./UbicacionUsuario";
 
 function Mapa() {
   const [modal, setModal] = useState(false);
+  const [ubicacion, setUbicacion] = useState(null);
 
   useEffect(() => {
     const mapa = document.querySelector(".leaflet-container");
@@ -70,9 +72,9 @@ function Mapa() {
 
         <div className="mapa-container">
           <div className="contendor-mapa">
-<MapContainer
+          <MapContainer
   center={[-26.8241, -65.2226]}
-  zoom={17}
+  zoom={13}
   id="map"
   scrollWheelZoom={true}
   dragging={true}
@@ -80,14 +82,16 @@ function Mapa() {
   doubleClickZoom={true}
   keyboard={true}
 >
-              <TileLayer
-                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                maxZoom={19}
-                attribution="OpenStreetMap"
-              />
+  <TileLayer
+    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    maxZoom={19}
+    attribution="OpenStreetMap"
+  />
 
-              <UbicacionUsuario />
-            </MapContainer>
+  <ZonasRiesgo />
+
+  <UbicacionUsuario onUbicacionChange={setUbicacion} />
+</MapContainer>
 
             <button
               type="button"
@@ -107,7 +111,9 @@ function Mapa() {
             </button>
           </div>
 
-          {modal ? <Formulario darValor={darValor} /> : null}
+          {modal ? (
+            <Formulario darValor={darValor} ubicacion={ubicacion} />
+          ) : null}
         </div>
       </div>
 
