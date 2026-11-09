@@ -241,6 +241,10 @@
   line-height: 1.5;
 }
 
+.leaflet-container {
+  touch-action: none;
+}
+
 .reporte-acciones {
   display: flex;
   justify-content: flex-end;

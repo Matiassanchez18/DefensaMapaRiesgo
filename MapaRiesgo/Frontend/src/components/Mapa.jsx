@@ -1,24 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
+
 import "leaflet/dist/leaflet.css";
 import "../Style/Mapa.css";
+
 import ReporteMapa from "./ReporteMapa";
 import Formulario from "./Formulario";
 import Footer from "./Footer";
+import UbicacionUsuario from "./UbicacionUsuario";
 
 function Mapa() {
   const [modal, setModal] = useState(false);
-  const [valor, setValor] = useState(false);
+
+  useEffect(() => {
+    const mapa = document.querySelector(".leaflet-container");
+
+    if (!mapa) return;
+
+    const bloquearScroll = () => {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    };
+
+    const habilitarScroll = () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+
+    mapa.addEventListener("mousedown", bloquearScroll);
+    mapa.addEventListener("mouseleave", habilitarScroll);
+    document.addEventListener("mouseup", habilitarScroll);
+
+    return () => {
+      mapa.removeEventListener("mousedown", bloquearScroll);
+      mapa.removeEventListener("mouseleave", habilitarScroll);
+      document.removeEventListener("mouseup", habilitarScroll);
+
+      habilitarScroll();
+    };
+  }, []);
 
   const darValor = (dato) => {
-    setValor(dato);
     setModal(dato);
   };
 
   const modalHandle = () => {
     setModal(!modal);
   };
-  console.log(valor);
+
   return (
     <div>
       <div>
@@ -41,17 +70,23 @@ function Mapa() {
 
         <div className="mapa-container">
           <div className="contendor-mapa">
-            <MapContainer
-              center={[-26.8241, -65.2226]}
-              zoom={13}
-              id="map"
-              scrollWheelZoom={true}
-            >
+<MapContainer
+  center={[-26.8241, -65.2226]}
+  zoom={17}
+  id="map"
+  scrollWheelZoom={true}
+  dragging={true}
+  touchZoom={true}
+  doubleClickZoom={true}
+  keyboard={true}
+>
               <TileLayer
                 url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
                 maxZoom={19}
                 attribution="OpenStreetMap"
               />
+
+              <UbicacionUsuario />
             </MapContainer>
 
             <button
@@ -71,17 +106,16 @@ function Mapa() {
               <i className="bi bi-arrows-angle-expand"></i>
             </button>
           </div>
-          {modal ? <Formulario darValor={darValor}></Formulario> : <></>}
+
+          {modal ? <Formulario darValor={darValor} /> : null}
         </div>
       </div>
 
       <div className="container card-reporte mx-auto px-4 mt-4">
-        <ReporteMapa></ReporteMapa>
+        <ReporteMapa />
       </div>
 
-      <div>
-        <Footer></Footer>
-      </div>
+      <Footer />
     </div>
   );
 }
