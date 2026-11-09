@@ -1,18 +1,53 @@
+
 import { useEffect, useState } from "react";
-import { CircleMarker, Popup } from "react-leaflet";
+import { Marker, Popup } from "react-leaflet";
+import L from "leaflet";
 
 function Comisarias() {
   const [comisarias, setComisarias] = useState([]);
 
+
+const API_URL = "http://localhost:3000/api/comisarias";
+
+const iconoPolicia = L.divIcon({
+  className: "dependencia-marcador",
+  html: `
+    <div style="
+      width: 40px;
+      height: 40px;
+      border: 2px solid #2563eb;
+      border-radius: 50%;
+      background: white;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    ">
+      <img
+        src="/policia.png"
+        style="
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        "
+      />
+    </div>
+  `,
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+  popupAnchor: [0, -11],
+});
+
+
   useEffect(() => {
-    const obtenerComisarias = async () => {
+    const obtenerDependencias = async () => {
       try {
-        const respuesta = await fetch(
-          "http://localhost:3000/api/comisarias"
-        );
+        const respuesta = await fetch(API_URL);
 
         if (!respuesta.ok) {
-          throw new Error("No se pudieron obtener las dependencias");
+          throw new Error("Error al obtener dependencias");
         }
 
         const datos = await respuesta.json();
@@ -22,72 +57,51 @@ function Comisarias() {
       }
     };
 
-    obtenerComisarias();
+    obtenerDependencias();
   }, []);
 
   return (
     <>
       {comisarias.map((comisaria) => {
-        const posicion = [
-          Number(comisaria.latitud),
-          Number(comisaria.longitud),
-        ];
+        const latitud = Number(comisaria.latitud);
+        const longitud = Number(comisaria.longitud);
 
-        if (
-          !Number.isFinite(posicion[0]) ||
-          !Number.isFinite(posicion[1])
-        ) {
+        if (!Number.isFinite(latitud) || !Number.isFinite(longitud)) {
           return null;
         }
 
-        const esComisaria = comisaria.tipo === "Comisaría";
+        const esPuesto = (comisaria.tipo || "")
+          .toLowerCase()
+          .includes("puesto");
 
         return (
-          <CircleMarker
+          <Marker
             key={comisaria.id_comisaria}
-            center={posicion}
-            radius={7}
-            pathOptions={{
-              color: "#ffffff",
-              weight: 2,
-              fillColor: esComisaria ? "#2563eb" : "#f59e0b",
-              fillOpacity: 1,
-            }}
+            position={[latitud, longitud]}
+            icon={iconoPolicia}
           >
             <Popup>
-              <div className="min-w-[180px]">
-                <strong className="text-base">
-                  {comisaria.nombre}
-                </strong>
+              <div className="popup-dependencia">
+                <h3>{comisaria.nombre || "Dependencia policial"}</h3>
 
-                <p className="mt-1 text-sm">
-                  <strong>Tipo:</strong>{" "}
-                  {comisaria.tipo || "Dependencia policial"}
-                </p>
+                <span className={esPuesto ? "tipo-puesto" : "tipo-comisaria"}>
+                  {esPuesto ? "Puesto policial" : "Comisaría"}
+                </span>
 
                 {comisaria.direccion && (
-                  <p className="text-sm">
-                    <strong>Dirección:</strong>{" "}
-                    {comisaria.direccion}
-                  </p>
+                  <p><strong>Dirección:</strong> {comisaria.direccion}</p>
                 )}
 
                 {comisaria.localidad && (
-                  <p className="text-sm">
-                    <strong>Localidad:</strong>{" "}
-                    {comisaria.localidad}
-                  </p>
+                  <p><strong>Localidad:</strong> {comisaria.localidad}</p>
                 )}
 
                 {comisaria.telefono && (
-                  <p className="text-sm">
-                    <strong>Teléfono:</strong>{" "}
-                    {comisaria.telefono}
-                  </p>
+                  <p><strong>Teléfono:</strong> {comisaria.telefono}</p>
                 )}
               </div>
             </Popup>
-          </CircleMarker>
+          </Marker>
         );
       })}
     </>
