@@ -61,7 +61,6 @@ function ejecutarConsulta(sql, valores = []) {
   });
 }
 
-// Prueba distintos servidores de Overpass.
 async function consultarOverpass() {
   for (const url of OVERPASS_URLS) {
     try {

@@ -22,10 +22,9 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
       descripcion,
       nivel_riesgo,
       latitud,
-      longitud,
-      radio
+      longitud
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
       id_zona = LAST_INSERT_ID(id_zona)
   `;
@@ -38,8 +37,7 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
       "Zona generada automáticamente según los reportes.",
       "Bajo",
       centroLatitud,
-      centroLongitud,
-      0,
+      centroLongitud
     ],
     (error, resultado) => {
       if (error) {
@@ -50,6 +48,7 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
     }
   );
 };
+
 
 const agregarReporte = (req, res) => {
   const {
