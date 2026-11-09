@@ -1,3 +1,4 @@
+import "../style/Formulario.css"
 
 function Formulario({ darValor }) {
   const ocultarModal = () => {
@@ -27,10 +28,7 @@ function Formulario({ darValor }) {
             </div>
           </div>
 
-          <form
-            className="reporte-form"
-            onSubmit={(e) => e.preventDefault()}
-          >
+          <form className="reporte-form" onSubmit={(e) => e.preventDefault()}>
             <div className="reporte-campo">
               <label htmlFor="hecho">Localidad del hecho</label>
 
@@ -46,7 +44,7 @@ function Formulario({ darValor }) {
             </div>
 
             <div className="reporte-campo">
-              <label htmlFor="tipo">Tipo de robo</label>
+              <label htmlFor="tipo">Tipo de robooo</label>
 
               <div className="reporte-input-icono">
                 <i className="bi bi-shield-exclamation"></i>
@@ -75,12 +73,7 @@ function Formulario({ darValor }) {
 
               <div className="reporte-opciones">
                 <label className="reporte-opcion">
-                  <input
-                    type="radio"
-                    name="testigos"
-                    value="si"
-                    required
-                  />
+                  <input type="radio" name="testigos" value="si" required />
                   <span>
                     <i className="bi bi-check-circle"></i>
                     Sí
@@ -88,11 +81,7 @@ function Formulario({ darValor }) {
                 </label>
 
                 <label className="reporte-opcion">
-                  <input
-                    type="radio"
-                    name="testigos"
-                    value="no"
-                  />
+                  <input type="radio" name="testigos" value="no" />
                   <span>
                     <i className="bi bi-x-circle"></i>
                     No
@@ -102,9 +91,7 @@ function Formulario({ darValor }) {
             </div>
 
             <div className="reporte-campo">
-              <label htmlFor="descripcion">
-                Descripción del hecho
-              </label>
+              <label htmlFor="descripcion">Descripción del hecho</label>
 
               <textarea
                 id="descripcion"
@@ -113,23 +100,17 @@ function Formulario({ darValor }) {
               />
 
               <small>
-                Cuanto más clara sea la descripción, más útil será para
-                otros usuarios.
+                Cuanto más clara sea la descripción, más útil será para otros
+                usuarios.
               </small>
             </div>
 
             <div className="reporte-acciones">
-              <button
-                type="reset"
-                className="reporte-btn-cancelar"
-              >
+              <button type="reset" className="reporte-btn-cancelar">
                 Limpiar
               </button>
 
-              <button
-                type="submit"
-                className="reporte-btn-enviar"
-              >
+              <button type="submit" className="reporte-btn-enviar">
                 <i className="bi bi-send"></i>
                 Enviar reporte
               </button>
