@@ -1,5 +1,10 @@
+
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+} from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
 import "../Style/Mapa.css";
@@ -19,6 +24,7 @@ function Mapa() {
   const [posicionSeleccionada, setPosicionSeleccionada] = useState(null);
   const [seleccionandoUbicacion, setSeleccionandoUbicacion] = useState(false);
 
+  // Obtener ubicación GPS y seguir los movimientos.
   useEffect(() => {
     console.log("Geolocalización disponible:", !!navigator.geolocation);
     console.log("Contexto seguro:", window.isSecureContext);
@@ -30,12 +36,10 @@ function Mapa() {
 
     if (!window.isSecureContext) {
       setErrorGPS(
-        "La conexión no es segura. Necesitás abrir la web mediante HTTPS.",
+        "La conexión no es segura. Necesitás abrir la web mediante HTTPS."
       );
       return;
     }
-
-    console.log("Solicitando ubicación...");
 
     const id = navigator.geolocation.watchPosition(
       (position) => {
@@ -55,18 +59,16 @@ function Mapa() {
         switch (error.code) {
           case 1:
             setErrorGPS(
-              "Permiso de ubicación denegado. Revisá los permisos de Chrome.",
+              "Permiso de ubicación denegado. Revisá los permisos del navegador."
             );
             break;
           case 2:
             setErrorGPS(
-              "No se pudo determinar la ubicación. Revisá que el GPS esté activado.",
+              "No se pudo determinar la ubicación. Revisá que el GPS esté activado."
             );
             break;
           case 3:
-            setErrorGPS(
-              "Se agotó el tiempo de espera para obtener tu ubicación.",
-            );
+            setErrorGPS("Se agotó el tiempo de espera para obtener tu ubicación.");
             break;
           default:
             setErrorGPS("Ocurrió un error al obtener tu ubicación.");
@@ -76,7 +78,7 @@ function Mapa() {
         enableHighAccuracy: true,
         maximumAge: 10000,
         timeout: 60000,
-      },
+      }
     );
 
     return () => {
@@ -84,6 +86,7 @@ function Mapa() {
     };
   }, []);
 
+  // Evitar que la página se desplace al arrastrar el mapa.
   useEffect(() => {
     if (!ubicacion) return;
 
@@ -172,6 +175,7 @@ function Mapa() {
                   maxZoom={19}
                   attribution="OpenStreetMap"
                 />
+
                 <ZonasRiesgo
                   seleccionandoUbicacion={seleccionandoUbicacion}
                   finalizarSeleccion={finalizarSeleccion}
@@ -186,7 +190,16 @@ function Mapa() {
                 )}
 
                 {posicionSeleccionada && (
-                  <Marker position={posicionSeleccionada} />
+                  <CircleMarker
+                    center={posicionSeleccionada}
+                    radius={9}
+                    pathOptions={{
+                      color: "white",
+                      fillColor: "#ef4444",
+                      fillOpacity: 1,
+                      weight: 3,
+                    }}
+                  />
                 )}
               </MapContainer>
             ) : (

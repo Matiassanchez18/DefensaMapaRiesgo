@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Polygon, Popup } from "react-leaflet";
 
 const TAM_CELDA = 0.005;
-const ANGULO = 12;
+const ANGULO = 0;
 
 function colorZona(cantidad) {
   if (cantidad >= 12) return "#800000";
@@ -87,15 +87,13 @@ function ZonasRiesgo({
         const norte = sur + TAM_CELDA;
         const este = oeste + TAM_CELDA;
 
-        const centroLat = (sur + norte) / 2;
-        const centroLng = (oeste + este) / 2;
 
-        const posiciones = [
-          rotarPunto(centroLat, centroLng, sur, oeste, ANGULO),
-          rotarPunto(centroLat, centroLng, sur, este, ANGULO),
-          rotarPunto(centroLat, centroLng, norte, este, ANGULO),
-          rotarPunto(centroLat, centroLng, norte, oeste, ANGULO),
-        ].map((p) => [p.lat, p.lng]);
+       const posiciones = [
+  [sur, oeste],
+  [sur, este],
+  [norte, este],
+  [norte, oeste],
+];
 
         const cantidad = grupo.length;
         const color = colorZona(cantidad);
