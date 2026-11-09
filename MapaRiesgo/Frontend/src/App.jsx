@@ -1,10 +1,9 @@
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import PaginaMapa from "./Pages/PaginaMapa";
 import Home from "./pages/Home";
 import Reporte from "./Components/Reporte";
-import Denuncias from "./Pages/Denuncia";
+import Denuncias from "./pages/Denuncia";
 
 function App() {
   return (
@@ -14,7 +13,6 @@ function App() {
         <Route path="/mapa" element={<PaginaMapa />} />
         <Route path="/reporte" element={<Reporte />} />
         <Route path="/denuncia" element={<Denuncias />} />
-
       </Routes>
     </BrowserRouter>
   );

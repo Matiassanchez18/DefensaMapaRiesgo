@@ -7,19 +7,24 @@ function SideBar() {
         MAPA DE RIESGO
       </div>
       <nav className="flex flex-col gap-0.5">
-        <p>General</p>
-        <NavLink to="/" className="">
-          Inicio
+        <p className="mx-3 mb-1.5 mt-5 text-[11px] font-semibold uppercase tracking-widest text-muted">General</p>
+
+       <NavLink to="/" end className="nav-link">
+          <LayoutDashboard size={18} />
+          Dashboard
         </NavLink>
-        <NavLink to="/" className="">
-          Inicio
+
+           <NavLink to="/mapa" className="nav-link">
+          <i className="bi bi-map"></i>
+          Mapa
         </NavLink>
-        <NavLink to="/" className="">
-          Inicio
+
+         
+        <NavLink to="/reportes" className="nav-link">
+          <i className="bi bi-file-earmark-text"></i>
+          Reportes
         </NavLink>
-        <NavLink to="/" className="">
-          Inicio
-        </NavLink>
+        
       </nav>
     </aside>
   );
