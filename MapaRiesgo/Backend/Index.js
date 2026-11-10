@@ -13,7 +13,9 @@ app.use("/api/register", registerRoutes);
 const reporteRoutes = require("./Routes/reporteRoutes");
 const comisariaRoutes = require("./Routes/comisariaRoutes");
 const usuariosRoutes = require("./Routes/usuariosRoutes");
+const loginRoutes = require("./Routes/loginRoutes");
 
+app.use("/api/login", loginRoutes);
 app.use("/api/reportes", reporteRoutes);
 app.use("/api/comisarias", comisariaRoutes);
 app.use("/api/usuarios", usuariosRoutes);
