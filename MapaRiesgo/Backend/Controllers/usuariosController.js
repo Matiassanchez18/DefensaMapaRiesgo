@@ -1,8 +1,7 @@
 
-const db = require("../config/db");
-const bcrypt = require("bcryptjs");
+const db = require("../Config/db.js");
 
-
+// OBTENER TODOS LOS USUARIOS
 const obtenerUsuarios = (req, res) => {
     const sql = `
         SELECT id_usuario, nombre, apellido, email,
@@ -23,6 +22,7 @@ const obtenerUsuarios = (req, res) => {
     });
 };
 
+// OBTENER UN USUARIO POR ID
 const obtenerUsuarioPorId = (req, res) => {
     const { id } = req.params;
 
@@ -36,7 +36,8 @@ const obtenerUsuarioPorId = (req, res) => {
     db.query(sql, [id], (error, resultados) => {
         if (error) {
             return res.status(500).json({
-                mensaje: "Error al buscar el usuario"
+                mensaje: "Error al buscar el usuario",
+                error: error.message
             });
         }
 
@@ -50,61 +51,54 @@ const obtenerUsuarioPorId = (req, res) => {
     });
 };
 
-const crearUsuario = async (req, res) => {
-    try {
-        const {
-            nombre,
-            apellido,
-            email,
-            contraseña,
-            telefono
-        } = req.body;
+// CREAR USUARIO
+const crearUsuario = (req, res) => {
+    const {
+        nombre,
+        apellido,
+        email,
+        contraseña,
+        telefono
+    } = req.body;
 
-        if (!nombre || !apellido || !email || !contraseña) {
-            return res.status(400).json({
-                mensaje: "Nombre, apellido, email y contraseña son obligatorios"
-            });
-        }
+    if (!nombre || !apellido || !email || !contraseña) {
+        return res.status(400).json({
+            mensaje: "Nombre, apellido, email y contraseña son obligatorios"
+        });
+    }
 
-        const contraseñaHash = await bcrypt.hash(contraseña, 10);
+    const sql = `
+        INSERT INTO usuario
+        (nombre, apellido, email, contraseña, telefono, fecha_registro)
+        VALUES (?, ?, ?, ?, ?, NOW())
+    `;
 
-        const sql = `
-            INSERT INTO usuario
-            (nombre, apellido, email, contraseña, telefono, fecha_registro)
-            VALUES (?, ?, ?, ?, ?, NOW())
-        `;
-
-        db.query(
-            sql,
-            [nombre, apellido, email, contraseñaHash, telefono || null],
-            (error, resultado) => {
-                if (error) {
-                    if (error.code === "ER_DUP_ENTRY") {
-                        return res.status(409).json({
-                            mensaje: "El email ya está registrado"
-                        });
-                    }
-
-                    return res.status(500).json({
-                        mensaje: "Error al crear el usuario",
-                        error: error.message
+    db.query(
+        sql,
+        [nombre, apellido, email, contraseña, telefono || null],
+        (error, resultado) => {
+            if (error) {
+                if (error.code === "ER_DUP_ENTRY") {
+                    return res.status(409).json({
+                        mensaje: "El email ya está registrado"
                     });
                 }
 
-                res.status(201).json({
-                    mensaje: "Usuario creado correctamente",
-                    id_usuario: resultado.insertId
+                return res.status(500).json({
+                    mensaje: "Error al crear el usuario",
+                    error: error.message
                 });
             }
-        );
 
-    } catch (error) {
-        res.status(500).json({
-            mensaje: "Error al procesar la contraseña"
-        });
-    }
+            res.status(201).json({
+                mensaje: "Usuario creado correctamente",
+                id_usuario: resultado.insertId
+            });
+        }
+    );
 };
 
+// MODIFICAR USUARIO
 const modificarUsuario = (req, res) => {
     const { id } = req.params;
 
@@ -160,6 +154,7 @@ const modificarUsuario = (req, res) => {
     );
 };
 
+// ELIMINAR USUARIO
 const eliminarUsuario = (req, res) => {
     const { id } = req.params;
 

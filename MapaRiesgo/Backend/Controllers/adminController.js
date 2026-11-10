@@ -1,5 +1,4 @@
-
-const db = require("../Config/");
+const db = require("../Config/db");
 
 const obtenerDashboard = (req, res) => {
   const consultaEstadisticas = `

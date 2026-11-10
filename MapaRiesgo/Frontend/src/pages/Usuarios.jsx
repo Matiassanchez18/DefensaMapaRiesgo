@@ -1,232 +1,421 @@
-import { useState } from "react";
 
-const usuariosIniciales = [
-  { id: 1, iniciales: "MS", nombre: "Martina Sosa", email: "martina.sosa@mail.com", rol: "Administrador", zona: "Todas", reportes: 48, estado: "Activo", ultimoAcceso: "hace 5 min" },
-  { id: 2, iniciales: "LH", nombre: "Lucas Herrera", email: "lucas.herrera@mail.com", rol: "Moderador", zona: "Zona Norte", reportes: 132, estado: "Activo", ultimoAcceso: "hace 20 min" },
-  { id: 3, iniciales: "CR", nombre: "Camila Ríos", email: "camila.rios@mail.com", rol: "Moderador", zona: "Zona Centro", reportes: 97, estado: "Activo", ultimoAcceso: "hace 1 h" },
-  { id: 4, iniciales: "JP", nombre: "Joaquín Paz", email: "joaquin.paz@mail.com", rol: "Usuario", zona: "Zona Sur", reportes: 14, estado: "Inactivo", ultimoAcceso: "hace 6 días" },
-  { id: 5, iniciales: "VC", nombre: "Valentina Cruz", email: "vale.cruz@mail.com", rol: "Usuario", zona: "Zona Este", reportes: 23, estado: "Activo", ultimoAcceso: "hace 3 h" },
-  { id: 6, iniciales: "ML", nombre: "Mateo Lagos", email: "mateo.lagos@mail.com", rol: "Usuario", zona: "Zona Oeste", reportes: 3, estado: "Suspendido", ultimoAcceso: "hace 12 días" },
-];
+import { useState, useEffect } from "react";
 
-const colorEstado = {
-  Activo: "bg-green-500",
-  Inactivo: "bg-gray-500",
-  Suspendido: "bg-red-400",
-};
+const API_URL = "http://localhost:3000/api/usuarios";
 
 function Usuarios() {
-  const [usuarios, setUsuarios] = useState(usuariosIniciales);
-  const [editando, setEditando] = useState(null);
+    const [usuarios, setUsuarios] = useState([]);
+    const [editando, setEditando] = useState(null);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState("");
 
-  const cards = [
-    { titulo: "Usuarios totales", numero: "1.254", detalle: "+4% vs. mes anterior", color: "text-green-400" },
-    { titulo: "Administradores", numero: "4", detalle: "Acceso completo", color: "text-muted" },
-    { titulo: "Moderadores", numero: "12", detalle: "3 con reportes pendientes", color: "text-yellow-400" },
-    { titulo: "Suspendidos", numero: "7", detalle: "Cuentas bloqueadas", color: "text-red-400" },
-  ];
+    // GET: Obtener usuarios desde el backend
+    const obtenerUsuarios = async () => {
+        try {
+            setCargando(true);
+            setError("");
 
-  const eliminar = (id) => {
-    if (window.confirm("¿Seguro que querés eliminar este usuario?")) {
-      setUsuarios(usuarios.filter((usuario) => usuario.id !== id));
-    }
-  };
+            const respuesta = await fetch(API_URL);
 
-  const guardar = (e) => {
-    e.preventDefault();
-    setUsuarios(
-      usuarios.map((usuario) => (usuario.id === editando.id ? editando : usuario))
+            if (!respuesta.ok) {
+                throw new Error("Error al obtener usuarios");
+            }
+
+            const datos = await respuesta.json();
+
+            setUsuarios(datos);
+
+        } catch (error) {
+            console.error("Error:", error);
+            setError("No se pudieron cargar los usuarios.");
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    // Ejecutar GET cuando se carga el componente
+    useEffect(() => {
+        obtenerUsuarios();
+    }, []);
+
+    // DELETE: Eliminar usuario
+    const eliminar = async (id) => {
+        if (!window.confirm("¿Seguro que querés eliminar este usuario?")) {
+            return;
+        }
+
+        try {
+            const respuesta = await fetch(`${API_URL}/${id}`, {
+                method: "DELETE"
+            });
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                throw new Error(datos.mensaje || "Error al eliminar usuario");
+            }
+
+            setUsuarios((usuariosAnteriores) =>
+                usuariosAnteriores.filter(
+                    (usuario) => usuario.id_usuario !== id
+                )
+            );
+
+            alert("Usuario eliminado correctamente");
+
+        } catch (error) {
+            console.error("Error:", error);
+            alert(error.message);
+        }
+    };
+
+    // PUT: Modificar usuario
+    const guardar = async (e) => {
+        e.preventDefault();
+
+        try {
+            const respuesta = await fetch(
+                `${API_URL}/${editando.id_usuario}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        nombre: editando.nombre,
+                        apellido: editando.apellido,
+                        email: editando.email,
+                        telefono: editando.telefono
+                    })
+                }
+            );
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                throw new Error(datos.mensaje || "Error al modificar usuario");
+            }
+
+            alert("Usuario modificado correctamente");
+
+            setEditando(null);
+
+            // Actualizar la lista desde MySQL
+            obtenerUsuarios();
+
+        } catch (error) {
+            console.error("Error:", error);
+            alert(error.message);
+        }
+    };
+
+    // Obtener iniciales del usuario
+    const obtenerIniciales = (nombre, apellido) => {
+        return `${nombre?.charAt(0) || ""}${apellido?.charAt(0) || ""}`.toUpperCase();
+    };
+
+    // Formatear fecha
+    const formatearFecha = (fecha) => {
+        if (!fecha) return "Sin fecha";
+
+        return new Date(fecha).toLocaleDateString("es-AR");
+    };
+
+    return (
+        <>
+            <h1 className="text-xl font-bold">Usuarios</h1>
+
+            <p className="mb-5 text-xs text-muted">
+                Gestión de usuarios registrados
+            </p>
+
+            {/* Información general */}
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-line bg-white/5 p-4">
+                    <p className="text-[11px] text-muted">
+                        Usuarios registrados
+                    </p>
+
+                    <p className="my-1 text-3xl font-bold">
+                        {usuarios.length}
+                    </p>
+
+                    <p className="text-[11px] text-muted">
+                        Datos obtenidos de la base de datos
+                    </p>
+                </div>
+
+                <div className="rounded-lg border border-line bg-white/5 p-4">
+                    <p className="text-[11px] text-muted">
+                        Estado de conexión
+                    </p>
+
+                    <p className="my-1 text-xl font-bold">
+                        {cargando ? "Consultando..." : error ? "Error" : "Conectado"}
+                    </p>
+
+                    <p className="text-[11px] text-muted">
+                        API de usuarios
+                    </p>
+                </div>
+            </section>
+
+            {/* Tabla de usuarios */}
+            <section className="mt-3 rounded-lg border border-line bg-white/5 p-4">
+
+                <div className="mb-4 flex items-center justify-between">
+                    <div>
+                        <h2 className="text-sm font-bold">
+                            Lista de usuarios
+                        </h2>
+
+                        <p className="text-[11px] text-muted">
+                            Usuarios almacenados en MySQL
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={obtenerUsuarios}
+                        className="rounded-md border border-line px-3 py-2 text-xs hover:bg-white/10"
+                    >
+                        <i className="bi bi-arrow-clockwise mr-2"></i>
+                        Actualizar
+                    </button>
+                </div>
+
+                {/* Estados de carga */}
+                {cargando ? (
+                    <p className="py-8 text-center text-sm text-muted">
+                        Cargando usuarios...
+                    </p>
+                ) : error ? (
+                    <div className="py-8 text-center">
+                        <p className="text-sm text-red-400">
+                            {error}
+                        </p>
+
+                        <button
+                            onClick={obtenerUsuarios}
+                            className="mt-3 rounded-md border border-line px-3 py-2 text-xs"
+                        >
+                            Reintentar
+                        </button>
+                    </div>
+                ) : usuarios.length === 0 ? (
+                    <p className="py-8 text-center text-sm text-muted">
+                        No hay usuarios registrados.
+                    </p>
+                ) : (
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+
+                            <thead>
+                                <tr className="text-[10px] uppercase tracking-wider text-muted">
+                                    <th className="py-2 font-semibold">Usuario</th>
+                                    <th className="py-2 font-semibold">Email</th>
+                                    <th className="py-2 font-semibold">Teléfono</th>
+                                    <th className="py-2 font-semibold">Fecha de registro</th>
+                                    <th className="py-2 text-right font-semibold">Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {usuarios.map((usuario) => (
+                                    <tr
+                                        key={usuario.id_usuario}
+                                        className="border-t border-line"
+                                    >
+                                        {/* Nombre y apellido */}
+                                        <td className="py-3">
+                                            <div className="flex items-center gap-3">
+
+                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-[11px] font-bold text-blue-400">
+                                                    {obtenerIniciales(
+                                                        usuario.nombre,
+                                                        usuario.apellido
+                                                    )}
+                                                </div>
+
+                                                <div className="flex flex-col leading-tight">
+                                                    <span className="font-bold">
+                                                        {usuario.nombre} {usuario.apellido}
+                                                    </span>
+
+                                                    <span className="text-[11px] text-muted">
+                                                        ID: {usuario.id_usuario}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {/* Email */}
+                                        <td className="py-3">
+                                            {usuario.email}
+                                        </td>
+
+                                        {/* Teléfono */}
+                                        <td className="py-3">
+                                            {usuario.telefono || "Sin teléfono"}
+                                        </td>
+
+                                        {/* Fecha */}
+                                        <td className="py-3 text-muted">
+                                            {formatearFecha(usuario.fecha_registro)}
+                                        </td>
+
+                                        {/* Acciones */}
+                                        <td className="py-3">
+                                            <div className="flex justify-end gap-3 text-sm">
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setEditando({ ...usuario })}
+                                                    className="text-muted hover:text-white"
+                                                    title="Editar usuario"
+                                                >
+                                                    <i className="bi bi-pencil"></i>
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => eliminar(usuario.id_usuario)}
+                                                    className="text-red-400 hover:text-red-300"
+                                                    title="Eliminar usuario"
+                                                >
+                                                    <i className="bi bi-trash"></i>
+                                                </button>
+
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+
+                        </table>
+                    </div>
+                )}
+
+                {/* Pie de tabla */}
+                {!cargando && !error && (
+                    <div className="mt-3 flex items-center justify-between border-t border-line pt-3 text-[11px] text-muted">
+                        <span>
+                            Mostrando {usuarios.length} usuarios
+                        </span>
+                    </div>
+                )}
+
+            </section>
+
+            {/* Modal de edición */}
+            {editando && (
+                <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/60 p-4">
+
+                    <form
+                        onSubmit={guardar}
+                        className="w-full max-w-sm rounded-lg border border-line bg-sidebar p-5"
+                    >
+                        <h2 className="mb-4 text-sm font-bold">
+                            Editar usuario
+                        </h2>
+
+                        {/* Nombre */}
+                        <label className="mb-1 block text-[11px] text-muted">
+                            Nombre
+                        </label>
+
+                        <input
+                            type="text"
+                            required
+                            value={editando.nombre || ""}
+                            onChange={(e) =>
+                                setEditando({
+                                    ...editando,
+                                    nombre: e.target.value
+                                })
+                            }
+                            className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
+                        />
+
+                        {/* Apellido */}
+                        <label className="mb-1 block text-[11px] text-muted">
+                            Apellido
+                        </label>
+
+                        <input
+                            type="text"
+                            required
+                            value={editando.apellido || ""}
+                            onChange={(e) =>
+                                setEditando({
+                                    ...editando,
+                                    apellido: e.target.value
+                                })
+                            }
+                            className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
+                        />
+
+                        {/* Email */}
+                        <label className="mb-1 block text-[11px] text-muted">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            required
+                            value={editando.email || ""}
+                            onChange={(e) =>
+                                setEditando({
+                                    ...editando,
+                                    email: e.target.value
+                                })
+                            }
+                            className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
+                        />
+
+                        {/* Teléfono */}
+                        <label className="mb-1 block text-[11px] text-muted">
+                            Teléfono
+                        </label>
+
+                        <input
+                            type="text"
+                            value={editando.telefono || ""}
+                            onChange={(e) =>
+                                setEditando({
+                                    ...editando,
+                                    telefono: e.target.value
+                                })
+                            }
+                            className="mb-4 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
+                        />
+
+                        {/* Botones */}
+                        <div className="flex justify-end gap-2 text-xs">
+
+                            <button
+                                type="button"
+                                onClick={() => setEditando(null)}
+                                className="rounded-md border border-line px-3 py-1.5"
+                            >
+                                Cancelar
+                            </button>
+
+                            <button
+                                type="submit"
+                                className="rounded-md bg-blue-500 px-3 py-1.5 font-semibold text-white"
+                            >
+                                Guardar cambios
+                            </button>
+
+                        </div>
+
+                    </form>
+                </div>
+            )}
+        </>
     );
-    setEditando(null);
-  };
-
-  return (
-    <>
-      <h1 className="text-xl font-bold">Usuarios</h1>
-      <p className="mb-5 text-xs text-muted">Gestión de usuarios y permisos</p>
-
-      {/* Cards */}
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map((card) => (
-          <div key={card.titulo} className="rounded-lg border border-line bg-white/5 p-4">
-            <p className="text-[11px] text-muted">{card.titulo}</p>
-            <p className="my-1 text-3xl font-bold">{card.numero}</p>
-            <p className={`text-[11px] ${card.color}`}>{card.detalle}</p>
-          </div>
-        ))}
-      </section>
-
-      {/* Tabla de usuarios */}
-      <section className="mt-3 rounded-lg border border-line bg-white/5 p-4">
-        {/* Filtros */}
-        <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <input
-            type="text"
-            placeholder="Buscar por nombre o email"
-            className="rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
-          />
-          <select className="rounded-md border border-line bg-black/30 px-3 py-2 text-xs">
-            <option>Todos los roles</option>
-            <option>Administrador</option>
-            <option>Moderador</option>
-            <option>Usuario</option>
-          </select>
-          <select className="rounded-md border border-line bg-black/30 px-3 py-2 text-xs">
-            <option>Todos los estados</option>
-            <option>Activo</option>
-            <option>Inactivo</option>
-            <option>Suspendido</option>
-          </select>
-          <select className="rounded-md border border-line bg-black/30 px-3 py-2 text-xs">
-            <option>Todas las zonas</option>
-            <option>Zona Norte</option>
-            <option>Zona Centro</option>
-            <option>Zona Sur</option>
-            <option>Zona Este</option>
-            <option>Zona Oeste</option>
-          </select>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-wider text-muted">
-                <th className="py-2 font-semibold">Usuario</th>
-                <th className="py-2 font-semibold">Rol</th>
-                <th className="py-2 font-semibold">Zona</th>
-                <th className="py-2 font-semibold">Reportes</th>
-                <th className="py-2 font-semibold">Estado</th>
-                <th className="py-2 font-semibold">Último acceso</th>
-                <th className="py-2 text-right font-semibold">Acciones</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {usuarios.map((usuario) => (
-                <tr key={usuario.id} className="border-t border-line">
-                  <td className="py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-[11px] font-bold text-blue-400">
-                        {usuario.iniciales}
-                      </div>
-                      <div className="flex flex-col leading-tight">
-                        <span className="font-bold">{usuario.nombre}</span>
-                        <span className="text-[11px] text-muted">{usuario.email}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3">{usuario.rol}</td>
-                  <td className="py-3">{usuario.zona}</td>
-                  <td className="py-3">{usuario.reportes}</td>
-                  <td className="py-3">
-                    <span className="flex items-center gap-2">
-                      <span className={`h-1.5 w-1.5 rounded-full ${colorEstado[usuario.estado]}`}></span>
-                      {usuario.estado}
-                    </span>
-                  </td>
-                  <td className="py-3 text-muted">{usuario.ultimoAcceso}</td>
-                  <td className="py-3">
-                    <div className="flex justify-end gap-3 text-sm">
-                      <button
-                        type="button"
-                        onClick={() => setEditando(usuario)}
-                        className="text-muted hover:text-white"
-                      >
-                        <i className="bi bi-pencil"></i>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => eliminar(usuario.id)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pie de la tabla */}
-        <div className="mt-3 flex items-center justify-between border-t border-line pt-3 text-[11px] text-muted">
-          <span>Mostrando 1–{usuarios.length} de 1.254</span>
-          <div className="flex gap-1.5">
-            <button type="button" className="rounded-md border border-line px-2.5 py-1">
-              Anterior
-            </button>
-            <button type="button" className="rounded-md border border-line px-2.5 py-1">
-              Siguiente
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Formulario de edición */}
-      {editando && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/60 p-4">
-          <form
-            onSubmit={guardar}
-            className="w-full max-w-sm rounded-lg border border-line bg-sidebar p-5"
-          >
-            <h2 className="mb-4 text-sm font-bold">Editar usuario</h2>
-
-            <p className="mb-1 text-[11px] text-muted">Nombre</p>
-            <input
-              type="text"
-              value={editando.nombre}
-              onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
-              className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
-            />
-
-            <p className="mb-1 text-[11px] text-muted">Email</p>
-            <input
-              type="email"
-              value={editando.email}
-              onChange={(e) => setEditando({ ...editando, email: e.target.value })}
-              className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
-            />
-
-            <p className="mb-1 text-[11px] text-muted">Rol</p>
-            <select
-              value={editando.rol}
-              onChange={(e) => setEditando({ ...editando, rol: e.target.value })}
-              className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
-            >
-              <option value="Administrador">Administrador</option>
-              <option value="Moderador">Moderador</option>
-              <option value="Usuario">Usuario</option>
-            </select>
-
-            <p className="mb-1 text-[11px] text-muted">Estado</p>
-            <select
-              value={editando.estado}
-              onChange={(e) => setEditando({ ...editando, estado: e.target.value })}
-              className="mb-4 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
-            >
-              <option value="Activo">Activo</option>
-              <option value="Inactivo">Inactivo</option>
-              <option value="Suspendido">Suspendido</option>
-            </select>
-
-            <div className="flex justify-end gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => setEditando(null)}
-                className="rounded-md border border-line px-3 py-1.5"
-              >
-                Cancelar
-              </button>
-              <button type="submit" className="rounded-md bg-blue-500 px-3 py-1.5 font-semibold text-white">
-                Guardar
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-    </>
-  );
 }
 
 export default Usuarios;
