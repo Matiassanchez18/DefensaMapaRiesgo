@@ -1,0 +1,49 @@
+/* Estilos extra del registro. La base (tarjeta, campos, botón) viene de Login.css */
+
+.register-grupo {
+  display: flex;
+  flex-direction: column;
+}
+
+.register-error {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #f87171;
+}
+
+.register-ayuda {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* Campo con error */
+.login-campo.campo-invalido {
+  border-color: #f87171;
+}
+
+.login-campo.campo-invalido:focus {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.35);
+}
+
+/* Error general (por ejemplo, el servidor no responde) */
+.register-alerta {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.9rem;
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid #f87171;
+  border-radius: 0.5rem;
+}
+
+/* Botón mientras se envía */
+.login-boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-boton:disabled:hover {
+  background: #0284c7;
+}
