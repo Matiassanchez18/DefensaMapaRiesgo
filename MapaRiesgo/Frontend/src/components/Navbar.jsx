@@ -1,8 +1,19 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-
+import { Link,useNavigate } from "react-router-dom";
+import useAuthStore from "./Store";
+  
 function Navbar() {
   const [abierto, setAbierto] = useState(false);
+  const inicioSesion = useAuthStore((state) => state.inicioSesion);
+const logout = useAuthStore((state) => state.logout);
+const navigate = useNavigate();
+
+  const cerrarSesion = () => {
+    logout();
+    setAbierto(false);
+    navigate("/");
+  };
+
   return (
     <nav className="bg-[#1B2B3A] p-4 text-white md:flex md:items-center md:justify-around">
       <div className="flex w-full items-center justify-between md:w-auto">
@@ -33,6 +44,14 @@ function Navbar() {
         <li>
           <Link to="/denuncia">Agregar denuncia</Link>
         </li>
+        <li>
+  {inicioSesion ? (
+    <button type="button" onClick={cerrarSesion} className="cursor-pointer">
+      Cerrar sesión
+    </button>
+  ) : (
+    <Link to="/login">Iniciar sesión</Link>
+  )}        </li>
       </ul>
     </nav>
   );
