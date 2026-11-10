@@ -23,8 +23,7 @@ function App() {
         <Route index element={<DashboardAdmin/>} />
         <Route path="reportes" element={<Denuncia/>} />
         <Route path="mapa" element={<PaginaMapa />} />
-        {/* <Route path="zonas" element={<h1>Zonas</h1>} />
-        <Route path="usuarios" element={<h1>Usuarios</h1>} /> */}
+        
       </Route>  
       </Routes>
     </BrowserRouter>
