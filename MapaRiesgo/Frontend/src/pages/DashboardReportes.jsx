@@ -1,144 +1,291 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-const reportesIniciales = [
-  {
-    id: 1042,
-    titulo: "Incidente de alto riesgo en Av. Belgrano",
-    zona: "Zona Norte",
-    riesgo: "Alto",
-    estado: "Pendiente",
-    cuando: "hace 20 min",
-  },
-  {
-    id: 1041,
-    titulo: "[TÍTULO DEL REPORTE]",
-    zona: "Zona Sur",
-    riesgo: "Medio",
-    estado: "En revisión",
-    cuando: "hace 1 h",
-  },
-  {
-    id: 1040,
-    titulo: "[TÍTULO DEL REPORTE]",
-    zona: "Zona Centro",
-    riesgo: "Bajo",
-    estado: "Resuelto",
-    cuando: "hace 3 h",
-  },
-  {
-    id: 1039,
-    titulo: "[TÍTULO DEL REPORTE]",
-    zona: "Zona Este",
-    riesgo: "Medio",
-    estado: "Resuelto",
-    cuando: "ayer",
-  },
-  {
-    id: 1038,
-    titulo: "[TÍTULO DEL REPORTE]",
-    zona: "Zona Oeste",
-    riesgo: "Alto",
-    estado: "En revisión",
-    cuando: "ayer",
-  },
-  {
-    id: 1037,
-    titulo: "[TÍTULO DEL REPORTE]",
-    zona: "Zona Norte",
-    riesgo: "Bajo",
-    estado: "Resuelto",
-    cuando: "hace 2 días",
-  },
-];
+const API = "http://localhost:3000/api/reportes";
 
-const letraRiesgo = { Alto: "A", Medio: "B", Bajo: "C" };
 const colorRiesgo = {
-  Alto: "bg-red-400",
-  Medio: "bg-yellow-500",
-  Bajo: "bg-green-500",
+  Alto: "bg-red-500",
+  Medio: "bg-yellow-400",
+  Bajo: "bg-green-400",
 };
+
+const letraRiesgo = {
+  Alto: "A",
+  Medio: "M",
+  Bajo: "B",
+};
+
 const colorEstado = {
-  Pendiente: "bg-yellow-500",
+  Pendiente: "bg-yellow-400",
   "En revisión": "bg-blue-400",
-  Resuelto: "bg-green-500",
+  Resuelto: "bg-green-400",
+};
+
+const normalizarRiesgo = (riesgo) => {
+  const valor = String(riesgo || "").trim().toLowerCase();
+
+  if (valor === "alta" || valor === "alto") return "Alto";
+  if (valor === "media" || valor === "medio") return "Medio";
+  if (valor === "baja" || valor === "bajo") return "Bajo";
+
+  return riesgo || "Bajo";
 };
 
 function DashboardReportes() {
-  const [reportes, setReportes] = useState(reportesIniciales);
-  const [editando, setEditando] = useState(null);
+  const [reportes, setReportes] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
 
-  // Filtros
   const [busqueda, setBusqueda] = useState("");
   const [filtroZona, setFiltroZona] = useState("");
   const [filtroRiesgo, setFiltroRiesgo] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
 
+  const [seleccionados, setSeleccionados] = useState([]);
+  const [editando, setEditando] = useState(null);
+  const [viendo, setViendo] = useState(null);
+
+  const [paginaActual, setPaginaActual] = useState(1);
+  const reportesPorPagina = 8;
+
+  function formatearFecha(fecha, hora) {
+    if (!fecha) return "-";
+
+    const fechaFormateada = new Date(fecha).toLocaleDateString("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+
+    return hora
+      ? `${fechaFormateada} · ${String(hora).slice(0, 5)}`
+      : fechaFormateada;
+  }
+
+  const obtenerReportes = async () => {
+    try {
+      setCargando(true);
+      setError("");
+
+      const respuesta = await fetch(API);
+
+      if (!respuesta.ok) {
+        throw new Error("No se pudieron obtener los reportes.");
+      }
+
+      const datos = await respuesta.json();
+
+      const reportesAdaptados = datos.map((reporte) => ({
+        id: reporte.id_reporte,
+        titulo: reporte.descripcion,
+        zona: reporte.zona || "Sin zona",
+        delito: reporte.delito || "Sin especificar",
+        riesgo: normalizarRiesgo(reporte.riesgo),
+        estado: reporte.estado,
+        fecha: reporte.fecha,
+        hora: reporte.hora,
+        cuando: formatearFecha(reporte.fecha, reporte.hora),
+      }));
+
+      setReportes(reportesAdaptados);
+    } catch (error) {
+      console.error(error);
+      setError("No se pudieron cargar los reportes.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  useEffect(() => {
+    obtenerReportes();
+  }, []);
+
+  const pendientes = reportes.filter(
+    (reporte) => reporte.estado === "Pendiente"
+  ).length;
+
+  const resueltos = reportes.filter(
+    (reporte) => reporte.estado === "Resuelto"
+  ).length;
+
+  const enRevision = reportes.filter(
+    (reporte) => reporte.estado === "En revisión"
+  ).length;
+
   const cards = [
     {
-      titulo: "Reportes totales",
-      numero: "268",
-      detalle: "+12% vs. semana anterior",
-      color: "text-green-400",
+      titulo: "Total de reportes",
+      numero: reportes.length,
+      detalle: "Reportes registrados",
+      color: "text-muted",
     },
     {
       titulo: "Pendientes",
-      numero: "42",
-      detalle: "Requieren atención",
+      numero: pendientes,
+      detalle: "Esperando revisión",
       color: "text-yellow-400",
     },
     {
       titulo: "En revisión",
-      numero: "31",
-      detalle: "Asignados a moderadores",
+      numero: enRevision,
+      detalle: "Bajo evaluación",
       color: "text-blue-400",
     },
     {
       titulo: "Resueltos",
-      numero: "195",
-      detalle: "+8% vs. semana anterior",
+      numero: resueltos,
+      detalle: "Reportes solucionados",
       color: "text-green-400",
     },
   ];
 
-  const reportesFiltrados = reportes.filter((reporte) => {
-    const texto = busqueda.toLowerCase();
-    const coincideBusqueda =
-      reporte.titulo.toLowerCase().includes(texto) ||
-      String(reporte.id).includes(texto);
+  const zonas = [
+    ...new Set(reportes.map((reporte) => reporte.zona).filter(Boolean)),
+  ];
 
-    const coincideZona = filtroZona === "" || reporte.zona === filtroZona;
-    const coincideRiesgo =
-      filtroRiesgo === "" || reporte.riesgo === filtroRiesgo;
-    const coincideEstado =
-      filtroEstado === "" || reporte.estado === filtroEstado;
+  const reportesFiltrados = useMemo(() => {
+    return reportes.filter((reporte) => {
+      const coincideBusqueda =
+        reporte.titulo?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        String(reporte.id).includes(busqueda);
 
-    return coincideBusqueda && coincideZona && coincideRiesgo && coincideEstado;
-  });
+      const coincideZona =
+        filtroZona === "" || reporte.zona === filtroZona;
 
-  const eliminar = (id) => {
-    if (window.confirm("¿Seguro que querés eliminar este reporte?")) {
-      setReportes(reportes.filter((reporte) => reporte.id !== id));
+      const coincideRiesgo =
+        filtroRiesgo === "" ||
+        normalizarRiesgo(reporte.riesgo) === filtroRiesgo;
+
+      const coincideEstado =
+        filtroEstado === "" || reporte.estado === filtroEstado;
+
+      return (
+        coincideBusqueda &&
+        coincideZona &&
+        coincideRiesgo &&
+        coincideEstado
+      );
+    });
+  }, [reportes, busqueda, filtroZona, filtroRiesgo, filtroEstado]);
+
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(reportesFiltrados.length / reportesPorPagina)
+  );
+
+  const reportesPaginados = reportesFiltrados.slice(
+    (paginaActual - 1) * reportesPorPagina,
+    paginaActual * reportesPorPagina
+  );
+
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, filtroZona, filtroRiesgo, filtroEstado]);
+
+  const seleccionarReporte = (id) => {
+    setSeleccionados((prev) =>
+      prev.includes(id)
+        ? prev.filter((item) => item !== id)
+        : [...prev, id]
+    );
+  };
+
+  const seleccionarTodos = (e) => {
+    const idsPagina = reportesPaginados.map((reporte) => reporte.id);
+
+    if (e.target.checked) {
+      setSeleccionados((prev) => [
+        ...new Set([...prev, ...idsPagina]),
+      ]);
+    } else {
+      setSeleccionados((prev) =>
+        prev.filter((id) => !idsPagina.includes(id))
+      );
     }
   };
 
-  const guardar = (e) => {
-    e.preventDefault();
-    setReportes(
-      reportes.map((reporte) =>
-        reporte.id === editando.id ? editando : reporte,
-      ),
+  const eliminar = async (id) => {
+    const confirmar = window.confirm(
+      "¿Estás seguro de que querés eliminar este reporte?"
     );
-    setEditando(null);
+
+    if (!confirmar) return;
+
+    try {
+      const respuesta = await fetch(`${API}/${id}`, {
+        method: "DELETE",
+      });
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(datos.mensaje || "No se pudo eliminar el reporte.");
+      }
+
+      setReportes((prev) =>
+        prev.filter((reporte) => reporte.id !== id)
+      );
+
+      setSeleccionados((prev) =>
+        prev.filter((item) => item !== id)
+      );
+
+      if (viendo?.id === id) setViendo(null);
+      if (editando?.id === id) setEditando(null);
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  };
+
+  const guardar = async (e) => {
+    e.preventDefault();
+
+    try {
+      const respuesta = await fetch(`${API}/${editando.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          descripcion: editando.titulo,
+          estado: editando.estado,
+        }),
+      });
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(datos.mensaje || "No se pudo actualizar el reporte.");
+      }
+
+      setReportes((prev) =>
+        prev.map((reporte) =>
+          reporte.id === editando.id
+            ? {
+                ...reporte,
+                titulo: editando.titulo,
+                estado: editando.estado,
+              }
+            : reporte
+        )
+      );
+
+      setEditando(null);
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
   };
 
   return (
     <>
       <h1 className="text-xl font-bold">Reportes</h1>
+
       <p className="mb-5 text-xs text-muted">
         Gestión de reportes de zonas de riesgo
       </p>
 
-      {/* Cards */}
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
           <div
@@ -147,14 +294,14 @@ function DashboardReportes() {
           >
             <p className="text-[11px] text-muted">{card.titulo}</p>
             <p className="my-1 text-3xl font-bold">{card.numero}</p>
-            <p className={`text-[11px] ${card.color}`}>{card.detalle}</p>
+            <p className={`text-[11px] ${card.color}`}>
+              {card.detalle}
+            </p>
           </div>
         ))}
       </section>
 
-      {/* Tabla de reportes */}
       <section className="mt-3 rounded-lg border border-line bg-white/5 p-4">
-        {/* Filtros */}
         <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <input
             type="text"
@@ -163,18 +310,20 @@ function DashboardReportes() {
             onChange={(e) => setBusqueda(e.target.value)}
             className="rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
           />
+
           <select
             value={filtroZona}
             onChange={(e) => setFiltroZona(e.target.value)}
             className="rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
           >
             <option value="">Todas las zonas</option>
-            <option value="Zona Norte">Zona Norte</option>
-            <option value="Zona Centro">Zona Centro</option>
-            <option value="Zona Sur">Zona Sur</option>
-            <option value="Zona Este">Zona Este</option>
-            <option value="Zona Oeste">Zona Oeste</option>
+            {zonas.map((zona) => (
+              <option key={zona} value={zona}>
+                {zona}
+              </option>
+            ))}
           </select>
+
           <select
             value={filtroRiesgo}
             onChange={(e) => setFiltroRiesgo(e.target.value)}
@@ -185,6 +334,7 @@ function DashboardReportes() {
             <option value="Medio">Medio</option>
             <option value="Bajo">Bajo</option>
           </select>
+
           <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
@@ -202,8 +352,18 @@ function DashboardReportes() {
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-muted">
                 <th className="py-2">
-                  <input type="checkbox" />
+                  <input
+                    type="checkbox"
+                    checked={
+                      reportesPaginados.length > 0 &&
+                      reportesPaginados.every((reporte) =>
+                        seleccionados.includes(reporte.id)
+                      )
+                    }
+                    onChange={seleccionarTodos}
+                  />
                 </th>
+
                 <th className="py-2 font-semibold">ID</th>
                 <th className="py-2 font-semibold">Reporte</th>
                 <th className="py-2 font-semibold">Zona</th>
@@ -215,99 +375,167 @@ function DashboardReportes() {
             </thead>
 
             <tbody>
-              {reportesFiltrados.map((reporte) => (
-                <tr key={reporte.id} className="border-t border-line">
-                  <td className="py-3">
-                    <input type="checkbox" />
-                  </td>
-                  <td className="py-3 text-muted">#{reporte.id}</td>
-                  <td className="py-3 font-bold">{reporte.titulo}</td>
-                  <td className="py-3">{reporte.zona}</td>
-                  <td className="py-3">
-                    <span className="flex items-center gap-2">
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${colorRiesgo[reporte.riesgo]}`}
-                      ></span>
-                      {letraRiesgo[reporte.riesgo]} · {reporte.riesgo}
-                    </span>
-                  </td>
-                  <td className="py-3">
-                    <span className="flex items-center gap-2">
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${colorEstado[reporte.estado]}`}
-                      ></span>
-                      {reporte.estado}
-                    </span>
-                  </td>
-                  <td className="py-3 text-muted">{reporte.cuando}</td>
-                  <td className="py-3">
-                    <div className="flex justify-end gap-3 text-sm">
-                      <button
-                        type="button"
-                        className="text-muted hover:text-white"
-                      >
-                        <i className="bi bi-eye"></i>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditando(reporte)}
-                        className="text-muted hover:text-white"
-                      >
-                        <i className="bi bi-pencil"></i>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => eliminar(reporte.id)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-
-              {reportesFiltrados.length === 0 && (
+              {cargando ? (
                 <tr className="border-t border-line">
                   <td colSpan="8" className="py-6 text-center text-muted">
-                    No se encontraron reportes
+                    Cargando reportes...
                   </td>
                 </tr>
+              ) : error ? (
+                <tr className="border-t border-line">
+                  <td colSpan="8" className="py-6 text-center text-red-400">
+                    {error}
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  {reportesPaginados.map((reporte) => (
+                    <tr
+                      key={reporte.id}
+                      className="border-t border-line"
+                    >
+                      <td className="py-3">
+                        <input
+                          type="checkbox"
+                          checked={seleccionados.includes(reporte.id)}
+                          onChange={() => seleccionarReporte(reporte.id)}
+                        />
+                      </td>
+
+                      <td className="py-3 text-muted">
+                        #{reporte.id}
+                      </td>
+
+                      <td className="max-w-[220px] py-3 font-bold">
+                        <span className="block truncate">
+                          {reporte.titulo}
+                        </span>
+                      </td>
+
+                      <td className="py-3">{reporte.zona}</td>
+
+                      <td className="py-3">
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              colorRiesgo[reporte.riesgo] || "bg-gray-400"
+                            }`}
+                          ></span>
+                          {letraRiesgo[reporte.riesgo] || "-"} ·{" "}
+                          {reporte.riesgo}
+                        </span>
+                      </td>
+
+                      <td className="py-3">
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              colorEstado[reporte.estado] || "bg-gray-400"
+                            }`}
+                          ></span>
+                          {reporte.estado}
+                        </span>
+                      </td>
+
+                      <td className="whitespace-nowrap py-3 text-muted">
+                        {reporte.cuando}
+                      </td>
+
+                      {/* ACCIONES */}
+                      <td className="py-3">
+                        <div className="flex justify-end gap-3 text-sm">
+                          <button
+                            type="button"
+                            title="Ver reporte"
+                            onClick={() => setViendo(reporte)}
+                            className="text-muted hover:text-white"
+                          >
+                            <i className="bi bi-eye"></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            title="Editar reporte"
+                            onClick={() => setEditando({ ...reporte })}
+                            className="text-muted hover:text-white"
+                          >
+                            <i className="bi bi-pencil"></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            title="Eliminar reporte"
+                            onClick={() => eliminar(reporte.id)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {reportesFiltrados.length === 0 && (
+                    <tr className="border-t border-line">
+                      <td
+                        colSpan="8"
+                        className="py-6 text-center text-muted"
+                      >
+                        No se encontraron reportes
+                      </td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>
         </div>
 
-        <div className="mt-3 flex items-center justify-between border-t border-line pt-3 text-[11px] text-muted">
-          <span>Mostrando 1-{reportesFiltrados.length} de 268</span>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3 text-[11px] text-muted">
+          <span>
+            {reportesFiltrados.length === 0
+              ? "Mostrando 0 reportes"
+              : `Mostrando ${
+                  (paginaActual - 1) * reportesPorPagina + 1
+                }-${Math.min(
+                  paginaActual * reportesPorPagina,
+                  reportesFiltrados.length
+                )} de ${reportesFiltrados.length}`}
+          </span>
+
           <div className="flex gap-1.5">
             <button
               type="button"
-              className="rounded-md border border-line px-2.5 py-1"
+              disabled={paginaActual === 1}
+              onClick={() => setPaginaActual((prev) => prev - 1)}
+              className="rounded-md border border-line px-2.5 py-1 disabled:opacity-30"
             >
               ‹
             </button>
+
+            {Array.from(
+              { length: totalPaginas },
+              (_, i) => i + 1
+            ).map((pagina) => (
+              <button
+                key={pagina}
+                type="button"
+                onClick={() => setPaginaActual(pagina)}
+                className={`rounded-md px-2.5 py-1 ${
+                  paginaActual === pagina
+                    ? "bg-blue-500 text-white"
+                    : "border border-line"
+                }`}
+              >
+                {pagina}
+              </button>
+            ))}
+
             <button
               type="button"
-              className="rounded-md bg-blue-500 px-2.5 py-1 text-white"
-            >
-              1
-            </button>
-            <button
-              type="button"
-              className="rounded-md border border-line px-2.5 py-1"
-            >
-              2
-            </button>
-            <button
-              type="button"
-              className="rounded-md border border-line px-2.5 py-1"
-            >
-              3
-            </button>
-            <button
-              type="button"
-              className="rounded-md border border-line px-2.5 py-1"
+              disabled={paginaActual === totalPaginas}
+              onClick={() => setPaginaActual((prev) => prev + 1)}
+              className="rounded-md border border-line px-2.5 py-1 disabled:opacity-30"
             >
               ›
             </button>
@@ -315,9 +543,68 @@ function DashboardReportes() {
         </div>
       </section>
 
-      {/* Formulario de edición */}
+      {viendo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm rounded-lg border border-line bg-sidebar p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-bold">
+                Reporte #{viendo.id}
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => setViendo(null)}
+                className="text-muted hover:text-white"
+              >
+                <i className="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <p className="text-[11px] text-muted">Descripción</p>
+                <p>{viendo.titulo}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-muted">Delito</p>
+                <p>{viendo.delito}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-muted">Zona</p>
+                <p>{viendo.zona}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-muted">Riesgo</p>
+                <p>{viendo.riesgo}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-muted">Estado</p>
+                <p>{viendo.estado}</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] text-muted">Fecha</p>
+                <p>{viendo.cuando}</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setViendo(null)}
+              className="mt-5 w-full rounded-md bg-blue-500 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-600"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
       {editando && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/60 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <form
             onSubmit={guardar}
             className="w-full max-w-sm rounded-lg border border-line bg-sidebar p-5"
@@ -326,34 +613,39 @@ function DashboardReportes() {
               Editar reporte #{editando.id}
             </h2>
 
-            <p className="mb-1 text-[11px] text-muted">Título</p>
-            <input
-              type="text"
-              value={editando.titulo}
+            <p className="mb-1 text-[11px] text-muted">Descripción</p>
+
+            <textarea
+              value={editando.titulo || ""}
               onChange={(e) =>
-                setEditando({ ...editando, titulo: e.target.value })
+                setEditando({
+                  ...editando,
+                  titulo: e.target.value,
+                })
               }
+              required
+              rows="3"
               className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
             />
 
             <p className="mb-1 text-[11px] text-muted">Riesgo</p>
-            <select
-              value={editando.riesgo}
-              onChange={(e) =>
-                setEditando({ ...editando, riesgo: e.target.value })
-              }
-              className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
-            >
-              <option value="Alto">Alto</option>
-              <option value="Medio">Medio</option>
-              <option value="Bajo">Bajo</option>
-            </select>
+
+            <input
+              type="text"
+              value={editando.riesgo || ""}
+              disabled
+              className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs text-muted"
+            />
 
             <p className="mb-1 text-[11px] text-muted">Estado</p>
+
             <select
               value={editando.estado}
               onChange={(e) =>
-                setEditando({ ...editando, estado: e.target.value })
+                setEditando({
+                  ...editando,
+                  estado: e.target.value,
+                })
               }
               className="mb-4 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
             >
@@ -370,6 +662,7 @@ function DashboardReportes() {
               >
                 Cancelar
               </button>
+
               <button
                 type="submit"
                 className="rounded-md bg-blue-500 px-3 py-1.5 font-semibold text-white"
