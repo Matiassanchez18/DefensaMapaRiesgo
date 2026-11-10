@@ -6,13 +6,16 @@ import Home from "./Pages/Home";
 import Reporte from "./Components/Reporte";
 import Denuncias from "./Pages/Denuncia";
 import Layout from "./components/Layout";
+import IniciarSesion from "./pages/Login";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<Layout/>}>
+        
+        <Route path="/login" element={<IniciarSesion />} />
 
+        <Route element={<Layout/>}> 
         <Route path="/" element={<Home />} />
         <Route path="/mapa" element={<PaginaMapa />} />
         <Route path="/reporte" element={<Reporte />} />
