@@ -30,10 +30,10 @@ function SideBar() {
             Mapa
           </NavLink>
 
-          <NavLink to="/zonas" className="nav-link">
+          {/* <NavLink to="/zonas" className="nav-link">
             <i className="bi bi-geo-alt"></i>
             Zonas
-          </NavLink>
+          </NavLink> */}
 
           <p className="mx-3 mb-1.5 mt-5 text-[11px] font-semibold uppercase tracking-widest ">
             Administración
@@ -44,10 +44,7 @@ function SideBar() {
             Usuarios
           </NavLink>
 
-          <NavLink to="/configuracion" className="nav-link">
-            <i className="bi bi-gear"></i>
-            Configuración
-          </NavLink>
+        
         </nav>
 
         <div className="mt-6 flex items-center gap-2.5 border-t border-line px-3 pt-4">
