@@ -3,7 +3,7 @@ const mysql = require("mysql2");
 const db = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "empo",
+  password: "",
   database: "mapaderiesgo",
   connectionLimit: 10,
   waitForConnections: true,

@@ -5,13 +5,10 @@ import "../style/Register.css";
 
 const API_URL = "http://localhost:3000/api/register";
 
-// Letras (con tildes y ñ), separadas por un espacio, guion o apóstrofe
 const SOLO_LETRAS = /^\p{L}+(?:[ '-]\p{L}+)*$/u;
-// Misma regla de email que usa zod en el backend, así los dos validan igual
 const EMAIL_VALIDO =
     /^(?:[A-Za-z0-9_'+-]+\.)*[A-Za-z0-9_'+-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9-]*\.)+[A-Za-z]{2,}$/;
 
-// Campos del formulario (en el orden en que se muestran)
 const CAMPOS = [
     {
         name: "nombre",
@@ -56,7 +53,6 @@ const CAMPOS = [
     },
 ];
 
-// ---------- Validaciones (las mismas reglas que el backend) ----------
 
 const validarNombreApellido = (valor, etiqueta) => {
     const texto = valor.trim();
@@ -123,7 +119,6 @@ const validarCampo = (name, valor) => {
     }
 };
 
-// ---------- Componente ----------
 
 function Register() {
     const navigate = useNavigate();
@@ -143,13 +138,11 @@ function Register() {
         const { name, value } = e.target;
         setDatos({ ...datos, [name]: value });
 
-        // Si el campo ya tenía un error, se revalida mientras escribe para que desaparezca solo
         if (errores[name]) {
             setErrores({ ...errores, [name]: validarCampo(name, value) });
         }
     };
 
-    // Al salir de un campo se valida
     const handleBlur = (e) => {
         const { name, value } = e.target;
         setErrores({ ...errores, [name]: validarCampo(name, value) });
@@ -159,7 +152,6 @@ function Register() {
         e.preventDefault();
         setErrorServidor("");
 
-        // 1) Validación en el navegador
         const nuevosErrores = {};
         CAMPOS.forEach(({ name }) => {
             const mensaje = validarCampo(name, datos[name]);
@@ -174,7 +166,6 @@ function Register() {
             return;
         }
 
-        // 2) Envío al backend
         setEnviando(true);
 
         try {
@@ -193,7 +184,6 @@ function Register() {
             const resultado = await respuesta.json();
 
             if (!respuesta.ok) {
-                // Errores por campo que mandó el backend (validación o email repetido)
                 if (resultado.errores?.length > 0) {
                     const erroresServidor = {};
                     resultado.errores.forEach(({ campo, mensaje }) => {
@@ -207,8 +197,6 @@ function Register() {
                 return;
             }
 
-            // 3) Usuario guardado: se va a la página principal
-            // 3) Usuario guardado: se avisa y se va a la página principal
             alert("¡Usuario registrado correctamente!");
 
             navigate("/", { replace: true });
@@ -233,7 +221,6 @@ function Register() {
                     </p>
                 )}
 
-                {/* noValidate: así se muestran nuestros mensajes y no los del navegador */}
                 <form onSubmit={handleSubmit} className="login-form" noValidate>
                     {CAMPOS.map((campo) => (
                         <div key={campo.name} className="register-grupo">
