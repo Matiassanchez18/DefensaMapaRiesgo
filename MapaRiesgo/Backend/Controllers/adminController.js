@@ -14,12 +14,13 @@ const obtenerDashboard = (req, res) => {
 
   db.query(consultaEstadisticas, (error, estadisticas) => {
     if (error) {
-      console.error("Error en estadísticas:", error);
+      console.error("ERROR EN ESTADÍSTICAS:", error.sqlMessage || error);
+
       return res.status(500).json({
-        mensaje: "Error al obtener las estadísticas."
+        mensaje: "Error en estadísticas",
+        detalle: error.sqlMessage,
       });
     }
-
     const consultaZonas = `
       SELECT
         z.id_zona,
@@ -34,9 +35,11 @@ const obtenerDashboard = (req, res) => {
 
     db.query(consultaZonas, (error, zonas) => {
       if (error) {
-        console.error("Error en zonas:", error);
+        console.error("ERROR EN ZONAS:", error.sqlMessage || error);
+
         return res.status(500).json({
-          mensaje: "Error al obtener las zonas."
+          mensaje: "Error en zonas",
+          detalle: error.sqlMessage,
         });
       }
 
@@ -59,16 +62,18 @@ const obtenerDashboard = (req, res) => {
 
       db.query(consultaReportes, (error, reportes) => {
         if (error) {
-          console.error("Error en reportes:", error);
+          console.error("ERROR EN REPORTES:", error.sqlMessage || error);
+
           return res.status(500).json({
-            mensaje: "Error al obtener los reportes."
+            mensaje: "Error en reportes",
+            detalle: error.sqlMessage,
           });
         }
 
         res.status(200).json({
           estadisticas: estadisticas[0],
           zonas,
-          reportes
+          reportes,
         });
       });
     });
