@@ -135,19 +135,22 @@ const agregarReporte = (req, res) => {
 
 const obtenerReportes = (req, res) => {
   const sql = `
-    SELECT
-      r.id_reporte,
-      r.descripcion,
-      r.estado,
-      r.fecha,
-      r.hora,
-      z.nombre AS zona,
-      d.nombre AS delito,
-      d.nivel_delito AS riesgo
-    FROM reporte r
-    LEFT JOIN zona z ON r.id_zona = z.id_zona
-    LEFT JOIN delito d ON r.id_delito = d.id_delito
-    ORDER BY r.fecha DESC, r.hora DESC
+SELECT
+  r.id_reporte,
+  r.descripcion,
+  r.estado,
+  r.fecha,
+  r.hora,
+  r.latitud,
+  r.longitud,
+  r.id_zona,
+  z.nombre AS zona,
+  d.nombre AS delito,
+  d.nivel_delito AS riesgo
+FROM reporte r
+LEFT JOIN zona z ON r.id_zona = z.id_zona
+LEFT JOIN delito d ON r.id_delito = d.id_delito
+ORDER BY r.fecha DESC, r.hora DESC
   `;
 
   db.query(sql, (error, resultados) => {
