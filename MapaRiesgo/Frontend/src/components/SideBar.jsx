@@ -36,7 +36,7 @@ function SideBar() {
             Administración
           </p>
 
-          <NavLink to="admin/usuarios" className="nav-link">
+          <NavLink to="/admin/usuarios" className="nav-link">
             <i className="bi bi-people"></i>
             Usuarios
           </NavLink>

@@ -11,6 +11,7 @@ import DashboardAdmin from "./pages/DashboardAdmin";
 import DashboardReportes from "./pages/DashboardReportes";
 import Layout from "./components/Layout";
 import IniciarSesion from "./pages/Login";
+import Usuarios from "./pages/Usuarios";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route index element={<DashboardAdmin />} />
           <Route path="reportes" element={<DashboardReportes />} />
           <Route path="mapa" element={<PaginaMapa />} />
+          <Route path="usuarios" element={<Usuarios />} />
         </Route>
 
       </Routes>
