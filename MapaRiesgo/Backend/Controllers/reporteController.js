@@ -1,4 +1,3 @@
-
 const db = require("../Config/db");
 
 const TAM_CELDA = 0.005;
@@ -37,7 +36,7 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
       "Zona generada automáticamente según los reportes.",
       "Bajo",
       centroLatitud,
-      centroLongitud
+      centroLongitud,
     ],
     (error, resultado) => {
       if (error) {
@@ -45,20 +44,13 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
       }
 
       callback(null, resultado.insertId);
-    }
+    },
   );
 };
 
-
 const agregarReporte = (req, res) => {
-  const {
-    id_delito,
-    direccion,
-    descripcion,
-    testigos,
-    latitud,
-    longitud,
-  } = req.body;
+  const { id_delito, direccion, descripcion, testigos, latitud, longitud } =
+    req.body;
 
   const lat = Number(latitud);
   const lng = Number(longitud);
@@ -135,7 +127,7 @@ const agregarReporte = (req, res) => {
           id_reporte: resultado.insertId,
           id_zona: idZona,
         });
-      }
+      },
     );
   });
 };
@@ -157,7 +149,44 @@ const obtenerReportes = (req, res) => {
   });
 };
 
+// ---
+const obtenerUltimoReporte = (req, res) => {
+  const sql = `SELECT
+      r.id_reporte,
+      r.descripcion AS titulo,
+      r.direccion,
+      r.fecha,
+      r.hora,
+      r.estado,
+      z.nombre AS zona,
+      z.nivel_riesgo AS nivelRiesgo
+    FROM reporte r
+    INNER JOIN zona z ON r.id_zona = z.id_zona
+    ORDER BY r.id_reporte DESC
+    LIMIT 1`;
+
+    db.query(sql, (error, resultados) => {
+    if (error) {
+      console.error("Error al obtener el último reporte:", error);
+
+      return res.status(500).json({
+        mensaje: "Error al obtener el último reporte.",
+        detalle: error.message,
+      });
+    }
+
+    if (resultados.length === 0) {
+      return res.status(404).json({
+        mensaje: "No hay reportes registrados.",
+      });
+    }
+
+    res.status(200).json(resultados[0]);
+  });
+};
+
 module.exports = {
   agregarReporte,
   obtenerReportes,
+  obtenerUltimoReporte,
 };
