@@ -1,0 +1,131 @@
+/* Página: ocupa toda la pantalla y centra la tarjeta */
+.pagina-login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0f172a;
+}
+
+.pagina-login main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Contenedor del formulario */
+.login {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+.login *,
+.login *::before,
+.login *::after {
+  box-sizing: border-box;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.5rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+.login-titulo {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: #f1f5f9;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.login-label {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.login-campo {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+  color: #f1f5f9;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+}
+
+.login-campo::placeholder {
+  color: #64748b;
+}
+
+.login-campo:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.35);
+}
+
+.login-boton {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  background: #0284c7;
+  border: 0;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.login-boton:hover {
+  background: #0ea5e9;
+}
+
+.login-registro {
+  display: block;
+  margin-top: 0.75rem;
+  padding: 0.7rem 1rem;
+  text-align: center;
+  font-weight: 600;
+  color: #0ea5e9;
+  text-decoration: none;
+  border: 1px solid #0284c7;
+  border-radius: 0.5rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.login-registro:hover {
+  color: #ffffff;
+  background: #0284c7;
+}
+
+/* Tablet y escritorio */
+@media (min-width: 576px) {
+  .login {
+    padding: 4rem 1rem;
+  }
+
+  .login-card {
+    padding: 2rem;
+  }
+
+  .login-titulo {
+    font-size: 1.875rem;
+  }
+}
