@@ -30,10 +30,7 @@ function SideBar() {
             Mapa
           </NavLink>
 
-          {/* <NavLink to="/zonas" className="nav-link">
-            <i className="bi bi-geo-alt"></i>
-            Zonas
-          </NavLink> */}
+          
 
           <p className="mx-3 mb-1.5 mt-5 text-[11px] font-semibold uppercase tracking-widest ">
             Administración

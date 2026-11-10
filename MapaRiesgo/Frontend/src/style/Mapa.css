@@ -241,6 +241,10 @@
   line-height: 1.5;
 }
 
+.leaflet-container {
+  touch-action: none;
+}
+
 .reporte-acciones {
   display: flex;
   justify-content: flex-end;
@@ -305,6 +309,30 @@
 
 .reporte-card {
   animation: aparecerFormulario 0.35s ease forwards;
+}
+
+.dependencia-marcador {
+  background: transparent;
+  border: none;
+}
+
+.dependencia-icono {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border: 2px solid #2563eb;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.dependencia-icono img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 @keyframes aparecerFondo {
