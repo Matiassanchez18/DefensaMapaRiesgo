@@ -6,6 +6,7 @@ import SideBar from "./components/SideBar";
 import Reporte from "./Components/Reporte";
 import Denuncia from "./pages/Denuncia";
 import DashboardAdmin from "./pages/DashboardAdmin";
+import DashboardReportes from "./pages/DashboardReportes";
 
 function App() {
   return (
@@ -21,7 +22,7 @@ function App() {
 
       <Route path="/admin" element={<SideBar />}>
         <Route index element={<DashboardAdmin/>} />
-        <Route path="reportes" element={<Denuncia/>} />
+        <Route path="reportes" element={<DashboardReportes/>} />
         <Route path="mapa" element={<PaginaMapa />} />
         
       </Route>  

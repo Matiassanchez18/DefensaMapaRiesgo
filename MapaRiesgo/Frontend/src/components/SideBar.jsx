@@ -20,12 +20,12 @@ function SideBar() {
             Dashboard
           </NavLink>
 
-          <NavLink to="/reportes" className="nav-link">
+          <NavLink to="/admin/reportes" className="nav-link">
             <i className="bi bi-file-earmark-text"></i>
             Reportes
           </NavLink>
 
-          <NavLink to="/mapa" className="nav-link">
+          <NavLink to="/admin/mapa" className="nav-link">
             <i className="bi bi-map"></i>
             Mapa
           </NavLink>
@@ -39,7 +39,7 @@ function SideBar() {
             Administración
           </p>
 
-          <NavLink to="/usuarios" className="nav-link">
+          <NavLink to="admin/usuarios" className="nav-link">
             <i className="bi bi-people"></i>
             Usuarios
           </NavLink>
