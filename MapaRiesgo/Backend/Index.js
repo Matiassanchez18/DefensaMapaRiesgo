@@ -13,7 +13,7 @@ const usuariosRoutes = require("./Routes/usuariosRoutes")
 app.use("/api/reportes", reporteRoutes);
 app.use("/api/comisarias", comisariaRoutes);
 app.use("/api/usuarios", usuariosRoutes);
-
+app.use("/api/reportes", reporteRoutes);
 
 app.listen(3000, () => {
   console.log("Servidor funcionando en el puerto 3000");
