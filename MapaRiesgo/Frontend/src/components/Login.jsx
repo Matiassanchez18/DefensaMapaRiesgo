@@ -22,7 +22,7 @@ function Login() {
     setError("");
     
     try {
-      const respuesta = await fetch("http://localhost:3000/api/auth/login", {
+      const respuesta = await fetch("http://localhost:3000/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -31,7 +31,7 @@ function Login() {
       });
       const data = await respuesta.json();
       if (!respuesta.ok) {
-        setError(data.message);
+        setError(data.mensaje);
         return;
     }
     login(data.usuario);
