@@ -2,6 +2,12 @@
 @import "bootstrap-icons/font/bootstrap-icons.css";
 @import "tailwindcss";
 
+@theme {
+  --color-sidebar: #070d16;
+  --color-fondo: #0f1a2b;
+  --color-line: #1e2a3a;
+  --color-muted: #8b95a7;
+}
 body {
   font-family: "Montserrat", sans-serif;
   background-color: #0d1b2a;
