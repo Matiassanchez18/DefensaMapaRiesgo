@@ -4,12 +4,12 @@ const router = express.Router();
 
 const { obtenerDashboard } = require("../Controllers/adminController");
 
-router.get("/dashboard", obtenerDashboard);
-
 const {
   agregarReporte,
   obtenerReportes,
   obtenerUltimoReporte,
+  actualizarReporte,
+  eliminarReporte
 } = require("../Controllers/reporteController");
 
 const validarReporte = require("../MiddleWare/ValidarReporte");
@@ -17,8 +17,10 @@ const validarReporte = require("../MiddleWare/ValidarReporte");
 router.post("/", validarReporte, agregarReporte);
 
 router.get("/", obtenerReportes);
+router.get("/ultimo", obtenerUltimoReporte);
+router.get("/dashboard", obtenerDashboard);
 
-router.get("/ultimo", obtenerUltimoReporte)
-
+router.put("/:id", actualizarReporte);
+router.delete("/:id", eliminarReporte);
 
 module.exports = router;

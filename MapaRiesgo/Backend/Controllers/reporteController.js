@@ -132,16 +132,29 @@ const agregarReporte = (req, res) => {
   });
 };
 
+
 const obtenerReportes = (req, res) => {
-  const sql = "SELECT * FROM reporte";
+  const sql = `
+    SELECT
+      r.id_reporte,
+      r.descripcion,
+      r.estado,
+      r.fecha,
+      r.hora,
+      z.nombre AS zona,
+      d.nombre AS delito,
+      d.nivel_delito AS riesgo
+    FROM reporte r
+    LEFT JOIN zona z ON r.id_zona = z.id_zona
+    LEFT JOIN delito d ON r.id_delito = d.id_delito
+    ORDER BY r.fecha DESC, r.hora DESC
+  `;
 
   db.query(sql, (error, resultados) => {
     if (error) {
-      console.error("ERROR MYSQL:", error);
-
+      console.error("Error al obtener reportes:", error);
       return res.status(500).json({
-        mensaje: "Error al obtener reportes.",
-        detalle: error.message,
+        mensaje: "Error al obtener los reportes."
       });
     }
 
@@ -149,7 +162,8 @@ const obtenerReportes = (req, res) => {
   });
 };
 
-// ---
+
+
 const obtenerUltimoReporte = (req, res) => {
   const sql = `SELECT
       r.id_reporte,
@@ -185,8 +199,83 @@ const obtenerUltimoReporte = (req, res) => {
   });
 };
 
+const actualizarReporte = (req, res) => {
+  const { id } = req.params;
+  const { descripcion, estado } = req.body;
+
+  if (!descripcion || !estado) {
+    return res.status(400).json({
+      mensaje: "La descripción y el estado son obligatorios."
+    });
+  }
+
+  const estadosPermitidos = ["Pendiente", "En revisión", "Resuelto"];
+
+  if (!estadosPermitidos.includes(estado)) {
+    return res.status(400).json({
+      mensaje: "El estado indicado no es válido."
+    });
+  }
+
+  const sql = `
+    UPDATE reporte
+    SET descripcion = ?, estado = ?
+    WHERE id_reporte = ?
+  `;
+
+  db.query(sql, [descripcion, estado, id], (error, resultado) => {
+    if (error) {
+      console.error("Error al actualizar reporte:", error);
+      return res.status(500).json({
+        mensaje: "Error al actualizar el reporte."
+      });
+    }
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({
+        mensaje: "No se encontró el reporte."
+      });
+    }
+
+    res.status(200).json({
+      mensaje: "Reporte actualizado correctamente."
+    });
+  });
+};
+
+
+const eliminarReporte = (req, res) => {
+  const { id } = req.params;
+
+  const sql = `
+    DELETE FROM reporte
+    WHERE id_reporte = ?
+  `;
+
+  db.query(sql, [id], (error, resultado) => {
+    if (error) {
+      console.error("Error al eliminar reporte:", error);
+      return res.status(500).json({
+        mensaje: "Error al eliminar el reporte."
+      });
+    }
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({
+        mensaje: "No se encontró el reporte."
+      });
+    }
+
+    res.status(200).json({
+      mensaje: "Reporte eliminado correctamente."
+    });
+  });
+};
+
 module.exports = {
   agregarReporte,
   obtenerReportes,
   obtenerUltimoReporte,
+  actualizarReporte,
+  eliminarReporte
 };
