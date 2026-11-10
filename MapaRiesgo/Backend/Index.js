@@ -1,10 +1,12 @@
 const express = require("express");
 const cors = require("cors");
+const registerRoutes = require("./Routes/registerRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/register", registerRoutes);
 
 const reporteRoutes = require("./Routes/reporteRoutes");
 const comisariaRoutes = require("./Routes/comisariaRoutes");
