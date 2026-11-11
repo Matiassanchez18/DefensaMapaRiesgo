@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 function DashboardAdmin() {
@@ -21,11 +20,13 @@ function DashboardAdmin() {
     const obtenerDatos = async () => {
       try {
         const respuesta = await fetch(
-          "http://localhost:3000/api/reportes/dashboard"
+          "http://localhost:3000/api/reportes/dashboard",
         );
 
         if (!respuesta.ok) {
-          throw new Error("No se pudieron obtener los datos.");
+          const resultadoError = await respuesta.json();
+
+          throw new Error(resultadoError.detalle || resultadoError.mensaje);
         }
 
         const resultado = await respuesta.json();
@@ -73,7 +74,7 @@ function DashboardAdmin() {
 
   const mayorCantidad = Math.max(
     ...zonas.map((zona) => Number(zona.cantidad)),
-    1
+    1,
   );
 
   const coloresRiesgo = {
@@ -90,9 +91,7 @@ function DashboardAdmin() {
 
   if (cargando) {
     return (
-      <div className="p-6 text-center text-muted">
-        Cargando dashboard...
-      </div>
+      <div className="p-6 text-center text-muted">Cargando dashboard...</div>
     );
   }
 
@@ -114,41 +113,30 @@ function DashboardAdmin() {
             key={card.titulo}
             className="rounded-lg border border-line bg-white/5 p-4"
           >
-            <p className="text-[11px] text-muted">
-              {card.titulo}
-            </p>
+            <p className="text-[11px] text-muted">{card.titulo}</p>
 
-            <p className="my-1 text-3xl font-bold">
-              {card.numero}
-            </p>
+            <p className="my-1 text-3xl font-bold">{card.numero}</p>
 
-            <p className={`text-[11px] ${card.color}`}>
-              {card.detalle}
-            </p>
+            <p className={`text-[11px] ${card.color}`}>{card.detalle}</p>
           </div>
         ))}
       </section>
 
       <section className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-
         <div className="rounded-lg border border-line bg-white/5 p-4">
           <h2 className="mb-4 border-b border-line pb-2 text-xs font-bold">
             Reportes por zona
           </h2>
 
           {zonas.length === 0 ? (
-            <p className="text-xs text-muted">
-              No hay zonas registradas.
-            </p>
+            <p className="text-xs text-muted">No hay zonas registradas.</p>
           ) : (
             zonas.map((zona) => (
               <div
                 key={zona.id_zona}
                 className="mb-3 grid grid-cols-[80px_1fr_30px] items-center gap-3 text-xs"
               >
-                <span className="text-muted">
-                  {zona.nombre}
-                </span>
+                <span className="text-muted">{zona.nombre}</span>
 
                 <div className="h-1.5 rounded-full bg-black/30">
                   <div
@@ -161,9 +149,7 @@ function DashboardAdmin() {
                   />
                 </div>
 
-                <span className="text-right font-bold">
-                  {zona.cantidad}
-                </span>
+                <span className="text-right font-bold">{zona.cantidad}</span>
               </div>
             ))
           )}
@@ -203,37 +189,24 @@ function DashboardAdmin() {
             <tbody>
               {reportes.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan="6"
-                    className="py-4 text-center text-muted"
-                  >
+                  <td colSpan="6" className="py-4 text-center text-muted">
                     No hay reportes registrados.
                   </td>
                 </tr>
               ) : (
                 reportes.map((reporte) => (
-                  <tr
-                    key={reporte.id_reporte}
-                    className="border-t border-line"
-                  >
-                    <td className="py-3 text-muted">
-                      #{reporte.id_reporte}
-                    </td>
+                  <tr key={reporte.id_reporte} className="border-t border-line">
+                    <td className="py-3 text-muted">#{reporte.id_reporte}</td>
 
-                    <td className="py-3 font-bold">
-                      {reporte.descripcion}
-                    </td>
+                    <td className="py-3 font-bold">{reporte.descripcion}</td>
 
-                    <td className="py-3">
-                      {reporte.zona || "Sin zona"}
-                    </td>
+                    <td className="py-3">{reporte.zona || "Sin zona"}</td>
 
                     <td className="py-3">
                       <span className="flex items-center gap-2">
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${
-                            coloresRiesgo[reporte.riesgo] ||
-                            "bg-gray-400"
+                            coloresRiesgo[reporte.riesgo] || "bg-gray-400"
                           }`}
                         />
 
@@ -245,8 +218,7 @@ function DashboardAdmin() {
                       <span className="flex items-center gap-2">
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${
-                            coloresEstado[reporte.estado] ||
-                            "bg-gray-400"
+                            coloresEstado[reporte.estado] || "bg-gray-400"
                           }`}
                         />
 
