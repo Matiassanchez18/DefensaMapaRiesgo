@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../style/Login.css";
 import "../style/Register.css";
+import useAuthStore from "../store/Store";
 
 const API_URL = "http://localhost:3000/api/register";
 
@@ -122,6 +123,7 @@ const validarCampo = (name, valor) => {
 
 function Register() {
     const navigate = useNavigate();
+    const login = useAuthStore((state) => state.login);
 
     const [datos, setDatos] = useState({
         nombre: "",
@@ -197,6 +199,8 @@ function Register() {
                 return;
             }
 
+            login(resultado.usuario);
+            console.log("Usuario guardado en Zustand:", useAuthStore.getState());
             alert("¡Usuario registrado correctamente!");
 
             navigate("/", { replace: true });
