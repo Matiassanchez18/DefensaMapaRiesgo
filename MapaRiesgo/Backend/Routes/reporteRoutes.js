@@ -19,7 +19,7 @@ router.post("/", validarReporte, agregarReporte);
 router.get("/", obtenerReportes);
 router.get("/ultimo", obtenerUltimoReporte);
 router.get("/dashboard", obtenerDashboard);
-router.post("/", agregarReporte);
+
 
 router.put("/:id", actualizarReporte);
 router.delete("/:id", eliminarReporte);
