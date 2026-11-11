@@ -1,13 +1,17 @@
+
 import { useState } from "react";
+import useAuthStore from "../store/Store";
 import "../style/Formulario.css";
 
-function Formulario() {
+function Reporte() {
   const [ubicacion, setUbicacion] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
+  const usuario = useAuthStore((state) => state.usuario);
+
+  // Obtener ubicación GPS
   const seleccionarEnMapa = () => {
-    // Permite obtener la ubicación GPS actual.
     if (!navigator.geolocation) {
       setMensaje("Tu navegador no permite obtener la ubicación.");
       return;
@@ -15,27 +19,46 @@ function Formulario() {
 
     navigator.geolocation.getCurrentPosition(
       (posicion) => {
-        setUbicacion([posicion.coords.latitude, posicion.coords.longitude]);
+        setUbicacion([
+          posicion.coords.latitude,
+          posicion.coords.longitude,
+        ]);
+
         setMensaje("Ubicación obtenida correctamente.");
       },
       () => {
         setMensaje("No se pudo obtener tu ubicación.");
-      },
+      }
     );
   };
 
+  // Enviar reporte
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensaje("");
 
+    if (!usuario) {
+      setMensaje("Tenés que iniciar sesión para realizar un reporte.");
+      return;
+    }
+
+    const idUsuario = Number(usuario.id_usuario);
+
+    if (!Number.isInteger(idUsuario) || idUsuario <= 0) {
+      console.error("Datos del usuario:", usuario);
+      setMensaje("No se pudo identificar al usuario. Volvé a iniciar sesión.");
+      return;
+    }
+
     if (!ubicacion) {
-      setMensaje("Primero tenés que seleccionar la ubicación del hecho.");
+      setMensaje("Primero tenés que obtener la ubicación del hecho.");
       return;
     }
 
     const datosFormulario = new FormData(e.target);
 
     const reporte = {
+      id_usuario: idUsuario,
       id_delito: Number(datosFormulario.get("id_delito")),
       direccion: datosFormulario.get("direccion").trim(),
       descripcion: datosFormulario.get("descripcion").trim(),
@@ -47,13 +70,16 @@ function Formulario() {
     try {
       setCargando(true);
 
-      const respuesta = await fetch("http://localhost:3000/api/reportes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(reporte),
-      });
+      const respuesta = await fetch(
+        "http://localhost:3000/api/reportes",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(reporte),
+        }
+      );
 
       const resultado = await respuesta.json();
 
@@ -62,19 +88,23 @@ function Formulario() {
           throw new Error(
             resultado.errores
               .map((error) => `${error.campo}: ${error.mensaje}`)
-              .join("\n"),
+              .join("\n")
           );
         }
 
-        throw new Error(resultado.mensaje || "Error al enviar el reporte.");
+        throw new Error(
+          resultado.mensaje || "Error al enviar el reporte."
+        );
       }
 
       setMensaje("Reporte registrado correctamente.");
       e.target.reset();
       setUbicacion(null);
+
     } catch (error) {
       console.error("Error al enviar reporte:", error);
       setMensaje(error.message);
+
     } finally {
       setCargando(false);
     }
@@ -83,14 +113,20 @@ function Formulario() {
   return (
     <div className="reporte">
       <div className="reporte-card">
+
         <div className="reporte-header">
           <h2>Realizar reporte</h2>
           <p>Completá los datos del hecho ocurrido</p>
         </div>
 
-        <form className="reporte-form" onSubmit={handleSubmit}>
+        <form
+          className="reporte-form"
+          onSubmit={handleSubmit}
+        >
+
           <div className="reporte-campo">
             <label htmlFor="id_delito">Tipo de delito</label>
+
             <select
               id="id_delito"
               name="id_delito"
@@ -107,7 +143,10 @@ function Formulario() {
           </div>
 
           <div className="reporte-campo">
-            <label htmlFor="direccion">Dirección o referencia</label>
+            <label htmlFor="direccion">
+              Dirección o referencia
+            </label>
+
             <input
               type="text"
               id="direccion"
@@ -120,21 +159,34 @@ function Formulario() {
 
           <div className="reporte-campo">
             <label>¿Hubo testigos?</label>
+
             <div className="reporte-opciones">
               <label className="reporte-opcion">
-                <input type="radio" name="testigos" value="si" required />
+                <input
+                  type="radio"
+                  name="testigos"
+                  value="si"
+                  required
+                />
                 Sí
               </label>
 
               <label className="reporte-opcion">
-                <input type="radio" name="testigos" value="no" />
+                <input
+                  type="radio"
+                  name="testigos"
+                  value="no"
+                />
                 No
               </label>
             </div>
           </div>
 
           <div className="reporte-campo">
-            <label htmlFor="descripcion">Descripción del hecho</label>
+            <label htmlFor="descripcion">
+              Descripción del hecho
+            </label>
+
             <textarea
               id="descripcion"
               name="descripcion"
@@ -147,6 +199,7 @@ function Formulario() {
 
           <div className="reporte-campo">
             <label>Ubicación del incidente</label>
+
             <p>
               {ubicacion
                 ? "Ubicación seleccionada correctamente."
@@ -163,7 +216,9 @@ function Formulario() {
             </button>
           </div>
 
-          {mensaje && <p role="status">{mensaje}</p>}
+          {mensaje && (
+            <p role="status">{mensaje}</p>
+          )}
 
           <div className="reporte-acciones">
             <button
@@ -174,10 +229,11 @@ function Formulario() {
               {cargando ? "Enviando..." : "Enviar reporte"}
             </button>
           </div>
+
         </form>
       </div>
     </div>
   );
 }
 
-export default Formulario;
+export default Reporte;

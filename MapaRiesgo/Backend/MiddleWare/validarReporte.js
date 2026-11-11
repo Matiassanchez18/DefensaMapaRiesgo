@@ -1,18 +1,24 @@
-
 const { z } = require("zod");
 
 const reporteSchema = z.object({
+  id_usuario: z.coerce
+    .number()
+    .int("El ID del usuario debe ser un número entero")
+    .positive("El usuario no es válido"),
+
   id_delito: z.coerce
     .number()
     .int("El ID del delito debe ser un número entero")
     .positive("Seleccioná un tipo de delito"),
 
-  direccion: z.string()
+  direccion: z
+    .string()
     .trim()
     .min(3, "La dirección debe tener al menos 3 caracteres")
     .max(255, "La dirección es demasiado larga"),
 
-  descripcion: z.string()
+  descripcion: z
+    .string()
     .trim()
     .min(10, "La descripción debe tener al menos 10 caracteres")
     .max(1000, "La descripción es demasiado larga"),
@@ -21,13 +27,9 @@ const reporteSchema = z.object({
     error: "Indicá si hubo testigos",
   }),
 
-  latitud: z.coerce.number()
-    .min(-90)
-    .max(90),
+  latitud: z.coerce.number().min(-90).max(90),
 
-  longitud: z.coerce.number()
-    .min(-180)
-    .max(180),
+  longitud: z.coerce.number().min(-180).max(180),
 });
 
 const validarReporte = (req, res, next) => {

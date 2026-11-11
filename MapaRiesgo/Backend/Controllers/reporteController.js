@@ -49,7 +49,7 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
 };
 
 const agregarReporte = (req, res) => {
-  const { id_delito, direccion, descripcion, testigos, latitud, longitud } =
+  const {id_usuario, id_zona, id_delito, direccion, descripcion, testigos, latitud, longitud } =
     req.body;
 
   const lat = Number(latitud);
@@ -102,9 +102,9 @@ const agregarReporte = (req, res) => {
     db.query(
       sql,
       [
-        1,
+        id_usuario,
         id_delito,
-        idZona,
+        id_zona,
         descripcion,
         lat,
         lng,
