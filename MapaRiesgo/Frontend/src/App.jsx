@@ -11,16 +11,16 @@ import DashboardAdmin from "./pages/DashboardAdmin";
 import DashboardReportes from "./pages/DashboardReportes";
 import Layout from "./components/Layout";
 import IniciarSesion from "./pages/Login";
+import Registrarse from "./pages/RegisterP";
 import Usuarios from "./pages/Usuarios";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route path="/login" element={<IniciarSesion />} />
+        <Route path="/register" element={<Registrarse />} />
 
-       
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/mapa" element={<PaginaMapa />} />
@@ -34,7 +34,6 @@ function App() {
           <Route path="mapa" element={<PaginaMapa />} />
           <Route path="usuarios" element={<Usuarios />} />
         </Route>
-
       </Routes>
     </BrowserRouter>
   );
