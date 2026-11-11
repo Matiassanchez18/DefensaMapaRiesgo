@@ -5,10 +5,6 @@ function RutaPrivada({ soloAdmin = false }) {
   const inicioSesion = useAuthStore((state) => state.inicioSesion);
   const usuario = useAuthStore((state) => state.usuario);
 
-  console.log("Sesión iniciada:", inicioSesion);
-  console.log("Usuario:", usuario);
-  console.log("Rol:", usuario?.rol);
-
   if (!inicioSesion || !usuario) {
     return <Navigate to="/login" replace />;
   }
