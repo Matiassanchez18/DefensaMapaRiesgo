@@ -1,11 +1,10 @@
 
 const db = require("../Config/db.js");
 
-// OBTENER TODOS LOS USUARIOS
 const obtenerUsuarios = (req, res) => {
     const sql = `
         SELECT id_usuario, nombre, apellido, email,
-               telefono, fecha_registro
+               telefono, rol, fecha_registro
         FROM usuario
         ORDER BY id_usuario DESC
     `;
@@ -22,13 +21,12 @@ const obtenerUsuarios = (req, res) => {
     });
 };
 
-// OBTENER UN USUARIO POR ID
 const obtenerUsuarioPorId = (req, res) => {
     const { id } = req.params;
 
     const sql = `
         SELECT id_usuario, nombre, apellido, email,
-               telefono, fecha_registro
+               telefono, rol, fecha_registro
         FROM usuario
         WHERE id_usuario = ?
     `;
@@ -51,7 +49,6 @@ const obtenerUsuarioPorId = (req, res) => {
     });
 };
 
-// CREAR USUARIO
 const crearUsuario = (req, res) => {
     const {
         nombre,
@@ -98,7 +95,6 @@ const crearUsuario = (req, res) => {
     );
 };
 
-// MODIFICAR USUARIO
 const modificarUsuario = (req, res) => {
     const { id } = req.params;
 
@@ -106,7 +102,8 @@ const modificarUsuario = (req, res) => {
         nombre,
         apellido,
         email,
-        telefono
+        telefono,
+        rol
     } = req.body;
 
     if (!nombre || !apellido || !email) {
@@ -115,18 +112,25 @@ const modificarUsuario = (req, res) => {
         });
     }
 
+    if (rol && !["usuario", "admin"].includes(rol)) {
+        return res.status(400).json({
+            mensaje: "El rol seleccionado no es válido"
+        });
+    }
+
     const sql = `
         UPDATE usuario
         SET nombre = ?,
             apellido = ?,
             email = ?,
-            telefono = ?
+            telefono = ?,
+            rol = ?
         WHERE id_usuario = ?
     `;
 
     db.query(
         sql,
-        [nombre, apellido, email, telefono || null, id],
+        [nombre, apellido, email, telefono || null, rol || "usuario", id],
         (error, resultado) => {
             if (error) {
                 if (error.code === "ER_DUP_ENTRY") {
@@ -154,7 +158,6 @@ const modificarUsuario = (req, res) => {
     );
 };
 
-// ELIMINAR USUARIO
 const eliminarUsuario = (req, res) => {
     const { id } = req.params;
 

@@ -22,7 +22,6 @@ function Usuarios() {
             }
 
             const datos = await respuesta.json();
-
             setUsuarios(datos);
 
         } catch (error) {
@@ -33,7 +32,6 @@ function Usuarios() {
         }
     };
 
-    // Ejecutar GET cuando se carga el componente
     useEffect(() => {
         obtenerUsuarios();
     }, []);
@@ -55,10 +53,8 @@ function Usuarios() {
                 throw new Error(datos.mensaje || "Error al eliminar usuario");
             }
 
-            setUsuarios((usuariosAnteriores) =>
-                usuariosAnteriores.filter(
-                    (usuario) => usuario.id_usuario !== id
-                )
+            setUsuarios((anteriores) =>
+                anteriores.filter((usuario) => usuario.id_usuario !== id)
             );
 
             alert("Usuario eliminado correctamente");
@@ -85,7 +81,8 @@ function Usuarios() {
                         nombre: editando.nombre,
                         apellido: editando.apellido,
                         email: editando.email,
-                        telefono: editando.telefono
+                        telefono: editando.telefono,
+                        rol: editando.rol
                     })
                 }
             );
@@ -99,8 +96,6 @@ function Usuarios() {
             alert("Usuario modificado correctamente");
 
             setEditando(null);
-
-            // Actualizar la lista desde MySQL
             obtenerUsuarios();
 
         } catch (error) {
@@ -109,7 +104,7 @@ function Usuarios() {
         }
     };
 
-    // Obtener iniciales del usuario
+    // Obtener iniciales
     const obtenerIniciales = (nombre, apellido) => {
         return `${nombre?.charAt(0) || ""}${apellido?.charAt(0) || ""}`.toUpperCase();
     };
@@ -117,7 +112,6 @@ function Usuarios() {
     // Formatear fecha
     const formatearFecha = (fecha) => {
         if (!fecha) return "Sin fecha";
-
         return new Date(fecha).toLocaleDateString("es-AR");
     };
 
@@ -191,9 +185,7 @@ function Usuarios() {
                     </p>
                 ) : error ? (
                     <div className="py-8 text-center">
-                        <p className="text-sm text-red-400">
-                            {error}
-                        </p>
+                        <p className="text-sm text-red-400">{error}</p>
 
                         <button
                             onClick={obtenerUsuarios}
@@ -207,7 +199,6 @@ function Usuarios() {
                         No hay usuarios registrados.
                     </p>
                 ) : (
-
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs">
 
@@ -216,6 +207,7 @@ function Usuarios() {
                                     <th className="py-2 font-semibold">Usuario</th>
                                     <th className="py-2 font-semibold">Email</th>
                                     <th className="py-2 font-semibold">Teléfono</th>
+                                    <th className="py-2 font-semibold">Rol</th>
                                     <th className="py-2 font-semibold">Fecha de registro</th>
                                     <th className="py-2 text-right font-semibold">Acciones</th>
                                 </tr>
@@ -227,10 +219,8 @@ function Usuarios() {
                                         key={usuario.id_usuario}
                                         className="border-t border-line"
                                     >
-                                        {/* Nombre y apellido */}
                                         <td className="py-3">
                                             <div className="flex items-center gap-3">
-
                                                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-[11px] font-bold text-blue-400">
                                                     {obtenerIniciales(
                                                         usuario.nombre,
@@ -250,25 +240,31 @@ function Usuarios() {
                                             </div>
                                         </td>
 
-                                        {/* Email */}
                                         <td className="py-3">
                                             {usuario.email}
                                         </td>
 
-                                        {/* Teléfono */}
                                         <td className="py-3">
                                             {usuario.telefono || "Sin teléfono"}
                                         </td>
 
-                                        {/* Fecha */}
+                                        {/* Rol */}
+                                        <td className="py-3">
+                                            <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
+                                                usuario.rol === "admin"
+                                                    ? "bg-blue-500/15 text-blue-400"
+                                                    : "bg-white/10 text-slate-300"
+                                            }`}>
+                                                {usuario.rol === "admin" ? "Administrador" : "Usuario"}
+                                            </span>
+                                        </td>
+
                                         <td className="py-3 text-muted">
                                             {formatearFecha(usuario.fecha_registro)}
                                         </td>
 
-                                        {/* Acciones */}
                                         <td className="py-3">
                                             <div className="flex justify-end gap-3 text-sm">
-
                                                 <button
                                                     type="button"
                                                     onClick={() => setEditando({ ...usuario })}
@@ -286,31 +282,25 @@ function Usuarios() {
                                                 >
                                                     <i className="bi bi-trash"></i>
                                                 </button>
-
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
-
                         </table>
                     </div>
                 )}
 
-                {/* Pie de tabla */}
                 {!cargando && !error && (
                     <div className="mt-3 flex items-center justify-between border-t border-line pt-3 text-[11px] text-muted">
-                        <span>
-                            Mostrando {usuarios.length} usuarios
-                        </span>
+                        <span>Mostrando {usuarios.length} usuarios</span>
                     </div>
                 )}
-
             </section>
 
             {/* Modal de edición */}
             {editando && (
-                <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/60 p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
 
                     <form
                         onSubmit={guardar}
@@ -388,12 +378,31 @@ function Usuarios() {
                                     telefono: e.target.value
                                 })
                             }
-                            className="mb-4 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
+                            className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
                         />
+
+                        {/* Rol */}
+                        <label className="mb-1 block text-[11px] text-muted">
+                            Rol
+                        </label>
+
+                        <select
+                            required
+                            value={editando.rol || "usuario"}
+                            onChange={(e) =>
+                                setEditando({
+                                    ...editando,
+                                    rol: e.target.value
+                                })
+                            }
+                            className="mb-4 w-full rounded-md border border-line bg-[#172536] px-3 py-2 text-xs text-white"
+                        >
+                            <option value="usuario">Usuario</option>
+                            <option value="admin">Administrador</option>
+                        </select>
 
                         {/* Botones */}
                         <div className="flex justify-end gap-2 text-xs">
-
                             <button
                                 type="button"
                                 onClick={() => setEditando(null)}
@@ -408,9 +417,7 @@ function Usuarios() {
                             >
                                 Guardar cambios
                             </button>
-
                         </div>
-
                     </form>
                 </div>
             )}
