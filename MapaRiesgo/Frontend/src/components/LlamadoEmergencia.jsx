@@ -1,10 +1,15 @@
+
 import { useState } from "react";
+import useAuthStore from "../store/Store";
 import "../style/Home.css";
 
 function LlamadoEmergencia() {
+  const usuario = useAuthStore((state) => state.usuario);
+
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [guardado, setGuardado] = useState(false);
-  const [contactos, setContactos] = useState([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState("");
 
   const [nuevoContacto, setNuevoContacto] = useState({
     nombre: "",
@@ -21,28 +26,73 @@ function LlamadoEmergencia() {
     });
   };
 
-  const agregarContacto = (e) => {
+  const agregarContacto = async (e) => {
     e.preventDefault();
 
-    setContactos([...contactos, nuevoContacto]);
+    setError("");
 
-    setNuevoContacto({
-      nombre: "",
-      telefono: "",
-      relacion: "",
-    });
+    if (!usuario?.id_usuario) {
+      setError("Debés iniciar sesión para guardar un contacto.");
+      return;
+    }
 
-    setGuardado(true);
+    setCargando(true);
+
+    try {
+      const respuesta = await fetch(
+        "http://localhost:3000/api/contactos-emergencia",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id_usuario: usuario.id_usuario,
+            nombre: nuevoContacto.nombre,
+            telefono: nuevoContacto.telefono,
+            relacion: nuevoContacto.relacion,
+          }),
+        }
+      );
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(datos.mensaje || "No se pudo guardar el contacto.");
+      }
+
+      setNuevoContacto({
+        nombre: "",
+        telefono: "",
+        relacion: "",
+      });
+
+      setGuardado(true);
+
+    } catch (error) {
+      console.error("Error al guardar contacto:", error);
+      setError(error.message || "Error de conexión con el servidor.");
+    } finally {
+      setCargando(false);
+    }
   };
 
   const cargarOtroContacto = () => {
     setGuardado(false);
+    setError("");
     setMostrarFormulario(true);
   };
 
   const cerrarFormulario = () => {
     setMostrarFormulario(false);
     setGuardado(false);
+    setError("");
+
+    setNuevoContacto({
+      nombre: "",
+      telefono: "",
+      relacion: "",
+    });
   };
 
   return (
@@ -51,7 +101,9 @@ function LlamadoEmergencia() {
         <i className="bi bi-person-plus-fill llamado-emergencia-icono"></i>
 
         <div>
-          <h3 className="llamado-emergencia-titulo">Contactos de emergencia</h3>
+          <h3 className="llamado-emergencia-titulo">
+            Contactos de emergencia
+          </h3>
 
           <p className="llamado-emergencia-texto">
             Agregá personas de confianza para tener sus datos disponibles ante
@@ -111,10 +163,22 @@ function LlamadoEmergencia() {
             required
           />
 
-          <div className="contacto-emergencia-acciones">
-            <button type="submit">Guardar contacto</button>
+          {error && (
+            <p className="contacto-emergencia-error">
+              {error}
+            </p>
+          )}
 
-            <button type="button" onClick={cerrarFormulario}>
+          <div className="contacto-emergencia-acciones">
+            <button type="submit" disabled={cargando}>
+              {cargando ? "Guardando..." : "Guardar contacto"}
+            </button>
+
+            <button
+              type="button"
+              onClick={cerrarFormulario}
+              disabled={cargando}
+            >
               Cancelar
             </button>
           </div>
