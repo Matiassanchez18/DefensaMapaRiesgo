@@ -1,5 +1,11 @@
+
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, CircleMarker, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  useMap,
+} from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 
 import "leaflet/dist/leaflet.css";
@@ -14,9 +20,21 @@ import UbicacionUsuario from "./UbicacionUsuario";
 import SeleccionarUbicacion from "./SeleccionarUbicacion";
 import useAuthStore from "../store/Store";
 
-function Mapa() {
-  const CENTRO_TUCUMAN = [-26.8241, -65.2226];
+const CENTRO_TUCUMAN = [-26.8241, -65.2226];
 
+function MoverMapa({ posicion }) {
+  const mapa = useMap();
+
+  useEffect(() => {
+    if (posicion) {
+      mapa.setView(posicion, 17, { animate: true });
+    }
+  }, [posicion, mapa]);
+
+  return null;
+}
+
+function Mapa() {
   const inicioSesion = useAuthStore((state) => state.inicioSesion);
   const navigate = useNavigate();
 
@@ -33,22 +51,7 @@ function Mapa() {
   const [errorBusqueda, setErrorBusqueda] = useState("");
   const [posicionBusqueda, setPosicionBusqueda] = useState(null);
 
-  function MoverMapa({ posicion }) {
-    const mapa = useMap();
-
-    useEffect(() => {
-      if (posicion) {
-        mapa.setView(posicion, 17, { animate: true });
-      }
-    }, [posicion, mapa]);
-
-    return null;
-  }
-
   useEffect(() => {
-    console.log("Geolocalización disponible:", !!navigator.geolocation);
-    console.log("Contexto seguro:", window.isSecureContext);
-
     if (!navigator.geolocation) {
       setErrorGPS("Tu navegador no permite utilizar la geolocalización.");
       return;
@@ -67,8 +70,6 @@ function Mapa() {
           position.coords.latitude,
           position.coords.longitude,
         ];
-
-        console.log("Coordenadas recibidas:", nuevaUbicacion);
 
         setErrorGPS("");
         setUbicacion(nuevaUbicacion);
@@ -185,6 +186,10 @@ function Mapa() {
 
   const darValor = (dato) => {
     setModal(dato);
+
+    if (!dato) {
+      setSeleccionandoUbicacion(false);
+    }
   };
 
   const modalHandle = () => {
@@ -195,6 +200,10 @@ function Mapa() {
     }
 
     setModal(!modal);
+
+    if (modal) {
+      setSeleccionandoUbicacion(false);
+    }
   };
 
   const seleccionarEnMapa = () => {
@@ -213,58 +222,62 @@ function Mapa() {
     setSeleccionandoUbicacion(false);
     setModal(true);
   };
+
   const coordenadasReporte = posicionSeleccionada || ubicacion;
 
   return (
     <div>
       <div>
-        <div className="relative z-[1100] mx-auto mt-2 w-full max-w-xl p-2">
-          <form onSubmit={buscarDireccion} className="flex w-full">
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar zona o dirección en Tucumán..."
-              aria-label="Buscar zona o dirección"
-              className="min-w-0 flex-1 rounded-l-lg border border-gray-600 bg-white px-4 py-2 text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
+        {/* BÚSQUEDA: se oculta mientras el formulario está abierto */}
+        {!modal && (
+          <div className="relative z-[1100] mx-auto mt-2 w-full max-w-xl p-2">
+            <form onSubmit={buscarDireccion} className="flex w-full">
+              <input
+                type="text"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar zona o dirección en Tucumán..."
+                aria-label="Buscar zona o dirección"
+                className="min-w-0 flex-1 rounded-l-lg border border-gray-600 bg-white px-4 py-2 text-gray-900 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              />
 
-            <button
-              type="submit"
-              disabled={cargandoBusqueda}
-              aria-label="Buscar"
-              className="rounded-r-lg border border-gray-500 bg-[#032f5c] px-4 py-2 text-white transition hover:bg-[#064078] disabled:opacity-50"
-            >
-              {cargandoBusqueda ? (
-                <i className="bi bi-arrow-repeat animate-spin"></i>
-              ) : (
-                <i className="bi bi-search"></i>
-              )}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={cargandoBusqueda}
+                aria-label="Buscar"
+                className="rounded-r-lg border border-gray-500 bg-[#032f5c] px-4 py-2 text-white transition hover:bg-[#064078] disabled:opacity-50"
+              >
+                {cargandoBusqueda ? (
+                  <i className="bi bi-arrow-repeat animate-spin"></i>
+                ) : (
+                  <i className="bi bi-search"></i>
+                )}
+              </button>
+            </form>
 
-          {errorBusqueda && (
-            <p className="mt-2 rounded-lg bg-white p-3 text-sm text-red-600 shadow">
-              {errorBusqueda}
-            </p>
-          )}
+            {errorBusqueda && (
+              <p className="mt-2 rounded-lg bg-white p-3 text-sm text-red-600 shadow">
+                {errorBusqueda}
+              </p>
+            )}
 
-          {resultados.length > 0 && (
-            <div className="absolute left-2 right-2 top-full mt-1 max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl">
-              {resultados.map((resultado) => (
-                <button
-                  key={resultado.place_id}
-                  type="button"
-                  onClick={() => seleccionarResultado(resultado)}
-                  className="flex w-full items-start gap-3 border-b border-gray-100 p-3 text-left text-sm text-gray-800 transition hover:bg-gray-100 last:border-b-0"
-                >
-                  <i className="bi bi-geo-alt-fill mt-1 text-blue-600"></i>
-                  <span>{resultado.display_name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            {resultados.length > 0 && (
+              <div className="absolute left-2 right-2 top-full mt-1 max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl">
+                {resultados.map((resultado) => (
+                  <button
+                    key={resultado.place_id}
+                    type="button"
+                    onClick={() => seleccionarResultado(resultado)}
+                    className="flex w-full items-start gap-3 border-b border-gray-100 p-3 text-left text-sm text-gray-800 transition hover:bg-gray-100 last:border-b-0"
+                  >
+                    <i className="bi bi-geo-alt-fill mt-1 text-blue-600"></i>
+                    <span>{resultado.display_name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="mapa-container">
           <div className="contendor-mapa">
@@ -283,6 +296,7 @@ function Mapa() {
                 maxZoom={19}
                 attribution="OpenStreetMap"
               />
+
               <Comisarias />
 
               <MoverMapa posicion={posicionBusqueda} />
@@ -295,7 +309,9 @@ function Mapa() {
               {ubicacion && <UbicacionUsuario posicion={ubicacion} />}
 
               {seleccionandoUbicacion && (
-                <SeleccionarUbicacion finalizarSeleccion={finalizarSeleccion} />
+                <SeleccionarUbicacion
+                  finalizarSeleccion={finalizarSeleccion}
+                />
               )}
 
               {posicionSeleccionada && (
@@ -348,12 +364,6 @@ function Mapa() {
             >
               <i className="bi bi-arrows-angle-expand"></i>
             </button>
-
-            {seleccionandoUbicacion && (
-              <div className="absolute top-4 left-1/2 z-[1000] -translate-x-1/2 rounded-lg bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-lg">
-                Hacé clic en el mapa para marcar el incidente
-              </div>
-            )}
           </div>
 
           {modal && ubicacion && inicioSesion && (
@@ -362,6 +372,12 @@ function Mapa() {
               ubicacion={coordenadasReporte}
               seleccionarEnMapa={seleccionarEnMapa}
             />
+          )}
+
+          {seleccionandoUbicacion && (
+            <div className="mx-auto mt-3 w-fit rounded-lg bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-lg">
+              Hacé clic en el mapa para marcar el incidente
+            </div>
           )}
         </div>
       </div>
