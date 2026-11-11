@@ -244,7 +244,7 @@ function Mapa() {
     <div>
       <div>
         {!modal && (
-          <div className="relative z-[1100] mx-auto mt-2 w-full max-w-xl p-2">
+          <div className="relative z-[500] mx-auto mt-2 w-full max-w-xl p-2">
             <form onSubmit={buscarDireccion} className="flex w-full">
               <input
                 type="text"
@@ -394,7 +394,7 @@ function Mapa() {
                 setSiguiendoUbicacion(true);
               }}
               disabled={!ubicacion}
-              className="absolute right-4 top-4 z-[1000] flex h-11 w-11 items-center justify-center rounded-lg bg-white text-blue-600 shadow-lg hover:bg-gray-100 disabled:opacity-50"
+              className="absolute right-4 top-4 z-[500] flex h-11 w-11 items-center justify-center rounded-lg bg-white text-blue-600 shadow-lg hover:bg-gray-100 disabled:opacity-50"
               title="Volver a mi ubicación"
             >
               <i className="bi bi-crosshair text-xl"></i>

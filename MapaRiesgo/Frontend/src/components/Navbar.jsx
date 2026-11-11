@@ -29,7 +29,7 @@ function Navbar() {
     }`;
 
   return (
-    <nav className="sticky top-0 z-[1000] border-b border-white/10 bg-[#142536]/95 text-white shadow-lg shadow-black/10 backdrop-blur-md">
+    <nav className="sticky top-0 z-[2000] border-b border-white/10 bg-[#142536]/95 text-white shadow-lg shadow-black/10 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 md:px-8">
         
         <Link
