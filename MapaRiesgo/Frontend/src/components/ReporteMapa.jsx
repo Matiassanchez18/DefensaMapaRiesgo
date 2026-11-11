@@ -87,14 +87,6 @@ function ReporteMapa({ ubicacion }) {
 
   const ultimoReporte = reportesOrdenados[0];
 
-  const nombresDelitos = {
-    1: "Robo",
-    2: "Hurto",
-    3: "Asalto",
-    4: "Vandalismo",
-    5: "Otro",
-  };
-
   return (
     <div className="card-reporte">
       <div className="mb-4 w-full max-w-xl mx-auto p-2 mt-2">
@@ -122,7 +114,7 @@ function ReporteMapa({ ubicacion }) {
               <p className="mb-3 flex items-center gap-2 text-sm text-gray-300">
                 <b>Ultimo hecho:</b>
                 <i className="bi bi-exclamation-triangle text-yellow-400"></i>
-                {nombresDelitos[Number(ultimoReporte.id_delito)] || "Delito"}
+                {ultimoReporte.delito || "Delito"}
                 <i className="bi bi-circle-fill text-red-500"></i>
               </p>
 
@@ -144,7 +136,7 @@ function ReporteMapa({ ubicacion }) {
               )}
 
               <p className="mb-0 text-gray-200">
-                {ultimoReporte.descripcion || "Sin descripción disponible."}
+               {ultimoReporte.delito || "Delito"}
               </p>
             </>
           ) : (

@@ -1,11 +1,5 @@
-
 import { useState, useEffect } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  CircleMarker,
-  useMap,
-} from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, useMap } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 
 import "leaflet/dist/leaflet.css";
@@ -22,22 +16,11 @@ import useAuthStore from "../store/Store";
 
 const CENTRO_TUCUMAN = [-26.8241, -65.2226];
 
-function MoverMapa({ posicion }) {
-  const mapa = useMap();
-
-  useEffect(() => {
-    if (posicion) {
-      mapa.setView(posicion, 17, { animate: true });
-    }
-  }, [posicion, mapa]);
-
-  return null;
-}
-
 function Mapa() {
   const inicioSesion = useAuthStore((state) => state.inicioSesion);
   const navigate = useNavigate();
 
+  const [siguiendoUbicacion, setSiguiendoUbicacion] = useState(true);
   const [modal, setModal] = useState(false);
   const [ubicacion, setUbicacion] = useState(null);
   const [errorGPS, setErrorGPS] = useState("");
@@ -124,14 +107,23 @@ function Mapa() {
       document.documentElement.style.overflow = "";
     };
 
+    const detenerSeguimiento = () => {
+      setSiguiendoUbicacion(false);
+    };
+
     mapa.addEventListener("mousedown", bloquearScroll);
     mapa.addEventListener("mouseleave", habilitarScroll);
     document.addEventListener("mouseup", habilitarScroll);
+
+    mapa.addEventListener("dragstart", detenerSeguimiento);
 
     return () => {
       mapa.removeEventListener("mousedown", bloquearScroll);
       mapa.removeEventListener("mouseleave", habilitarScroll);
       document.removeEventListener("mouseup", habilitarScroll);
+
+      mapa.removeEventListener("dragstart", detenerSeguimiento);
+
       habilitarScroll();
     };
   }, []);
@@ -225,6 +217,19 @@ function Mapa() {
 
   const coordenadasReporte = posicionSeleccionada || ubicacion;
 
+  function MoverMapa({ posicion, detenerSeguimiento }) {
+    const mapa = useMap();
+
+    useEffect(() => {
+      if (posicion) {
+        detenerSeguimiento();
+        mapa.setView(posicion, 17, { animate: true });
+      }
+    }, [posicion, mapa, detenerSeguimiento]);
+
+    return null;
+  }
+
   return (
     <div>
       <div>
@@ -299,8 +304,17 @@ function Mapa() {
 
               <Comisarias />
 
-              <MoverMapa posicion={posicionBusqueda} />
+              <MoverMapa
+                posicion={posicionBusqueda}
+                detenerSeguimiento={() => setSiguiendoUbicacion(false)}
+              />
 
+              {ubicacion && (
+                <UbicacionUsuario
+                  posicion={ubicacion}
+                  siguiendo={siguiendoUbicacion}
+                />
+              )}
               <ZonasRiesgo
                 seleccionandoUbicacion={seleccionandoUbicacion}
                 finalizarSeleccion={finalizarSeleccion}
@@ -309,9 +323,7 @@ function Mapa() {
               {ubicacion && <UbicacionUsuario posicion={ubicacion} />}
 
               {seleccionandoUbicacion && (
-                <SeleccionarUbicacion
-                  finalizarSeleccion={finalizarSeleccion}
-                />
+                <SeleccionarUbicacion finalizarSeleccion={finalizarSeleccion} />
               )}
 
               {posicionSeleccionada && (
@@ -355,6 +367,19 @@ function Mapa() {
             >
               <i className="bi bi-plus-lg text-lg"></i>
               Reportar
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setPosicionBusqueda(null);
+                setSiguiendoUbicacion(true);
+              }}
+              disabled={!ubicacion}
+              className="absolute right-4 top-4 z-[1000] flex h-11 w-11 items-center justify-center rounded-lg bg-white text-blue-600 shadow-lg hover:bg-gray-100 disabled:opacity-50"
+              title="Volver a mi ubicación"
+            >
+              <i className="bi bi-crosshair text-xl"></i>
             </button>
 
             <button

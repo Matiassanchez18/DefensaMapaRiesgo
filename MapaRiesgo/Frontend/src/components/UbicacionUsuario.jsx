@@ -2,17 +2,19 @@
 import { useEffect } from "react";
 import { useMap, CircleMarker, Circle, Popup } from "react-leaflet";
 
-function UbicacionUsuario({ posicion }) {
+function UbicacionUsuario({ posicion, siguiendo }) {
   const mapa = useMap();
 
   useEffect(() => {
-    if (!posicion) return;
+    if (!posicion || !siguiendo) return;
 
     mapa.panTo(posicion, {
       animate: true,
       duration: 0.5,
     });
-  }, [posicion, mapa]);
+  }, [posicion, siguiendo, mapa]);
+
+  if (!posicion) return null;
 
   return (
     <>
