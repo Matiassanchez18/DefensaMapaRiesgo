@@ -1,3 +1,4 @@
+
 const db = require("../Config/db");
 
 const iniciarSesion = (req, res) => {
@@ -10,7 +11,7 @@ const iniciarSesion = (req, res) => {
   }
 
   const sql = `
-    SELECT id_usuario, nombre, apellido, email
+    SELECT id_usuario, nombre, apellido, email, rol
     FROM usuario
     WHERE email = ? AND \`contraseña\` = ?
   `;
@@ -18,7 +19,9 @@ const iniciarSesion = (req, res) => {
   db.query(sql, [email, password], (error, resultados) => {
     if (error) {
       console.error("Error SQL:", error);
-      return res.status(500).json({ mensaje: "Error al iniciar sesión." });
+      return res.status(500).json({
+        mensaje: "Error al iniciar sesión.",
+      });
     }
 
     if (resultados.length === 0) {

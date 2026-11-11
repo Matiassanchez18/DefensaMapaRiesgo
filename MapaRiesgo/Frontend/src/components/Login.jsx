@@ -7,6 +7,7 @@ function Login() {
   const [datos, setDatos] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
 
@@ -20,30 +21,33 @@ function Login() {
     e.preventDefault();
     setCargando(true);
     setError("");
-    
+
     try {
       const respuesta = await fetch("http://localhost:3000/api/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(datos)
+        body: JSON.stringify(datos),
       });
+
       const data = await respuesta.json();
+      console.log("Respuesta del servidor:", data);
       if (!respuesta.ok) {
         setError(data.mensaje);
         return;
-    }
-    login(data.usuario);
-    navigate("/");
-  } catch {
-setError("Error al conectar con el servidor.");
-  } finally {
-    setCargando(false);
-  }
-  }
+      }
 
-  
+      login(data.usuario);
+
+      navigate("/");
+    } catch {
+      setError("Error al conectar con el servidor.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
   return (
     <div className="login">
       <div className="login-card">
@@ -53,6 +57,7 @@ setError("Error al conectar con el servidor.");
           <label className="login-label" htmlFor="email">
             Correo electrónico
           </label>
+
           <input
             id="email"
             type="email"
@@ -68,6 +73,7 @@ setError("Error al conectar con el servidor.");
           <label className="login-label" htmlFor="password">
             Contraseña
           </label>
+
           <input
             id="password"
             type="password"
