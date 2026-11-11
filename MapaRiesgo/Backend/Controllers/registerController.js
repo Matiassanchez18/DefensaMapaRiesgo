@@ -1,10 +1,8 @@
 const db = require("../Config/db");
-const { hashPassword } = require("../Utils/password");
 
 const registrarUsuario = (req, res) => {
   const { nombre, apellido, email, password, telefono } = req.body;
 
-  // 1) ¿Ya existe una cuenta con ese email?
   const sqlExiste = "SELECT id_usuario FROM usuario WHERE email = ?";
 
   db.query(sqlExiste, [email], async (error, filas) => {
@@ -21,10 +19,7 @@ const registrarUsuario = (req, res) => {
     }
 
     try {
-      // 2) Se guarda la contraseña hasheada, nunca en texto plano
-      const passwordHash = await hashPassword(password);
-
-      // La columna se llama `contraseña` (con ñ), por eso va entre backticks
+     
       const sqlInsert = `
         INSERT INTO usuario
           (nombre, apellido, email, \`contraseña\`, telefono, fecha_registro)
@@ -33,10 +28,9 @@ const registrarUsuario = (req, res) => {
 
       db.query(
         sqlInsert,
-        [nombre, apellido, email, passwordHash, telefono],
+        [nombre, apellido, email, password, telefono],
         (error, resultado) => {
           if (error) {
-            // Por si dos personas se registran con el mismo email al mismo tiempo
             if (error.code === "ER_DUP_ENTRY") {
               return res.status(409).json({
                 mensaje: "Ya existe una cuenta con ese email",
@@ -52,7 +46,6 @@ const registrarUsuario = (req, res) => {
               .json({ mensaje: "Error al registrar el usuario" });
           }
 
-          // Nunca se devuelve la contraseña
           res.status(201).json({
             mensaje: "Usuario registrado correctamente",
             usuario: {

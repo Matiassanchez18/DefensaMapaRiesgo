@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link,useNavigate } from "react-router-dom";
-import useAuthStore from "./Store";
+import useAuthStore from "../store/Store";
   
 function Navbar() {
   const [abierto, setAbierto] = useState(false);
