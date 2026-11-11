@@ -1,76 +1,79 @@
-
 import { useState } from "react";
-import "../Style/reporte.css";
+import "../style/Formulario.css";
 
-function Reporte() {
-  const [datos, setDatos] = useState({
-    direccion: "",
-    descripcion: "",
-    id_delito: "",
-    testigos: "",
-    latitud: "",
-    longitud: "",
-  });
-
-  const [mensaje, setMensaje] = useState("");
+function Formulario() {
+  const [ubicacion, setUbicacion] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const [mensaje, setMensaje] = useState("");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const seleccionarEnMapa = () => {
+    // Permite obtener la ubicación GPS actual.
+    if (!navigator.geolocation) {
+      setMensaje("Tu navegador no permite obtener la ubicación.");
+      return;
+    }
 
-    setDatos({
-      ...datos,
-      [name]: value,
-    });
+    navigator.geolocation.getCurrentPosition(
+      (posicion) => {
+        setUbicacion([posicion.coords.latitude, posicion.coords.longitude]);
+        setMensaje("Ubicación obtenida correctamente.");
+      },
+      () => {
+        setMensaje("No se pudo obtener tu ubicación.");
+      },
+    );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensaje("");
 
-    if (!datos.latitud || !datos.longitud) {
+    if (!ubicacion) {
       setMensaje("Primero tenés que seleccionar la ubicación del hecho.");
       return;
     }
 
+    const datosFormulario = new FormData(e.target);
+
+    const reporte = {
+      id_delito: Number(datosFormulario.get("id_delito")),
+      direccion: datosFormulario.get("direccion").trim(),
+      descripcion: datosFormulario.get("descripcion").trim(),
+      testigos: datosFormulario.get("testigos") === "si",
+      latitud: Number(ubicacion[0]),
+      longitud: Number(ubicacion[1]),
+    };
+
     try {
       setCargando(true);
 
-      const respuesta = await fetch(
-        "http://localhost:3000/api/reportes",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...datos,
-            id_delito: Number(datos.id_delito),
-            latitud: Number(datos.latitud),
-            longitud: Number(datos.longitud),
-          }),
-        }
-      );
+      const respuesta = await fetch("http://localhost:3000/api/reportes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reporte),
+      });
 
       const resultado = await respuesta.json();
 
       if (!respuesta.ok) {
-        throw new Error(resultado.mensaje || "Error al enviar la denuncia.");
+        if (resultado.errores?.length > 0) {
+          throw new Error(
+            resultado.errores
+              .map((error) => `${error.campo}: ${error.mensaje}`)
+              .join("\n"),
+          );
+        }
+
+        throw new Error(resultado.mensaje || "Error al enviar el reporte.");
       }
 
-      setMensaje("Denuncia registrada correctamente.");
-
-      setDatos({
-        direccion: "",
-        descripcion: "",
-        id_delito: "",
-        testigos: "",
-        latitud: "",
-        longitud: "",
-      });
-
+      setMensaje("Reporte registrado correctamente.");
+      e.target.reset();
+      setUbicacion(null);
     } catch (error) {
-      console.error("Error al enviar denuncia:", error);
+      console.error("Error al enviar reporte:", error);
       setMensaje(error.message);
     } finally {
       setCargando(false);
@@ -80,126 +83,101 @@ function Reporte() {
   return (
     <div className="reporte">
       <div className="reporte-card">
-        <h1 className="reporte-titulo">Reportar un hecho</h1>
+        <div className="reporte-header">
+          <h2>Realizar reporte</h2>
+          <p>Completá los datos del hecho ocurrido</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="reporte-form">
-
-          <fieldset className="reporte-grupo">
-            <legend>Lugar del hecho</legend>
-
-            <input
-              type="text"
-              name="direccion"
-              value={datos.direccion}
-              onChange={handleChange}
-              placeholder="Dirección del hecho"
-              className="reporte-campo"
-              required
-            />
-          </fieldset>
-
-          <fieldset className="reporte-grupo">
-            <legend>Descripción del hecho</legend>
-
-            <textarea
-              name="descripcion"
-              value={datos.descripcion}
-              onChange={handleChange}
-              rows={4}
-              placeholder="Contá qué pasó"
-              className="reporte-campo"
-              required
-            />
-
+        <form className="reporte-form" onSubmit={handleSubmit}>
+          <div className="reporte-campo">
+            <label htmlFor="id_delito">Tipo de delito</label>
             <select
+              id="id_delito"
               name="id_delito"
-              value={datos.id_delito}
-              onChange={handleChange}
-              className="reporte-campo"
+              className="reporte-input-icono"
               required
             >
-              <option value="">Seleccioná el tipo de hecho</option>
-
-              {/* Acá deben ir los delitos que existen en MySQL */}
+              <option value="">Seleccioná un delito</option>
               <option value="1">Robo</option>
               <option value="2">Hurto</option>
-              <option value="3">Vandalismo</option>
-              <option value="4">Otro</option>
+              <option value="3">Asalto</option>
+              <option value="4">Vandalismo</option>
+              <option value="5">Otro</option>
             </select>
+          </div>
 
-            <div>
-              <p className="reporte-pregunta">¿Hubo testigos?</p>
+          <div className="reporte-campo">
+            <label htmlFor="direccion">Dirección o referencia</label>
+            <input
+              type="text"
+              id="direccion"
+              name="direccion"
+              className="reporte-input-icono"
+              placeholder="Ej: Calle San Martín 450"
+              required
+            />
+          </div>
 
-              <div className="reporte-radios">
-                <label>
-                  <input
-                    type="radio"
-                    name="testigos"
-                    value="si"
-                    checked={datos.testigos === "si"}
-                    onChange={handleChange}
-                    required
-                  />
-                  Sí
-                </label>
+          <div className="reporte-campo">
+            <label>¿Hubo testigos?</label>
+            <div className="reporte-opciones">
+              <label className="reporte-opcion">
+                <input type="radio" name="testigos" value="si" required />
+                Sí
+              </label>
 
-                <label>
-                  <input
-                    type="radio"
-                    name="testigos"
-                    value="no"
-                    checked={datos.testigos === "no"}
-                    onChange={handleChange}
-                  />
-                  No
-                </label>
-              </div>
+              <label className="reporte-opcion">
+                <input type="radio" name="testigos" value="no" />
+                No
+              </label>
             </div>
-          </fieldset>
+          </div>
 
-          {/* Coordenadas temporales para probar el backend */}
-          <fieldset className="reporte-grupo">
-            <legend>Ubicación geográfica</legend>
-
-            <input
-              type="number"
-              step="any"
-              name="latitud"
-              value={datos.latitud}
-              onChange={handleChange}
-              placeholder="Latitud"
-              className="reporte-campo"
+          <div className="reporte-campo">
+            <label htmlFor="descripcion">Descripción del hecho</label>
+            <textarea
+              id="descripcion"
+              name="descripcion"
+              className="reporte-input-icono"
+              placeholder="Contanos qué sucedió..."
+              rows="4"
               required
             />
+          </div>
 
-            <input
-              type="number"
-              step="any"
-              name="longitud"
-              value={datos.longitud}
-              onChange={handleChange}
-              placeholder="Longitud"
-              className="reporte-campo"
-              required
-            />
-          </fieldset>
+          <div className="reporte-campo">
+            <label>Ubicación del incidente</label>
+            <p>
+              {ubicacion
+                ? "Ubicación seleccionada correctamente."
+                : "Todavía no se seleccionó una ubicación."}
+            </p>
 
-          {mensaje && (
-            <p role="status">{mensaje}</p>
-          )}
+            <button
+              type="button"
+              className="reporte-input-icono"
+              onClick={seleccionarEnMapa}
+            >
+              <i className="bi bi-geo-alt"></i>
+              Obtener ubicación actual
+            </button>
+          </div>
 
-          <button
-            type="submit"
-            className="reporte-boton"
-            disabled={cargando}
-          >
-            {cargando ? "Enviando..." : "Enviar denuncia"}
-          </button>
+          {mensaje && <p role="status">{mensaje}</p>}
 
+          <div className="reporte-acciones">
+            <button
+              type="submit"
+              className="reporte-btn-enviar"
+              disabled={cargando}
+            >
+              {cargando ? "Enviando..." : "Enviar reporte"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
 }
 
-export default Reporte;
+export default Formulario;
