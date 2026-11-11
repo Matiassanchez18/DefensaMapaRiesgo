@@ -9,17 +9,16 @@ const {
   obtenerReportes,
   obtenerUltimoReporte,
   actualizarReporte,
-  eliminarReporte
+  eliminarReporte,
 } = require("../Controllers/reporteController");
 
-const validarReporte = require("../MiddleWare/ValidarReporte");
+const validarReporte = require("../MiddleWare/validarReporte");
 
 router.post("/", validarReporte, agregarReporte);
 
 router.get("/", obtenerReportes);
 router.get("/ultimo", obtenerUltimoReporte);
 router.get("/dashboard", obtenerDashboard);
-
 
 router.put("/:id", actualizarReporte);
 router.delete("/:id", eliminarReporte);

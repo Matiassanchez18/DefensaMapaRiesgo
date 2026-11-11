@@ -43,7 +43,6 @@ function Formulario({
     console.log("Datos enviados:", reporte);
 
     try {
-      console.log("REPORTE QUE SE ENVÍA:", JSON.stringify(reporte));
       const respuesta = await fetch("http://localhost:3000/api/reportes", {
         method: "POST",
         headers: {
