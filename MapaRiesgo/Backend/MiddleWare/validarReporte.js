@@ -4,7 +4,7 @@ const reporteSchema = z.object({
   id_usuario: z.coerce
     .number()
     .int("El ID del usuario debe ser un número entero")
-    .positive("El usuario no es válido"),
+    .positive("El ID del usuario no es válido"),
 
   id_delito: z.coerce
     .number()
