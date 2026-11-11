@@ -1,3 +1,4 @@
+
 const db = require("../Config/db");
 
 const TAM_CELDA = 0.005;
@@ -49,7 +50,7 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
 };
 
 const agregarReporte = (req, res) => {
- console.log("BODY RECIBIDO:", req.body);
+  console.log("BODY RECIBIDO:", req.body);
   console.log("ID USUARIO RECIBIDO:", req.body?.id_usuario);
 
   const {
