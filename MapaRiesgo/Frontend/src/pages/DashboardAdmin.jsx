@@ -20,13 +20,15 @@ function DashboardAdmin() {
     const obtenerDatos = async () => {
       try {
         const respuesta = await fetch(
-          "http://localhost:3000/api/reportes/dashboard",
+          "http://localhost:3000/api/reportes/dashboard"
         );
 
         if (!respuesta.ok) {
           const resultadoError = await respuesta.json();
 
-          throw new Error(resultadoError.detalle || resultadoError.mensaje);
+          throw new Error(
+            resultadoError.detalle || resultadoError.mensaje
+          );
         }
 
         const resultado = await respuesta.json();
@@ -74,7 +76,7 @@ function DashboardAdmin() {
 
   const mayorCantidad = Math.max(
     ...zonas.map((zona) => Number(zona.cantidad)),
-    1,
+    1
   );
 
   const coloresRiesgo = {
@@ -91,7 +93,9 @@ function DashboardAdmin() {
 
   if (cargando) {
     return (
-      <div className="p-6 text-center text-muted">Cargando dashboard...</div>
+      <div className="p-6 text-center text-muted">
+        Cargando dashboard...
+      </div>
     );
   }
 
@@ -117,7 +121,9 @@ function DashboardAdmin() {
 
             <p className="my-1 text-3xl font-bold">{card.numero}</p>
 
-            <p className={`text-[11px] ${card.color}`}>{card.detalle}</p>
+            <p className={`text-[11px] ${card.color}`}>
+              {card.detalle}
+            </p>
           </div>
         ))}
       </section>
@@ -129,7 +135,9 @@ function DashboardAdmin() {
           </h2>
 
           {zonas.length === 0 ? (
-            <p className="text-xs text-muted">No hay zonas registradas.</p>
+            <p className="text-xs text-muted">
+              No hay zonas registradas.
+            </p>
           ) : (
             zonas.map((zona) => (
               <div
@@ -149,7 +157,9 @@ function DashboardAdmin() {
                   />
                 </div>
 
-                <span className="text-right font-bold">{zona.cantidad}</span>
+                <span className="text-right font-bold">
+                  {zona.cantidad}
+                </span>
               </div>
             ))
           )}
@@ -195,12 +205,21 @@ function DashboardAdmin() {
                 </tr>
               ) : (
                 reportes.map((reporte) => (
-                  <tr key={reporte.id_reporte} className="border-t border-line">
-                    <td className="py-3 text-muted">#{reporte.id_reporte}</td>
+                  <tr
+                    key={reporte.id_reporte}
+                    className="border-t border-line"
+                  >
+                    <td className="py-3 text-muted">
+                      #{reporte.id_reporte}
+                    </td>
 
-                    <td className="py-3 font-bold">{reporte.descripcion}</td>
+                    <td className="py-3 font-bold">
+                      {reporte.descripcion}
+                    </td>
 
-                    <td className="py-3">{reporte.zona || "Sin zona"}</td>
+                    <td className="py-3">
+                      {reporte.zona || "Sin zona"}
+                    </td>
 
                     <td className="py-3">
                       <span className="flex items-center gap-2">
