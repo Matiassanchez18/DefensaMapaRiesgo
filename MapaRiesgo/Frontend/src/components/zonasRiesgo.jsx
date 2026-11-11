@@ -35,17 +35,6 @@ function agruparPorCelda(reportes) {
   return celdas;
 }
 
-function rotarPunto(cx, cy, x, y, angulo) {
-  const rad = (angulo * Math.PI) / 180;
-  const dx = x - cx;
-  const dy = y - cy;
-
-  return {
-    lat: cx + dx * Math.cos(rad) - dy * Math.sin(rad),
-    lng: cy + dx * Math.sin(rad) + dy * Math.cos(rad),
-  };
-}
-
 function ZonasRiesgo({
   seleccionandoUbicacion,
   finalizarSeleccion,
