@@ -1,11 +1,6 @@
-
 import { useState, useEffect } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  CircleMarker,
-  useMap,
-} from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, useMap } from "react-leaflet";
+import { useNavigate } from "react-router-dom";
 
 import "leaflet/dist/leaflet.css";
 import "../Style/Mapa.css";
@@ -17,22 +12,14 @@ import Formulario from "./Formulario";
 import Footer from "./Footer";
 import UbicacionUsuario from "./UbicacionUsuario";
 import SeleccionarUbicacion from "./SeleccionarUbicacion";
+import useAuthStore from "../store/Store";
 
 const CENTRO_TUCUMAN = [-26.8241, -65.2226];
 
-function MoverMapa({ posicion }) {
-  const mapa = useMap();
-
-  useEffect(() => {
-    if (posicion) {
-      mapa.setView(posicion, 17, { animate: true });
-    }
-  }, [posicion, mapa]);
-
-  return null;
-}
-
 function Mapa() {
+  const inicioSesion = useAuthStore((state) => state.inicioSesion);
+  const navigate = useNavigate();
+
   const [modal, setModal] = useState(false);
   const [ubicacion, setUbicacion] = useState(null);
   const [errorGPS, setErrorGPS] = useState("");
@@ -46,6 +33,18 @@ function Mapa() {
   const [errorBusqueda, setErrorBusqueda] = useState("");
   const [posicionBusqueda, setPosicionBusqueda] = useState(null);
 
+  function MoverMapa({ posicion }) {
+    const mapa = useMap();
+
+    useEffect(() => {
+      if (posicion) {
+        mapa.setView(posicion, 17, { animate: true });
+      }
+    }, [posicion, mapa]);
+
+    return null;
+  }
+
   useEffect(() => {
     console.log("Geolocalización disponible:", !!navigator.geolocation);
     console.log("Contexto seguro:", window.isSecureContext);
@@ -57,7 +56,7 @@ function Mapa() {
 
     if (!window.isSecureContext) {
       setErrorGPS(
-        "La conexión no es segura. Necesitás abrir la web mediante HTTPS."
+        "La conexión no es segura. Necesitás abrir la web mediante HTTPS.",
       );
       return;
     }
@@ -80,16 +79,18 @@ function Mapa() {
         switch (error.code) {
           case 1:
             setErrorGPS(
-              "Permiso de ubicación denegado. Revisá los permisos del navegador."
+              "Permiso de ubicación denegado. Revisá los permisos del navegador.",
             );
             break;
           case 2:
             setErrorGPS(
-              "No se pudo determinar la ubicación. Revisá que el GPS esté activado."
+              "No se pudo determinar la ubicación. Revisá que el GPS esté activado.",
             );
             break;
           case 3:
-            setErrorGPS("Se agotó el tiempo de espera para obtener tu ubicación.");
+            setErrorGPS(
+              "Se agotó el tiempo de espera para obtener tu ubicación.",
+            );
             break;
           default:
             setErrorGPS("Ocurrió un error al obtener tu ubicación.");
@@ -99,7 +100,7 @@ function Mapa() {
         enableHighAccuracy: true,
         maximumAge: 10000,
         timeout: 60000,
-      }
+      },
     );
 
     return () => {
@@ -148,7 +149,7 @@ function Mapa() {
       setResultados([]);
 
       const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=ar&q=${encodeURIComponent(
-        busqueda.trim()
+        busqueda.trim(),
       )}`;
 
       const respuesta = await fetch(url);
@@ -167,19 +168,14 @@ function Mapa() {
       setResultados(datos);
     } catch (error) {
       console.error("Error al buscar dirección:", error);
-      setErrorBusqueda(
-        "Ocurrió un error al buscar. Intentá nuevamente."
-      );
+      setErrorBusqueda("Ocurrió un error al buscar. Intentá nuevamente.");
     } finally {
       setCargandoBusqueda(false);
     }
   };
 
   const seleccionarResultado = (resultado) => {
-    const coordenadas = [
-      Number(resultado.lat),
-      Number(resultado.lon),
-    ];
+    const coordenadas = [Number(resultado.lat), Number(resultado.lon)];
 
     setPosicionBusqueda(coordenadas);
     setBusqueda(resultado.display_name);
@@ -192,6 +188,12 @@ function Mapa() {
   };
 
   const modalHandle = () => {
+    if (!inicioSesion) {
+      alert("Tenés que iniciar sesión para realizar un reporte.");
+      navigate("/login");
+      return;
+    }
+
     setModal(!modal);
   };
 
@@ -201,21 +203,23 @@ function Mapa() {
   };
 
   const finalizarSeleccion = (coordenadas) => {
+    if (!inicioSesion) {
+      alert("Tenés que iniciar sesión para realizar un reporte.");
+      navigate("/login");
+      return;
+    }
+
     setPosicionSeleccionada(coordenadas);
     setSeleccionandoUbicacion(false);
     setModal(true);
   };
-
   const coordenadasReporte = posicionSeleccionada || ubicacion;
 
   return (
     <div>
       <div>
         <div className="relative z-[1100] mx-auto mt-2 w-full max-w-xl p-2">
-          <form
-            onSubmit={buscarDireccion}
-            className="flex w-full"
-          >
+          <form onSubmit={buscarDireccion} className="flex w-full">
             <input
               type="text"
               value={busqueda}
@@ -288,14 +292,10 @@ function Mapa() {
                 finalizarSeleccion={finalizarSeleccion}
               />
 
-              {ubicacion && (
-                <UbicacionUsuario posicion={ubicacion} />
-              )}
+              {ubicacion && <UbicacionUsuario posicion={ubicacion} />}
 
               {seleccionandoUbicacion && (
-                <SeleccionarUbicacion
-                  finalizarSeleccion={finalizarSeleccion}
-                />
+                <SeleccionarUbicacion finalizarSeleccion={finalizarSeleccion} />
               )}
 
               {posicionSeleccionada && (
@@ -356,7 +356,7 @@ function Mapa() {
             )}
           </div>
 
-          {modal && ubicacion && (
+          {modal && ubicacion && inicioSesion && (
             <Formulario
               darValor={darValor}
               ubicacion={coordenadasReporte}
@@ -367,7 +367,7 @@ function Mapa() {
       </div>
 
       <div className="container card-reporte mx-auto mt-4 px-4">
-       <ReporteMapa ubicacion={ubicacion} />
+        <ReporteMapa ubicacion={ubicacion} />
       </div>
 
       <Footer />
