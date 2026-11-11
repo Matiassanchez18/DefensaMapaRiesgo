@@ -1,27 +1,27 @@
 import { useEffect, useState } from "react";
 import "../Style/Mapa.css";
 
-const TAM_CELDA = 0.005;
-const API_URL = "http://localhost:3000/api/reportes";
-
-function obtenerCelda(latitud, longitud) {
-  const fila = Math.floor(Number(latitud) / TAM_CELDA);
-  const columna = Math.floor(Number(longitud) / TAM_CELDA);
-
-  return `${fila}_${columna}`;
-}
-
-function formatearFecha(fecha) {
-  if (!fecha) return "Fecha no disponible";
-
-  const valor = new Date(fecha);
-
-  if (isNaN(valor.getTime())) return String(fecha).slice(0, 10);
-
-  return valor.toLocaleDateString("es-AR");
-}
-
 function ReporteMapa({ ubicacion }) {
+  const TAM_CELDA = 0.005;
+  const API_URL = "http://localhost:3000/api/reportes";
+
+  function obtenerCelda(latitud, longitud) {
+    const fila = Math.floor(Number(latitud) / TAM_CELDA);
+    const columna = Math.floor(Number(longitud) / TAM_CELDA);
+
+    return `${fila}_${columna}`;
+  }
+
+  function formatearFecha(fecha) {
+    if (!fecha) return "Fecha no disponible";
+
+    const valor = new Date(fecha);
+
+    if (isNaN(valor.getTime())) return String(fecha).slice(0, 10);
+
+    return valor.toLocaleDateString("es-AR");
+  }
+
   const [reportes, setReportes] = useState([]);
 
   useEffect(() => {

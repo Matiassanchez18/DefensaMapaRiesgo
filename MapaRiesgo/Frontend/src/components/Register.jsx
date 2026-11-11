@@ -4,6 +4,11 @@ import "../style/Login.css";
 import "../style/Register.css";
 import useAuthStore from "../store/Store";
 
+
+
+function Register() {
+
+    
 const API_URL = "http://localhost:3000/api/register";
 
 const SOLO_LETRAS = /^\p{L}+(?:[ '-]\p{L}+)*$/u;
@@ -120,8 +125,6 @@ const validarCampo = (name, valor) => {
     }
 };
 
-
-function Register() {
     const navigate = useNavigate();
     const login = useAuthStore((state) => state.login);
 

@@ -14,9 +14,9 @@ import UbicacionUsuario from "./UbicacionUsuario";
 import SeleccionarUbicacion from "./SeleccionarUbicacion";
 import useAuthStore from "../store/Store";
 
-const CENTRO_TUCUMAN = [-26.8241, -65.2226];
-
 function Mapa() {
+  const CENTRO_TUCUMAN = [-26.8241, -65.2226];
+
   const inicioSesion = useAuthStore((state) => state.inicioSesion);
   const navigate = useNavigate();
 
