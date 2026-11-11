@@ -1,5 +1,4 @@
 const db = require("../Config/db");
-const { hashPassword } = require("../Utils/password");
 
 const registrarUsuario = (req, res) => {
   const { nombre, apellido, email, password, telefono } = req.body;
@@ -22,7 +21,6 @@ const registrarUsuario = (req, res) => {
 
     try {
       // 2) Se guarda la contraseña hasheada, nunca en texto plano
-      const passwordHash = await hashPassword(password);
 
       // La columna se llama `contraseña` (con ñ), por eso va entre backticks
       const sqlInsert = `
@@ -33,7 +31,7 @@ const registrarUsuario = (req, res) => {
 
       db.query(
         sqlInsert,
-        [nombre, apellido, email, passwordHash, telefono],
+        [nombre, apellido, email, password, telefono],
         (error, resultado) => {
           if (error) {
             // Por si dos personas se registran con el mismo email al mismo tiempo
