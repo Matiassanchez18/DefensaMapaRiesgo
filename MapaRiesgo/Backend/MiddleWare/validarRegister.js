@@ -1,6 +1,5 @@
 const { z } = require("zod");
 
-// Letras (con tildes y ñ), separadas por un espacio, guion o apóstrofe. Ej: "María José", "O'Connor", "Pérez-Gómez"
 const SOLO_LETRAS = /^\p{L}+(?:[ '-]\p{L}+)*$/u;
 
 const registerSchema = z.object({
@@ -32,7 +31,6 @@ const registerSchema = z.object({
     .max(150, "El email es demasiado largo (máximo 150)")
     .email("Ingresá un email válido, por ejemplo tucorreo@ejemplo.com"),
 
-  // La contraseña NO se hace trim: los espacios no están permitidos y se rechazan.
   password: z
     .string({ error: "La contraseña es obligatoria" })
     .min(8, "La contraseña debe tener al menos 8 caracteres")
@@ -53,7 +51,6 @@ const registerSchema = z.object({
       const cantidad = valor.replace(/\D/g, "").length;
       return cantidad >= 8 && cantidad <= 15;
     }, "El teléfono debe tener entre 8 y 15 dígitos")
-    // Se guarda limpio: sin espacios ni guiones
     .transform((valor) => valor.replace(/[\s-]/g, "")),
 });
 
@@ -61,7 +58,6 @@ const validarRegister = (req, res, next) => {
   const resultado = registerSchema.safeParse(req.body ?? {});
 
   if (!resultado.success) {
-    // Un solo error por campo (el primero), así no se repiten mensajes
     const vistos = new Set();
     const errores = [];
 

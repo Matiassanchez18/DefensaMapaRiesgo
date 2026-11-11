@@ -1,5 +1,12 @@
+
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, CircleMarker, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 
 import "leaflet/dist/leaflet.css";
@@ -15,6 +22,31 @@ import SeleccionarUbicacion from "./SeleccionarUbicacion";
 import useAuthStore from "../store/Store";
 
 const CENTRO_TUCUMAN = [-26.8241, -65.2226];
+
+// Detecta cuando el usuario mueve manualmente el mapa.
+function ControlSeguimiento({ detenerSeguimiento }) {
+  useMapEvents({
+    dragstart: () => {
+      detenerSeguimiento();
+    },
+  });
+
+  return null;
+}
+
+// Mueve el mapa cuando se selecciona una dirección.
+function MoverMapa({ posicion, detenerSeguimiento }) {
+  const mapa = useMap();
+
+  useEffect(() => {
+    if (!posicion) return;
+
+    detenerSeguimiento();
+    mapa.setView(posicion, 17, { animate: true });
+  }, [posicion, mapa, detenerSeguimiento]);
+
+  return null;
+}
 
 function Mapa() {
   const inicioSesion = useAuthStore((state) => state.inicioSesion);
@@ -34,15 +66,16 @@ function Mapa() {
   const [errorBusqueda, setErrorBusqueda] = useState("");
   const [posicionBusqueda, setPosicionBusqueda] = useState(null);
 
+  // GPS: funciona independientemente de si el usuario inició sesión.
   useEffect(() => {
     if (!navigator.geolocation) {
-      setErrorGPS("Tu navegador no permite utilizar la geolocalización.");
+      setErrorGPS("Tu navegador no admite geolocalización.");
       return;
     }
 
     if (!window.isSecureContext) {
       setErrorGPS(
-        "La conexión no es segura. Necesitás abrir la web mediante HTTPS.",
+        "La ubicación requiere una conexión segura (HTTPS o localhost)."
       );
       return;
     }
@@ -54,37 +87,29 @@ function Mapa() {
           position.coords.longitude,
         ];
 
+        console.log("Nueva ubicación GPS:", nuevaUbicacion);
+
         setErrorGPS("");
         setUbicacion(nuevaUbicacion);
       },
       (error) => {
-        console.log("ERROR GPS:", error.code, error.message);
+        console.error("Error GPS:", error);
 
-        switch (error.code) {
-          case 1:
-            setErrorGPS(
-              "Permiso de ubicación denegado. Revisá los permisos del navegador.",
-            );
-            break;
-          case 2:
-            setErrorGPS(
-              "No se pudo determinar la ubicación. Revisá que el GPS esté activado.",
-            );
-            break;
-          case 3:
-            setErrorGPS(
-              "Se agotó el tiempo de espera para obtener tu ubicación.",
-            );
-            break;
-          default:
-            setErrorGPS("Ocurrió un error al obtener tu ubicación.");
+        if (error.code === 1) {
+          setErrorGPS("Debés permitir el acceso a tu ubicación.");
+        } else if (error.code === 2) {
+          setErrorGPS("No se pudo determinar tu ubicación.");
+        } else if (error.code === 3) {
+          setErrorGPS("Se agotó el tiempo de espera del GPS.");
+        } else {
+          setErrorGPS("No se pudo obtener tu ubicación.");
         }
       },
       {
         enableHighAccuracy: true,
-        maximumAge: 10000,
+        maximumAge: 0,
         timeout: 60000,
-      },
+      }
     );
 
     return () => {
@@ -92,6 +117,7 @@ function Mapa() {
     };
   }, []);
 
+  // Control del scroll del documento al interactuar con el mapa.
   useEffect(() => {
     const mapa = document.querySelector(".leaflet-container");
 
@@ -107,22 +133,14 @@ function Mapa() {
       document.documentElement.style.overflow = "";
     };
 
-    const detenerSeguimiento = () => {
-      setSiguiendoUbicacion(false);
-    };
-
     mapa.addEventListener("mousedown", bloquearScroll);
     mapa.addEventListener("mouseleave", habilitarScroll);
     document.addEventListener("mouseup", habilitarScroll);
-
-    mapa.addEventListener("dragstart", detenerSeguimiento);
 
     return () => {
       mapa.removeEventListener("mousedown", bloquearScroll);
       mapa.removeEventListener("mouseleave", habilitarScroll);
       document.removeEventListener("mouseup", habilitarScroll);
-
-      mapa.removeEventListener("dragstart", detenerSeguimiento);
 
       habilitarScroll();
     };
@@ -142,7 +160,7 @@ function Mapa() {
       setResultados([]);
 
       const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=ar&q=${encodeURIComponent(
-        busqueda.trim(),
+        busqueda.trim()
       )}`;
 
       const respuesta = await fetch(url);
@@ -161,14 +179,19 @@ function Mapa() {
       setResultados(datos);
     } catch (error) {
       console.error("Error al buscar dirección:", error);
-      setErrorBusqueda("Ocurrió un error al buscar. Intentá nuevamente.");
+      setErrorBusqueda(
+        "Ocurrió un error al buscar. Intentá nuevamente."
+      );
     } finally {
       setCargandoBusqueda(false);
     }
   };
 
   const seleccionarResultado = (resultado) => {
-    const coordenadas = [Number(resultado.lat), Number(resultado.lon)];
+    const coordenadas = [
+      Number(resultado.lat),
+      Number(resultado.lon),
+    ];
 
     setPosicionBusqueda(coordenadas);
     setBusqueda(resultado.display_name);
@@ -217,25 +240,11 @@ function Mapa() {
 
   const coordenadasReporte = posicionSeleccionada || ubicacion;
 
-  function MoverMapa({ posicion, detenerSeguimiento }) {
-    const mapa = useMap();
-
-    useEffect(() => {
-      if (posicion) {
-        detenerSeguimiento();
-        mapa.setView(posicion, 17, { animate: true });
-      }
-    }, [posicion, mapa, detenerSeguimiento]);
-
-    return null;
-  }
-
   return (
     <div>
       <div>
-        {/* BÚSQUEDA: se oculta mientras el formulario está abierto */}
         {!modal && (
-          <div className="relative z-[1100] mx-auto mt-2 w-full max-w-xl p-2">
+          <div className="relative z-[500] mx-auto mt-2 w-full max-w-xl p-2">
             <form onSubmit={buscarDireccion} className="flex w-full">
               <input
                 type="text"
@@ -287,8 +296,8 @@ function Mapa() {
         <div className="mapa-container">
           <div className="contendor-mapa">
             <MapContainer
-              center={ubicacion || CENTRO_TUCUMAN}
-              zoom={ubicacion ? 17 : 13}
+              center={CENTRO_TUCUMAN}
+              zoom={13}
               id="map"
               scrollWheelZoom={true}
               dragging={true}
@@ -302,11 +311,19 @@ function Mapa() {
                 attribution="OpenStreetMap"
               />
 
+              <ControlSeguimiento
+                detenerSeguimiento={() =>
+                  setSiguiendoUbicacion(false)
+                }
+              />
+
               <Comisarias />
 
               <MoverMapa
                 posicion={posicionBusqueda}
-                detenerSeguimiento={() => setSiguiendoUbicacion(false)}
+                detenerSeguimiento={() =>
+                  setSiguiendoUbicacion(false)
+                }
               />
 
               {ubicacion && (
@@ -315,15 +332,16 @@ function Mapa() {
                   siguiendo={siguiendoUbicacion}
                 />
               )}
+
               <ZonasRiesgo
                 seleccionandoUbicacion={seleccionandoUbicacion}
                 finalizarSeleccion={finalizarSeleccion}
               />
 
-              {ubicacion && <UbicacionUsuario posicion={ubicacion} />}
-
               {seleccionandoUbicacion && (
-                <SeleccionarUbicacion finalizarSeleccion={finalizarSeleccion} />
+                <SeleccionarUbicacion
+                  finalizarSeleccion={finalizarSeleccion}
+                />
               )}
 
               {posicionSeleccionada && (
@@ -376,7 +394,7 @@ function Mapa() {
                 setSiguiendoUbicacion(true);
               }}
               disabled={!ubicacion}
-              className="absolute right-4 top-4 z-[1000] flex h-11 w-11 items-center justify-center rounded-lg bg-white text-blue-600 shadow-lg hover:bg-gray-100 disabled:opacity-50"
+              className="absolute right-4 top-4 z-[500] flex h-11 w-11 items-center justify-center rounded-lg bg-white text-blue-600 shadow-lg hover:bg-gray-100 disabled:opacity-50"
               title="Volver a mi ubicación"
             >
               <i className="bi bi-crosshair text-xl"></i>

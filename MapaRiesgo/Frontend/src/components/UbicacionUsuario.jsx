@@ -1,6 +1,11 @@
 
 import { useEffect } from "react";
-import { useMap, CircleMarker, Circle, Popup } from "react-leaflet";
+import {
+  useMap,
+  CircleMarker,
+  Circle,
+  Popup,
+} from "react-leaflet";
 
 function UbicacionUsuario({ posicion, siguiendo }) {
   const mapa = useMap();

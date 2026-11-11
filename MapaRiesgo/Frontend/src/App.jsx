@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 
@@ -13,6 +12,7 @@ import Layout from "./components/Layout";
 import IniciarSesion from "./pages/Login";
 import Registrarse from "./pages/RegisterP";
 import Usuarios from "./pages/Usuarios";
+import RutaPrivada from "./components/RutaPrivada";
 
 function App() {
   return (
@@ -28,11 +28,13 @@ function App() {
           <Route path="/denuncia" element={<Denuncia />} />
         </Route>
 
-        <Route path="/admin" element={<SideBar />}>
-          <Route index element={<DashboardAdmin />} />
-          <Route path="reportes" element={<DashboardReportes />} />
-          <Route path="mapa" element={<PaginaMapa />} />
-          <Route path="usuarios" element={<Usuarios />} />
+        <Route element={<RutaPrivada soloAdmin={true} />}>
+          <Route path="/admin" element={<SideBar />}>
+            <Route index element={<DashboardAdmin />} />
+            <Route path="reportes" element={<DashboardReportes />} />
+            <Route path="mapa" element={<PaginaMapa />} />
+            <Route path="usuarios" element={<Usuarios />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

@@ -10,7 +10,6 @@ function Reporte() {
 
   const usuario = useAuthStore((state) => state.usuario);
 
-  // Obtener ubicación GPS
   const seleccionarEnMapa = () => {
     if (!navigator.geolocation) {
       setMensaje("Tu navegador no permite obtener la ubicación.");
@@ -32,7 +31,6 @@ function Reporte() {
     );
   };
 
-  // Enviar reporte
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensaje("");
@@ -112,7 +110,7 @@ function Reporte() {
 
   return (
     <div className="reporte">
-      <div className="reporte-card">
+      <div className="reporte-card p-59">
 
         <div className="reporte-header">
           <h2>Realizar reporte</h2>
