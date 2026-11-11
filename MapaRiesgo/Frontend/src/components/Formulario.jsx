@@ -1,5 +1,6 @@
 
 import "../style/Formulario.css";
+import useAuthStore from "../store/Store";
 
 function Formulario({
   darValor,
@@ -10,62 +11,71 @@ function Formulario({
     darValor(false);
   };
 
- 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const usuario = useAuthStore((state) => state.usuario);
+  console.log("USUARIO EN ZUSTAND:", usuario);
 
-  if (!ubicacion) {
-    alert("No se pudo obtener ninguna ubicación.");
-    return;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const datosFormulario = new FormData(e.target);
-
-  const reporte = {
-    id_delito: Number(datosFormulario.get("id_delito")),
-    direccion: datosFormulario.get("direccion").trim(),
-    descripcion: datosFormulario.get("descripcion").trim(),
-    testigos: datosFormulario.get("testigos") === "si",
-    latitud: Number(ubicacion[0]),
-    longitud: Number(ubicacion[1]),
-  };
-
-  console.log("Datos enviados:", reporte);
-
-  try {
-    const respuesta = await fetch("http://localhost:3000/api/reportes", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(reporte),
-    });
-
-    const datos = await respuesta.json();
-
-    if (!respuesta.ok) {
-      if (datos.errores && datos.errores.length > 0) {
-        const mensajes = datos.errores
-          .map((error) => `${error.campo}: ${error.mensaje}`)
-          .join("\n");
-
-        throw new Error(mensajes);
-      }
-
-      throw new Error(datos.mensaje || "Error al guardar el reporte");
+    if (!usuario || !usuario.id_usuario) {
+      console.log("ID DEL USUARIO:", usuario?.id_usuario);
+      alert("Debés iniciar sesión para cargar un reporte.");
+      return;
     }
 
-    alert("¡Reporte guardado correctamente!");
+    if (!ubicacion) {
+      alert("No se pudo obtener ninguna ubicación.");
+      return;
+    }
 
-    e.target.reset();
-    ocultarModal();
+    const datosFormulario = new FormData(e.target);
 
-  } catch (error) {
-    console.error("Error al guardar el reporte:", error);
-    alert(error.message);
-  }
-};
+    const reporte = {
+      id_usuario: usuario.id_usuario,
+      id_delito: Number(datosFormulario.get("id_delito")),
+      direccion: datosFormulario.get("direccion").trim(),
+      descripcion: datosFormulario.get("descripcion").trim(),
+      testigos: datosFormulario.get("testigos") === "si",
+      latitud: Number(ubicacion[0]),
+      longitud: Number(ubicacion[1]),
+    };
 
+    console.log("Datos enviados:", reporte);
+
+    try {
+      console.log("REPORTE QUE SE ENVÍA:", JSON.stringify(reporte));
+      const respuesta = await fetch("http://localhost:3000/api/reportes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reporte),
+      });
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        if (datos.errores && datos.errores.length > 0) {
+          const mensajes = datos.errores
+            .map((error) => `${error.campo}: ${error.mensaje}`)
+            .join("\n");
+
+          throw new Error(mensajes);
+        }
+
+        throw new Error(datos.mensaje || "Error al guardar el reporte");
+      }
+
+      alert("¡Reporte guardado correctamente!");
+
+      e.target.reset();
+      ocultarModal();
+
+    } catch (error) {
+      console.error("Error al guardar el reporte:", error);
+      alert(error.message);
+    }
+  };
 
   return (
     <div className="modal">

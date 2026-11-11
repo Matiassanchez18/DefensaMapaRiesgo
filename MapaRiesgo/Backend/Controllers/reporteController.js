@@ -49,8 +49,25 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
 };
 
 const agregarReporte = (req, res) => {
-  const { id_delito, direccion, descripcion, testigos, latitud, longitud } =
-    req.body;
+ console.log("BODY RECIBIDO:", req.body);
+  console.log("ID USUARIO RECIBIDO:", req.body?.id_usuario);
+
+  const {
+    id_usuario,
+    id_delito,
+    direccion,
+    descripcion,
+    testigos,
+    latitud,
+    longitud,
+  } = req.body;
+
+  // Validar que se haya enviado el usuario.
+  if (!id_usuario || !Number.isInteger(Number(id_usuario))) {
+    return res.status(400).json({
+      mensaje: "Debés iniciar sesión para cargar un reporte.",
+    });
+  }
 
   const lat = Number(latitud);
   const lng = Number(longitud);
@@ -68,9 +85,9 @@ const agregarReporte = (req, res) => {
     });
   }
 
+  console.log("Usuario que carga el reporte:", id_usuario);
   console.log("Coordenadas recibidas:", lat, lng);
 
-  // Primero buscamos o creamos la zona.
   obtenerOCrearZona(lat, lng, (error, idZona) => {
     if (error) {
       console.error("Error al obtener o crear zona:", error);
@@ -102,7 +119,7 @@ const agregarReporte = (req, res) => {
     db.query(
       sql,
       [
-        1,
+        Number(id_usuario),
         id_delito,
         idZona,
         descripcion,
@@ -126,38 +143,39 @@ const agregarReporte = (req, res) => {
           mensaje: "Reporte guardado correctamente.",
           id_reporte: resultado.insertId,
           id_zona: idZona,
+          id_usuario: Number(id_usuario),
         });
       },
     );
   });
 };
 
-
 const obtenerReportes = (req, res) => {
   const sql = `
-SELECT
-  r.id_reporte,
-  r.descripcion,
-  r.estado,
-  r.fecha,
-  r.hora,
-  r.latitud,
-  r.longitud,
-  r.id_zona,
-  z.nombre AS zona,
-  d.nombre AS delito,
-  d.nivel_delito AS riesgo
-FROM reporte r
-LEFT JOIN zona z ON r.id_zona = z.id_zona
-LEFT JOIN delito d ON r.id_delito = d.id_delito
-ORDER BY r.fecha DESC, r.hora DESC
+    SELECT
+      r.id_reporte,
+      r.descripcion,
+      r.estado,
+      r.fecha,
+      r.hora,
+      r.latitud,
+      r.longitud,
+      r.id_zona,
+      z.nombre AS zona,
+      d.nombre AS delito,
+      d.nivel_delito AS riesgo
+    FROM reporte r
+    LEFT JOIN zona z ON r.id_zona = z.id_zona
+    LEFT JOIN delito d ON r.id_delito = d.id_delito
+    ORDER BY r.fecha DESC, r.hora DESC
   `;
 
   db.query(sql, (error, resultados) => {
     if (error) {
       console.error("Error al obtener reportes:", error);
+
       return res.status(500).json({
-        mensaje: "Error al obtener los reportes."
+        mensaje: "Error al obtener los reportes.",
       });
     }
 
@@ -165,10 +183,9 @@ ORDER BY r.fecha DESC, r.hora DESC
   });
 };
 
-
-
 const obtenerUltimoReporte = (req, res) => {
-  const sql = `SELECT
+  const sql = `
+    SELECT
       r.id_reporte,
       r.descripcion AS titulo,
       r.direccion,
@@ -180,7 +197,8 @@ const obtenerUltimoReporte = (req, res) => {
     FROM reporte r
     INNER JOIN zona z ON r.id_zona = z.id_zona
     ORDER BY r.id_reporte DESC
-    LIMIT 1`;
+    LIMIT 1
+  `;
 
   db.query(sql, (error, resultados) => {
     if (error) {
@@ -208,7 +226,7 @@ const actualizarReporte = (req, res) => {
 
   if (!descripcion || !estado) {
     return res.status(400).json({
-      mensaje: "La descripción y el estado son obligatorios."
+      mensaje: "La descripción y el estado son obligatorios.",
     });
   }
 
@@ -216,7 +234,7 @@ const actualizarReporte = (req, res) => {
 
   if (!estadosPermitidos.includes(estado)) {
     return res.status(400).json({
-      mensaje: "El estado indicado no es válido."
+      mensaje: "El estado indicado no es válido.",
     });
   }
 
@@ -229,23 +247,23 @@ const actualizarReporte = (req, res) => {
   db.query(sql, [descripcion, estado, id], (error, resultado) => {
     if (error) {
       console.error("Error al actualizar reporte:", error);
+
       return res.status(500).json({
-        mensaje: "Error al actualizar el reporte."
+        mensaje: "Error al actualizar el reporte.",
       });
     }
 
     if (resultado.affectedRows === 0) {
       return res.status(404).json({
-        mensaje: "No se encontró el reporte."
+        mensaje: "No se encontró el reporte.",
       });
     }
 
     res.status(200).json({
-      mensaje: "Reporte actualizado correctamente."
+      mensaje: "Reporte actualizado correctamente.",
     });
   });
 };
-
 
 const eliminarReporte = (req, res) => {
   const { id } = req.params;
@@ -258,19 +276,20 @@ const eliminarReporte = (req, res) => {
   db.query(sql, [id], (error, resultado) => {
     if (error) {
       console.error("Error al eliminar reporte:", error);
+
       return res.status(500).json({
-        mensaje: "Error al eliminar el reporte."
+        mensaje: "Error al eliminar el reporte.",
       });
     }
 
     if (resultado.affectedRows === 0) {
       return res.status(404).json({
-        mensaje: "No se encontró el reporte."
+        mensaje: "No se encontró el reporte.",
       });
     }
 
     res.status(200).json({
-      mensaje: "Reporte eliminado correctamente."
+      mensaje: "Reporte eliminado correctamente.",
     });
   });
 };
@@ -280,5 +299,5 @@ module.exports = {
   obtenerReportes,
   obtenerUltimoReporte,
   actualizarReporte,
-  eliminarReporte
+  eliminarReporte,
 };
