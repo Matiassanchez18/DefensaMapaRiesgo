@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import "../Style/Home.css";
 
 function InformacionMapa({ titulo, descripcion }) {
@@ -9,9 +10,9 @@ function InformacionMapa({ titulo, descripcion }) {
         <div className="informacion-mapa-contenido">
           <p className="informacion-mapa-texto">{descripcion}</p>
 
-          <a href="#" className="informacion-mapa-boton">
-            Conocé más +
-          </a>
+         <Link to="*" className="informacion-mapa-boton">
+  Conocé más +
+</Link>
         </div>
       </article>
     </div>
