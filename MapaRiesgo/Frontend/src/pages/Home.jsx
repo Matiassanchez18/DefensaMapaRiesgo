@@ -13,8 +13,7 @@ function Home() {
     const obtenerUltimoReporte = async () => {
       try {
         const respuesta = await fetch(
-          // "http://localhost:3000/api/reportes/ultimo"
-          "http://10.0.2.2:3000/api/reportes/ultimo",
+          "http://localhost:3000/api/reportes/ultimo",
         );
 
         if (!respuesta.ok) {
