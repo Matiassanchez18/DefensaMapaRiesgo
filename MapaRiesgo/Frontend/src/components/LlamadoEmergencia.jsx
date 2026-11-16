@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import useAuthStore from "../store/Store";
 import "../style/Home.css";
@@ -40,7 +39,8 @@ function LlamadoEmergencia() {
 
     try {
       const respuesta = await fetch(
-        "http://localhost:3000/api/contactos-emergencia",
+        // "http://localhost:3000/api/contactos-emergencia"
+        "http://10.0.2.2:3000/api/contactos-emergencia",
         {
           method: "POST",
           headers: {
@@ -52,7 +52,7 @@ function LlamadoEmergencia() {
             telefono: nuevoContacto.telefono,
             relacion: nuevoContacto.relacion,
           }),
-        }
+        },
       );
 
       const datos = await respuesta.json();
@@ -68,7 +68,6 @@ function LlamadoEmergencia() {
       });
 
       setGuardado(true);
-
     } catch (error) {
       console.error("Error al guardar contacto:", error);
       setError(error.message || "Error de conexión con el servidor.");
@@ -101,9 +100,7 @@ function LlamadoEmergencia() {
         <i className="bi bi-person-plus-fill llamado-emergencia-icono"></i>
 
         <div>
-          <h3 className="llamado-emergencia-titulo">
-            Contactos de emergencia
-          </h3>
+          <h3 className="llamado-emergencia-titulo">Contactos de emergencia</h3>
 
           <p className="llamado-emergencia-texto">
             Agregá personas de confianza para tener sus datos disponibles ante
@@ -163,11 +160,7 @@ function LlamadoEmergencia() {
             required
           />
 
-          {error && (
-            <p className="contacto-emergencia-error">
-              {error}
-            </p>
-          )}
+          {error && <p className="contacto-emergencia-error">{error}</p>}
 
           <div className="contacto-emergencia-acciones">
             <button type="submit" disabled={cargando}>

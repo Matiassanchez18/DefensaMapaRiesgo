@@ -23,7 +23,9 @@ function Login() {
     setError("");
 
     try {
-      const respuesta = await fetch("http://localhost:3000/api/login", {
+
+      //const respuesta = await fetch("http://localhost:3000/api/login", {
+      const respuesta = await fetch("http://10.0.2.2:3000/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
