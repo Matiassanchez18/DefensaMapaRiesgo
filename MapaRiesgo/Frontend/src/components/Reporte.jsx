@@ -1,42 +1,145 @@
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Popup,
+  useMapEvents,
+} from "react-leaflet";
+
+import "leaflet/dist/leaflet.css";
+
 import useAuthStore from "../store/Store";
 import "../style/Formulario.css";
 
+const CENTRO_TUCUMAN = [-26.8241, -65.2226];
+
+function SeleccionarPunto({ finalizarSeleccion }) {
+  useMapEvents({
+    click: (e) => {
+      const coordenadas = [
+        e.latlng.lat,
+        e.latlng.lng,
+      ];
+
+      finalizarSeleccion(coordenadas);
+    },
+  });
+
+  return null;
+}
+
 function Reporte() {
   const [ubicacion, setUbicacion] = useState(null);
+  const [ubicacionGPS, setUbicacionGPS] = useState(null);
+
+  const [reportes, setReportes] = useState([]);
+
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
+  const [mostrarMapa, setMostrarMapa] = useState(false);
+  const [obteniendoGPS, setObteniendoGPS] = useState(true);
+
+  const seleccionManual = useRef(false);
+
   const usuario = useAuthStore((state) => state.usuario);
 
-  const seleccionarEnMapa = () => {
+  // Obtener los reportes guardados en la base de datos.
+  const cargarReportes = useCallback(async () => {
+    try {
+      const respuesta = await fetch(
+        "http://localhost:3000/api/reportes"
+      );
+
+      if (!respuesta.ok) {
+        throw new Error("No se pudieron obtener los reportes.");
+      }
+
+      const datos = await respuesta.json();
+
+      setReportes(Array.isArray(datos) ? datos : []);
+
+    } catch (error) {
+      console.error("Error al cargar reportes:", error);
+    }
+  }, []);
+
+  // Cargar reportes al entrar y actualizar cada 5 segundos.
+  useEffect(() => {
+    cargarReportes();
+
+    const intervalo = setInterval(() => {
+      cargarReportes();
+    }, 5000);
+
+    return () => clearInterval(intervalo);
+  }, [cargarReportes]);
+
+  // Obtener automáticamente la ubicación GPS.
+  useEffect(() => {
     if (!navigator.geolocation) {
       setMensaje("Tu navegador no permite obtener la ubicación.");
+      setObteniendoGPS(false);
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (posicion) => {
-        setUbicacion([
+        const coordenadasGPS = [
           posicion.coords.latitude,
           posicion.coords.longitude,
-        ]);
+        ];
 
-        setMensaje("Ubicación obtenida correctamente.");
+        setUbicacionGPS(coordenadasGPS);
+
+        if (!seleccionManual.current) {
+          setUbicacion(coordenadasGPS);
+        }
+
+        setObteniendoGPS(false);
       },
       () => {
-        setMensaje("No se pudo obtener tu ubicación.");
+        setMensaje(
+          "No se pudo obtener el GPS. Podés seleccionar la ubicación en el mapa."
+        );
+
+        setObteniendoGPS(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 60000,
+        maximumAge: 0,
       }
     );
+  }, []);
+
+  // Abrir el mapa.
+  const seleccionarEnMapa = () => {
+    setMensaje("");
+    setMostrarMapa(true);
   };
 
+  // Guardar ubicación seleccionada manualmente.
+  const finalizarSeleccion = (coordenadas) => {
+    seleccionManual.current = true;
+
+    setUbicacion(coordenadas);
+
+    setMensaje("Ubicación seleccionada correctamente.");
+  };
+
+  // Enviar el reporte.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensaje("");
 
     if (!usuario) {
-      setMensaje("Tenés que iniciar sesión para realizar un reporte.");
+      setMensaje(
+        "Tenés que iniciar sesión para realizar un reporte."
+      );
       return;
     }
 
@@ -44,12 +147,21 @@ function Reporte() {
 
     if (!Number.isInteger(idUsuario) || idUsuario <= 0) {
       console.error("Datos del usuario:", usuario);
-      setMensaje("No se pudo identificar al usuario. Volvé a iniciar sesión.");
+
+      setMensaje(
+        "No se pudo identificar al usuario. Volvé a iniciar sesión."
+      );
+
       return;
     }
 
-    if (!ubicacion) {
-      setMensaje("Primero tenés que obtener la ubicación del hecho.");
+    // Si no hay selección manual, utilizar el GPS.
+    const ubicacionFinal = ubicacion || ubicacionGPS;
+
+    if (!ubicacionFinal) {
+      setMensaje(
+        "No se pudo obtener tu ubicación. Activá el GPS o seleccioná un punto en el mapa."
+      );
       return;
     }
 
@@ -61,8 +173,8 @@ function Reporte() {
       direccion: datosFormulario.get("direccion").trim(),
       descripcion: datosFormulario.get("descripcion").trim(),
       testigos: datosFormulario.get("testigos") === "si",
-      latitud: Number(ubicacion[0]),
-      longitud: Number(ubicacion[1]),
+      latitud: Number(ubicacionFinal[0]),
+      longitud: Number(ubicacionFinal[1]),
     };
 
     try {
@@ -85,7 +197,10 @@ function Reporte() {
         if (resultado.errores?.length > 0) {
           throw new Error(
             resultado.errores
-              .map((error) => `${error.campo}: ${error.mensaje}`)
+              .map(
+                (error) =>
+                  `${error.campo}: ${error.mensaje}`
+              )
               .join("\n")
           );
         }
@@ -96,8 +211,14 @@ function Reporte() {
       }
 
       setMensaje("Reporte registrado correctamente.");
+
       e.target.reset();
-      setUbicacion(null);
+
+      setUbicacion(ubicacionGPS);
+      seleccionManual.current = false;
+
+      // Actualizar los marcadores después de registrar.
+      await cargarReportes();
 
     } catch (error) {
       console.error("Error al enviar reporte:", error);
@@ -123,7 +244,9 @@ function Reporte() {
         >
 
           <div className="reporte-campo">
-            <label htmlFor="id_delito">Tipo de delito</label>
+            <label htmlFor="id_delito">
+              Tipo de delito
+            </label>
 
             <select
               id="id_delito"
@@ -131,7 +254,10 @@ function Reporte() {
               className="reporte-input-icono"
               required
             >
-              <option value="">Seleccioná un delito</option>
+              <option value="">
+                Seleccioná un delito
+              </option>
+
               <option value="1">Robo</option>
               <option value="2">Hurto</option>
               <option value="3">Asalto</option>
@@ -159,6 +285,7 @@ function Reporte() {
             <label>¿Hubo testigos?</label>
 
             <div className="reporte-opciones">
+
               <label className="reporte-opcion">
                 <input
                   type="radio"
@@ -177,6 +304,7 @@ function Reporte() {
                 />
                 No
               </label>
+
             </div>
           </div>
 
@@ -195,13 +323,21 @@ function Reporte() {
             />
           </div>
 
+          {/* UBICACIÓN DEL INCIDENTE */}
           <div className="reporte-campo">
+
             <label>Ubicación del incidente</label>
 
             <p>
-              {ubicacion
-                ? "Ubicación seleccionada correctamente."
-                : "Todavía no se seleccionó una ubicación."}
+              {obteniendoGPS
+                ? "Obteniendo ubicación GPS..."
+                : ubicacion
+                  ? seleccionManual.current
+                    ? "Ubicación seleccionada en el mapa."
+                    : "Se utilizará tu ubicación actual."
+                  : ubicacionGPS
+                    ? "Se utilizará tu ubicación actual."
+                    : "Todavía no hay una ubicación disponible."}
             </p>
 
             <button
@@ -210,8 +346,120 @@ function Reporte() {
               onClick={seleccionarEnMapa}
             >
               <i className="bi bi-geo-alt"></i>
-              Obtener ubicación actual
+              Seleccionar ubicación en el mapa
             </button>
+
+            {mostrarMapa && (
+              <div className="reporte-selector-mapa">
+
+                <p>
+                  Hacé clic sobre el mapa para marcar el lugar
+                  donde ocurrió el incidente.
+                </p>
+
+                <div
+                  style={{
+                    width: "100%",
+                    height: "350px",
+                    marginTop: "10px",
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <MapContainer
+                    center={ubicacion || ubicacionGPS || CENTRO_TUCUMAN}
+                    zoom={15}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                    }}
+                    scrollWheelZoom={true}
+                  >
+                    <TileLayer
+                      url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      maxZoom={19}
+                      attribution="OpenStreetMap"
+                    />
+
+                    <SeleccionarPunto
+                      finalizarSeleccion={finalizarSeleccion}
+                    />
+
+                    {/* REPORTES GUARDADOS */}
+                    {reportes.map((reporte, index) => {
+                      const latitud = Number(reporte.latitud);
+                      const longitud = Number(reporte.longitud);
+
+                      if (
+                        !Number.isFinite(latitud) ||
+                        !Number.isFinite(longitud)
+                      ) {
+                        return null;
+                      }
+
+                      return (
+                        <CircleMarker
+                          key={reporte.id_reporte ?? index}
+                          center={[latitud, longitud]}
+                          radius={7}
+                          pathOptions={{
+                            color: "white",
+                            fillColor: "#ef4444",
+                            fillOpacity: 1,
+                            weight: 2,
+                          }}
+                        >
+                          <Popup>
+                            <strong>
+                              Reporte #{reporte.id_reporte}
+                            </strong>
+
+                            <p>
+                              <strong>Dirección:</strong>{" "}
+                              {reporte.direccion}
+                            </p>
+
+                            <p>
+                              <strong>Descripción:</strong>{" "}
+                              {reporte.descripcion}
+                            </p>
+                          </Popup>
+                        </CircleMarker>
+                      );
+                    })}
+
+                    {/* UBICACIÓN SELECCIONADA */}
+                    {ubicacion && (
+                      <CircleMarker
+                        center={ubicacion}
+                        radius={9}
+                        pathOptions={{
+                          color: "white",
+                          fillColor: "#2563eb",
+                          fillOpacity: 1,
+                          weight: 3,
+                        }}
+                      >
+                        <Popup>
+                          Ubicación del nuevo reporte
+                        </Popup>
+                      </CircleMarker>
+                    )}
+
+                  </MapContainer>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setMostrarMapa(false)}
+                  style={{ marginTop: "10px" }}
+                >
+                  Cancelar selección
+                </button>
+
+              </div>
+            )}
+
           </div>
 
           {mensaje && (
@@ -222,9 +470,11 @@ function Reporte() {
             <button
               type="submit"
               className="reporte-btn-enviar"
-              disabled={cargando}
+              disabled={cargando || obteniendoGPS}
             >
-              {cargando ? "Enviando..." : "Enviar reporte"}
+              {cargando
+                ? "Enviando..."
+                : "Enviar reporte"}
             </button>
           </div>
 
