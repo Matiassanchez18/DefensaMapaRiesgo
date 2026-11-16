@@ -5,6 +5,7 @@ const registerRoutes = require("./Routes/registerRoutes");
 const reporteRoutes = require("./Routes/reporteRoutes");
 const comisariaRoutes = require("./Routes/comisariaRoutes");
 const usuariosRoutes = require("./Routes/usuariosRoutes");
+const adminRoutes = require("./Routes/adminRoutes");
 const loginRoutes = require("./Routes/loginRoutes");
 const contactoEmergenciaRoutes = require("./Routes/contactoEmergenciaRoutes");
 const app = express();
@@ -18,6 +19,7 @@ app.use("/api/login", loginRoutes);
 app.use("/api/reportes", reporteRoutes);
 app.use("/api/comisarias", comisariaRoutes);
 app.use("/api/usuarios", usuariosRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/contactos-emergencia", contactoEmergenciaRoutes);
 
 
