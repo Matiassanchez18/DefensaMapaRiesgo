@@ -50,7 +50,7 @@ function Home() {
 
         <InformacionMapa
           titulo="¿Qué es el mapa de riesgo?"
-          descripcion="El Mapa de Riesgo es una herramienta que permite identificar y visualizar las zonas de una ciudad según su nivel de inseguridad, a partir de los reportes de delitos registrados por los usuarios. Su objetivo es brindar información útil para que los ciudadanos puedan tomar decisiones más seguras, prevenir situaciones de riesgo y conocer las zonas que requieren mayor atención."
+          descripcion="El Mapa de Riesgo permite identificar las zonas de una ciudad según su nivel de inseguridad, a partir de los reportes de delitos realizados por los usuarios, ayudando a prevenir situaciones de riesgo y tomar decisiones más seguras."
         />
 
         <div className="mt-25">
