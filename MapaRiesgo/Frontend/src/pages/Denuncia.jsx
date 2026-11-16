@@ -4,8 +4,8 @@ import Reporte from "../Components/Reporte";
 function Denuncia() {
   return (
     <>
-      <main>
-        <Reporte/>
+      <main className="pb-15">
+        <Reporte />
       </main>
       
     </>

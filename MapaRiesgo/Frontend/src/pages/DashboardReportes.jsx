@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 
 const API = "http://localhost:3000/api/reportes";
@@ -112,30 +113,46 @@ function DashboardReportes() {
     (reporte) => reporte.estado === "En revisión"
   ).length;
 
+  const reportesAlto = reportes.filter(
+    (reporte) => reporte.riesgo === "Alto"
+  ).length;
+
   const cards = [
     {
       titulo: "Total de reportes",
       numero: reportes.length,
       detalle: "Reportes registrados",
-      color: "text-muted",
+      icono: "bi-file-earmark-text",
+      color: "text-blue-400",
+      fondo: "bg-blue-500/10",
+      borde: "hover:border-blue-500/30",
     },
     {
       titulo: "Pendientes",
       numero: pendientes,
       detalle: "Esperando revisión",
+      icono: "bi-clock-history",
       color: "text-yellow-400",
+      fondo: "bg-yellow-500/10",
+      borde: "hover:border-yellow-500/30",
     },
     {
       titulo: "En revisión",
       numero: enRevision,
       detalle: "Bajo evaluación",
-      color: "text-blue-400",
+      icono: "bi-search",
+      color: "text-sky-400",
+      fondo: "bg-sky-500/10",
+      borde: "hover:border-sky-500/30",
     },
     {
       titulo: "Resueltos",
       numero: resueltos,
       detalle: "Reportes solucionados",
-      color: "text-green-400",
+      icono: "bi-check-circle",
+      color: "text-emerald-400",
+      fondo: "bg-emerald-500/10",
+      borde: "hover:border-emerald-500/30",
     },
   ];
 
@@ -279,42 +296,101 @@ function DashboardReportes() {
   };
 
   return (
-    <>
-      <h1 className="text-xl font-bold">Reportes</h1>
+    <div className="space-y-6">
 
-      <p className="mb-5 text-xs text-muted">
-        Gestión de reportes de zonas de riesgo
-      </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="mb-1 flex items-center gap-2 text-blue-400">
+            <i className="bi bi-clipboard-data-fill"></i>
+            <span className="text-[11px] font-bold uppercase tracking-[2px]">
+              Administración
+            </span>
+          </div>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <h1 className="text-2xl font-bold tracking-tight text-white">
+            Gestión de reportes
+          </h1>
+
+          <p className="mt-1 text-sm text-slate-400">
+            Supervisá, filtrá y administrá los reportes de zonas de riesgo.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={obtenerReportes}
+          disabled={cargando}
+          className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-blue-400/30 hover:bg-blue-500/10 hover:text-blue-300 disabled:opacity-50"
+        >
+          <i className={`bi bi-arrow-clockwise ${cargando ? "animate-spin" : ""}`}></i>
+          Actualizar lista
+        </button>
+      </div>
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
           <div
             key={card.titulo}
-            className="rounded-lg border border-line bg-white/5 p-4"
+            className={`rounded-xl border border-white/10 bg-white/[0.03] p-5 transition ${card.borde}`}
           >
-            <p className="text-[11px] text-muted">{card.titulo}</p>
-            <p className="my-1 text-3xl font-bold">{card.numero}</p>
-            <p className={`text-[11px] ${card.color}`}>
-              {card.detalle}
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-slate-400">
+                  {card.titulo}
+                </p>
+
+                <h2 className="mt-2 text-3xl font-bold text-white">
+                  {card.numero}
+                </h2>
+
+                <p className={`mt-1 text-[11px] ${card.color}`}>
+                  {card.detalle}
+                </p>
+              </div>
+
+              <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-xl ${card.fondo} ${card.color}`}>
+                <i className={`bi ${card.icono}`}></i>
+              </div>
+            </div>
           </div>
         ))}
       </section>
 
-      <section className="mt-3 rounded-lg border border-line bg-white/5 p-4">
-        <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <input
-            type="text"
-            placeholder="Buscar por título o ID"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
-          />
+      <section className="rounded-xl border border-white/10 bg-white/[0.03]">
+
+        <div className="flex flex-col gap-3 border-b border-white/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-bold text-white">
+              Lista de reportes
+            </h2>
+
+            <p className="mt-1 text-[11px] text-slate-400">
+              Consultá y administrá los reportes registrados.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 text-[11px] text-slate-400">
+            <span className={`h-2 w-2 rounded-full ${error ? "bg-red-400" : cargando ? "bg-yellow-400" : "bg-emerald-400"}`}></span>
+            {error ? "Error de conexión" : cargando ? "Consultando API..." : "API conectada"}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 border-b border-white/10 p-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="relative">
+            <i className="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            <input
+              type="text"
+              placeholder="Buscar por título o ID..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-black/20 py-2.5 pl-9 pr-3 text-xs text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500"
+            />
+          </div>
 
           <select
             value={filtroZona}
             onChange={(e) => setFiltroZona(e.target.value)}
-            className="rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
+            className="rounded-lg border border-white/10 bg-[#172536] px-3 py-2.5 text-xs text-slate-300 outline-none focus:border-blue-500"
           >
             <option value="">Todas las zonas</option>
             {zonas.map((zona) => (
@@ -327,18 +403,18 @@ function DashboardReportes() {
           <select
             value={filtroRiesgo}
             onChange={(e) => setFiltroRiesgo(e.target.value)}
-            className="rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
+            className="rounded-lg border border-white/10 bg-[#172536] px-3 py-2.5 text-xs text-slate-300 outline-none focus:border-blue-500"
           >
-            <option value="">Todo el riesgo</option>
-            <option value="Alto">Alto</option>
-            <option value="Medio">Medio</option>
-            <option value="Bajo">Bajo</option>
+            <option value="">Todos los niveles de riesgo</option>
+            <option value="Alto">Riesgo alto</option>
+            <option value="Medio">Riesgo medio</option>
+            <option value="Bajo">Riesgo bajo</option>
           </select>
 
           <select
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
-            className="rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
+            className="rounded-lg border border-white/10 bg-[#172536] px-3 py-2.5 text-xs text-slate-300 outline-none focus:border-blue-500"
           >
             <option value="">Todos los estados</option>
             <option value="Pendiente">Pendiente</option>
@@ -347,333 +423,415 @@ function DashboardReportes() {
           </select>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-wider text-muted">
-                <th className="py-2">
-                  <input
-                    type="checkbox"
-                    checked={
-                      reportesPaginados.length > 0 &&
-                      reportesPaginados.every((reporte) =>
-                        seleccionados.includes(reporte.id)
-                      )
-                    }
-                    onChange={seleccionarTodos}
-                  />
-                </th>
-
-                <th className="py-2 font-semibold">ID</th>
-                <th className="py-2 font-semibold">Reporte</th>
-                <th className="py-2 font-semibold">Zona</th>
-                <th className="py-2 font-semibold">Riesgo</th>
-                <th className="py-2 font-semibold">Estado</th>
-                <th className="py-2 font-semibold">Cuándo</th>
-                <th className="py-2 text-right font-semibold">Acciones</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {cargando ? (
-                <tr className="border-t border-line">
-                  <td colSpan="8" className="py-6 text-center text-muted">
-                    Cargando reportes...
-                  </td>
-                </tr>
-              ) : error ? (
-                <tr className="border-t border-line">
-                  <td colSpan="8" className="py-6 text-center text-red-400">
-                    {error}
-                  </td>
-                </tr>
-              ) : (
-                <>
-                  {reportesPaginados.map((reporte) => (
-                    <tr
-                      key={reporte.id}
-                      className="border-t border-line"
-                    >
-                      <td className="py-3">
-                        <input
-                          type="checkbox"
-                          checked={seleccionados.includes(reporte.id)}
-                          onChange={() => seleccionarReporte(reporte.id)}
-                        />
-                      </td>
-
-                      <td className="py-3 text-muted">
-                        #{reporte.id}
-                      </td>
-
-                      <td className="max-w-[220px] py-3 font-bold">
-                        <span className="block truncate">
-                          {reporte.titulo}
-                        </span>
-                      </td>
-
-                      <td className="py-3">{reporte.zona}</td>
-
-                      <td className="py-3">
-                        <span className="flex items-center gap-2">
-                          <span
-                            className={`h-1.5 w-1.5 rounded-full ${
-                              colorRiesgo[reporte.riesgo] || "bg-gray-400"
-                            }`}
-                          ></span>
-                          {letraRiesgo[reporte.riesgo] || "-"} ·{" "}
-                          {reporte.riesgo}
-                        </span>
-                      </td>
-
-                      <td className="py-3">
-                        <span className="flex items-center gap-2">
-                          <span
-                            className={`h-1.5 w-1.5 rounded-full ${
-                              colorEstado[reporte.estado] || "bg-gray-400"
-                            }`}
-                          ></span>
-                          {reporte.estado}
-                        </span>
-                      </td>
-
-                      <td className="whitespace-nowrap py-3 text-muted">
-                        {reporte.cuando}
-                      </td>
-
-                      {/* ACCIONES */}
-                      <td className="py-3">
-                        <div className="flex justify-end gap-3 text-sm">
-                          <button
-                            type="button"
-                            title="Ver reporte"
-                            onClick={() => setViendo(reporte)}
-                            className="text-muted hover:text-white"
-                          >
-                            <i className="bi bi-eye"></i>
-                          </button>
-
-                          <button
-                            type="button"
-                            title="Editar reporte"
-                            onClick={() => setEditando({ ...reporte })}
-                            className="text-muted hover:text-white"
-                          >
-                            <i className="bi bi-pencil"></i>
-                          </button>
-
-                          <button
-                            type="button"
-                            title="Eliminar reporte"
-                            onClick={() => eliminar(reporte.id)}
-                            className="text-red-400 hover:text-red-300"
-                          >
-                            <i className="bi bi-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {reportesFiltrados.length === 0 && (
-                    <tr className="border-t border-line">
-                      <td
-                        colSpan="8"
-                        className="py-6 text-center text-muted"
-                      >
-                        No se encontraron reportes
-                      </td>
-                    </tr>
-                  )}
-                </>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3 text-[11px] text-muted">
-          <span>
-            {reportesFiltrados.length === 0
-              ? "Mostrando 0 reportes"
-              : `Mostrando ${
-                  (paginaActual - 1) * reportesPorPagina + 1
-                }-${Math.min(
-                  paginaActual * reportesPorPagina,
-                  reportesFiltrados.length
-                )} de ${reportesFiltrados.length}`}
-          </span>
-
-          <div className="flex gap-1.5">
-            <button
-              type="button"
-              disabled={paginaActual === 1}
-              onClick={() => setPaginaActual((prev) => prev - 1)}
-              className="rounded-md border border-line px-2.5 py-1 disabled:opacity-30"
-            >
-              ‹
-            </button>
-
-            {Array.from(
-              { length: totalPaginas },
-              (_, i) => i + 1
-            ).map((pagina) => (
-              <button
-                key={pagina}
-                type="button"
-                onClick={() => setPaginaActual(pagina)}
-                className={`rounded-md px-2.5 py-1 ${
-                  paginaActual === pagina
-                    ? "bg-blue-500 text-white"
-                    : "border border-line"
-                }`}
-              >
-                {pagina}
-              </button>
-            ))}
+        {seleccionados.length > 0 && (
+          <div className="flex items-center justify-between border-b border-blue-500/20 bg-blue-500/[0.07] px-5 py-3">
+            <p className="text-xs text-blue-300">
+              <i className="bi bi-check2-square mr-2"></i>
+              {seleccionados.length} reportes seleccionados
+            </p>
 
             <button
               type="button"
-              disabled={paginaActual === totalPaginas}
-              onClick={() => setPaginaActual((prev) => prev + 1)}
-              className="rounded-md border border-line px-2.5 py-1 disabled:opacity-30"
+              onClick={() => setSeleccionados([])}
+              className="text-[11px] font-semibold text-slate-400 transition hover:text-white"
             >
-              ›
+              Limpiar selección
             </button>
           </div>
-        </div>
+        )}
+
+        {cargando ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500/20 border-t-blue-500"></div>
+            <p className="mt-3 text-xs text-slate-400">
+              Cargando reportes...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-14">
+            <i className="bi bi-exclamation-circle text-3xl text-red-400"></i>
+            <p className="mt-3 text-sm text-red-400">{error}</p>
+
+            <button
+              onClick={obtenerReportes}
+              className="mt-4 rounded-lg border border-white/10 px-4 py-2 text-xs text-slate-300 transition hover:bg-white/10"
+            >
+              Reintentar
+            </button>
+          </div>
+        ) : reportesFiltrados.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <i className="bi bi-inbox text-4xl text-slate-500"></i>
+            <p className="mt-3 text-sm font-medium text-slate-300">
+              No se encontraron reportes
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Probá modificando los filtros de búsqueda.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[950px] text-left text-xs">
+
+              <thead className="bg-white/[0.03]">
+                <tr className="text-[10px] uppercase tracking-wider text-slate-500">
+                  <th className="px-5 py-4">
+                    <input
+                      type="checkbox"
+                      checked={
+                        reportesPaginados.length > 0 &&
+                        reportesPaginados.every((reporte) =>
+                          seleccionados.includes(reporte.id)
+                        )
+                      }
+                      onChange={seleccionarTodos}
+                      className="h-3.5 w-3.5 cursor-pointer accent-blue-500"
+                    />
+                  </th>
+
+                  <th className="px-3 py-4 font-semibold">ID</th>
+                  <th className="px-3 py-4 font-semibold">Reporte</th>
+                  <th className="px-3 py-4 font-semibold">Zona</th>
+                  <th className="px-3 py-4 font-semibold">Riesgo</th>
+                  <th className="px-3 py-4 font-semibold">Estado</th>
+                  <th className="px-3 py-4 font-semibold">Fecha</th>
+                  <th className="px-5 py-4 text-right font-semibold">Acciones</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {reportesPaginados.map((reporte) => (
+                  <tr
+                    key={reporte.id}
+                    className={`border-t border-white/[0.06] transition hover:bg-white/[0.025] ${
+                      seleccionados.includes(reporte.id) ? "bg-blue-500/[0.04]" : ""
+                    }`}
+                  >
+                    <td className="px-5 py-4">
+                      <input
+                        type="checkbox"
+                        checked={seleccionados.includes(reporte.id)}
+                        onChange={() => seleccionarReporte(reporte.id)}
+                        className="h-3.5 w-3.5 cursor-pointer accent-blue-500"
+                      />
+                    </td>
+
+                    <td className="px-3 py-4 font-semibold text-slate-500">
+                      #{reporte.id}
+                    </td>
+
+                    <td className="max-w-[220px] px-3 py-4">
+                      <span className="block truncate font-semibold text-slate-200">
+                        {reporte.titulo}
+                      </span>
+                    </td>
+
+                    <td className="px-3 py-4 text-slate-400">
+                      {reporte.zona}
+                    </td>
+
+                    <td className="px-3 py-4">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold text-slate-300">
+                        <span className={`h-2 w-2 rounded-full ${colorRiesgo[reporte.riesgo] || "bg-gray-400"}`}></span>
+                        {reporte.riesgo}
+                      </span>
+                    </td>
+
+                    <td className="px-3 py-4">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold text-slate-300">
+                        <span className={`h-2 w-2 rounded-full ${colorEstado[reporte.estado] || "bg-gray-400"}`}></span>
+                        {reporte.estado}
+                      </span>
+                    </td>
+
+                    <td className="whitespace-nowrap px-3 py-4 text-slate-400">
+                      {reporte.cuando}
+                    </td>
+
+                    <td className="px-5 py-4">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          title="Ver reporte"
+                          onClick={() => setViendo(reporte)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition hover:border-blue-400/30 hover:bg-blue-500/10 hover:text-blue-400"
+                        >
+                          <i className="bi bi-eye"></i>
+                        </button>
+
+                        <button
+                          type="button"
+                          title="Editar reporte"
+                          onClick={() => setEditando({ ...reporte })}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition hover:border-blue-400/30 hover:bg-blue-500/10 hover:text-blue-400"
+                        >
+                          <i className="bi bi-pencil"></i>
+                        </button>
+
+                        <button
+                          type="button"
+                          title="Eliminar reporte"
+                          onClick={() => eliminar(reporte.id)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-400"
+                        >
+                          <i className="bi bi-trash3"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {!cargando && !error && reportesFiltrados.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-white/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[11px] text-slate-500">
+              Mostrando{" "}
+              <span className="font-semibold text-slate-300">
+                {(paginaActual - 1) * reportesPorPagina + 1}-
+                {Math.min(
+                  paginaActual * reportesPorPagina,
+                  reportesFiltrados.length
+                )}
+              </span>{" "}
+              de{" "}
+              <span className="font-semibold text-slate-300">
+                {reportesFiltrados.length}
+              </span>{" "}
+              reportes
+            </p>
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                disabled={paginaActual === 1}
+                onClick={() => setPaginaActual((prev) => prev - 1)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <i className="bi bi-chevron-left"></i>
+              </button>
+
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((pagina) => (
+                <button
+                  key={pagina}
+                  type="button"
+                  onClick={() => setPaginaActual(pagina)}
+                  className={`h-8 min-w-8 rounded-lg px-2 text-[11px] font-semibold transition ${
+                    paginaActual === pagina
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
+                      : "border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {pagina}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                disabled={paginaActual === totalPaginas}
+                onClick={() => setPaginaActual((prev) => prev + 1)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                <i className="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {viendo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-sm rounded-lg border border-line bg-sidebar p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-bold">
-                Reporte #{viendo.id}
-              </h2>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setViendo(null)}
+        >
+          <div
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#111b2b] shadow-2xl shadow-black/40"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
+              <div>
+                <h2 className="text-base font-bold text-white">
+                  Detalle del reporte
+                </h2>
+                <p className="mt-1 text-xs text-slate-400">
+                  Información del reporte #{viendo.id}
+                </p>
+              </div>
 
               <button
                 type="button"
                 onClick={() => setViendo(null)}
-                className="text-muted hover:text-white"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white"
               >
                 <i className="bi bi-x-lg"></i>
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-4 p-6">
               <div>
-                <p className="text-[11px] text-muted">Descripción</p>
-                <p>{viendo.titulo}</p>
+                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Descripción
+                </p>
+                <p className="text-sm leading-relaxed text-slate-200">
+                  {viendo.titulo}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Delito
+                  </p>
+                  <p className="text-xs text-slate-300">{viendo.delito}</p>
+                </div>
+
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Zona
+                  </p>
+                  <p className="text-xs text-slate-300">{viendo.zona}</p>
+                </div>
+
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Riesgo
+                  </p>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-2.5 py-1 text-xs text-slate-300">
+                    <span className={`h-2 w-2 rounded-full ${colorRiesgo[viendo.riesgo] || "bg-gray-400"}`}></span>
+                    {viendo.riesgo}
+                  </span>
+                </div>
+
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    Estado
+                  </p>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-2.5 py-1 text-xs text-slate-300">
+                    <span className={`h-2 w-2 rounded-full ${colorEstado[viendo.estado] || "bg-gray-400"}`}></span>
+                    {viendo.estado}
+                  </span>
+                </div>
               </div>
 
               <div>
-                <p className="text-[11px] text-muted">Delito</p>
-                <p>{viendo.delito}</p>
-              </div>
-
-              <div>
-                <p className="text-[11px] text-muted">Zona</p>
-                <p>{viendo.zona}</p>
-              </div>
-
-              <div>
-                <p className="text-[11px] text-muted">Riesgo</p>
-                <p>{viendo.riesgo}</p>
-              </div>
-
-              <div>
-                <p className="text-[11px] text-muted">Estado</p>
-                <p>{viendo.estado}</p>
-              </div>
-
-              <div>
-                <p className="text-[11px] text-muted">Fecha</p>
-                <p>{viendo.cuando}</p>
+                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  Fecha y hora
+                </p>
+                <p className="text-xs text-slate-300">{viendo.cuando}</p>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setViendo(null)}
-              className="mt-5 w-full rounded-md bg-blue-500 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-600"
-            >
-              Cerrar
-            </button>
+            <div className="border-t border-white/10 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setViendo(null)}
+                className="w-full rounded-lg border border-white/10 px-4 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-white/5"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {editando && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setEditando(null)}
+        >
           <form
             onSubmit={guardar}
-            className="w-full max-w-sm rounded-lg border border-line bg-sidebar p-5"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#111b2b] shadow-2xl shadow-black/40"
           >
-            <h2 className="mb-4 text-sm font-bold">
-              Editar reporte #{editando.id}
-            </h2>
+            <div className="border-b border-white/10 px-6 py-5">
+              <h2 className="text-base font-bold text-white">
+                Editar reporte
+              </h2>
+              <p className="mt-1 text-xs text-slate-400">
+                Modificá la descripción y el estado del reporte #{editando.id}.
+              </p>
+            </div>
 
-            <p className="mb-1 text-[11px] text-muted">Descripción</p>
+            <div className="space-y-4 p-6">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">
+                  Descripción
+                </label>
 
-            <textarea
-              value={editando.titulo || ""}
-              onChange={(e) =>
-                setEditando({
-                  ...editando,
-                  titulo: e.target.value,
-                })
-              }
-              required
-              rows="3"
-              className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
-            />
+                <textarea
+                  value={editando.titulo || ""}
+                  onChange={(e) =>
+                    setEditando({
+                      ...editando,
+                      titulo: e.target.value,
+                    })
+                  }
+                  required
+                  rows="4"
+                  className="w-full resize-none rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
+                />
+              </div>
 
-            <p className="mb-1 text-[11px] text-muted">Riesgo</p>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">
+                  Nivel de riesgo
+                </label>
 
-            <input
-              type="text"
-              value={editando.riesgo || ""}
-              disabled
-              className="mb-3 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs text-muted"
-            />
+                <input
+                  type="text"
+                  value={editando.riesgo || ""}
+                  disabled
+                  className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-slate-500"
+                />
+              </div>
 
-            <p className="mb-1 text-[11px] text-muted">Estado</p>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-slate-300">
+                  Estado del reporte
+                </label>
 
-            <select
-              value={editando.estado}
-              onChange={(e) =>
-                setEditando({
-                  ...editando,
-                  estado: e.target.value,
-                })
-              }
-              className="mb-4 w-full rounded-md border border-line bg-black/30 px-3 py-2 text-xs"
-            >
-              <option value="Pendiente">Pendiente</option>
-              <option value="En revisión">En revisión</option>
-              <option value="Resuelto">Resuelto</option>
-            </select>
+                <select
+                  value={editando.estado}
+                  onChange={(e) =>
+                    setEditando({
+                      ...editando,
+                      estado: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-lg border border-white/10 bg-[#172536] px-3 py-2.5 text-sm text-white outline-none transition focus:border-blue-500"
+                >
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="En revisión">En revisión</option>
+                  <option value="Resuelto">Resuelto</option>
+                </select>
+              </div>
+            </div>
 
-            <div className="flex justify-end gap-2 text-xs">
+            <div className="flex justify-end gap-3 border-t border-white/10 bg-white/[0.02] px-6 py-4">
               <button
                 type="button"
                 onClick={() => setEditando(null)}
-                className="rounded-md border border-line px-3 py-1.5"
+                className="rounded-lg border border-white/10 px-4 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-white/5"
               >
                 Cancelar
               </button>
 
               <button
                 type="submit"
-                className="rounded-md bg-blue-500 px-3 py-1.5 font-semibold text-white"
+                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:bg-blue-500"
               >
-                Guardar
+                <i className="bi bi-check2"></i>
+                Guardar cambios
               </button>
             </div>
           </form>
         </div>
       )}
-    </>
+
+    </div>
   );
 }
 

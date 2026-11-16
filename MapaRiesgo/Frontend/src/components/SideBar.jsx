@@ -1,7 +1,17 @@
-import { NavLink } from "react-router-dom";
-import { Outlet } from "react-router-dom";
+
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import "../style/DashboardAdmin.css";
+import useAuthStore from "../store/Store";
+
 function SideBar() {
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+
+  const cerrarSesion = () => {
+    logout();
+    navigate("/");
+  };
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row text-white">
       <aside className="flex w-full shrink-0 flex-col border-r border-line bg-sidebar px-3.5 py-5 md:w-[232px]">
@@ -14,6 +24,11 @@ function SideBar() {
           <p className="mx-3 mb-1.5 mt-5 text-[11px] font-semibold uppercase tracking-widest">
             General
           </p>
+
+          <NavLink to="/" className="nav-link">
+            <i className="bi bi-house"></i>
+            Inicio
+          </NavLink>
 
           <NavLink to="/admin" end className="nav-link">
             <i className="bi bi-grid"></i>
@@ -30,9 +45,7 @@ function SideBar() {
             Mapa
           </NavLink>
 
-          
-
-          <p className="mx-3 mb-1.5 mt-5 text-[11px] font-semibold uppercase tracking-widest ">
+          <p className="mx-3 mb-1.5 mt-5 text-[11px] font-semibold uppercase tracking-widest">
             Administración
           </p>
 
@@ -40,19 +53,25 @@ function SideBar() {
             <i className="bi bi-people"></i>
             Usuarios
           </NavLink>
-
-        
         </nav>
 
         <div className="mt-6 flex items-center gap-2.5 border-t border-line px-3 pt-4">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">
             A
           </div>
+
           <div className="flex flex-col leading-tight">
             <span className="text-xs font-semibold text-white">
               Administrador
             </span>
-            <span className="text-[11px] ">Cerrar sesión</span>
+
+            <button
+              type="button"
+              onClick={cerrarSesion}
+              className="text-left text-[11px] hover:text-red-400"
+            >
+              Cerrar sesión
+            </button>
           </div>
         </div>
       </aside>

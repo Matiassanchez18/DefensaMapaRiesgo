@@ -1,10 +1,14 @@
-const mysql = require("mysql")
 
-const conection=mysql.createConnection({
-    host:"localhost",
-    user:"root",
-    password:"",
-    database:"mapaderiesgo"
-})
+const mysql = require("mysql2");
 
-module.exports=conection
+const db = mysql.createPool({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "mapaderiesgo",
+    connectionLimit: 10,
+    waitForConnections: true,
+    queueLimit: 0
+});
+
+module.exports = db;

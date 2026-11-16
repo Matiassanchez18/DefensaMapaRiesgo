@@ -129,3 +129,17 @@
     font-size: 1.875rem;
   }
 }
+.login-error {
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  color: #fecaca;
+  background: rgba(220, 38, 38, 0.2);
+  border: 1px solid #dc2626;
+  border-radius: 0.5rem;
+}
+
+.login-boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
