@@ -4,7 +4,7 @@ import "./App.css";
 import PaginaMapa from "./Pages/PaginaMapa";
 import Home from "./pages/Home";
 import SideBar from "./components/SideBar";
-import Reporte from "./Components/Reporte";
+import Reporte from "./components/Reporte";
 import Denuncia from "./pages/Denuncia";
 import DashboardAdmin from "./pages/DashboardAdmin";
 import DashboardReportes from "./pages/DashboardReportes";
@@ -13,6 +13,7 @@ import IniciarSesion from "./pages/Login";
 import Registrarse from "./pages/RegisterP";
 import Usuarios from "./pages/Usuarios";
 import RutaPrivada from "./components/RutaPrivada";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<IniciarSesion />} />
         <Route path="/register" element={<Registrarse />} />
+        <Route path="*" element={<NotFound/>}></Route>
 
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
