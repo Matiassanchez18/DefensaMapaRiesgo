@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import "../Style/Home.css";
@@ -23,9 +22,7 @@ function AccionesRapidas() {
     setMensaje("");
 
     try {
-      const respuesta = await fetch(
-        `${API_URL}/${usuario.id_usuario}`
-      );
+      const respuesta = await fetch(`${API_URL}/${usuario.id_usuario}`);
 
       const datos = await respuesta.json();
 
@@ -49,21 +46,18 @@ function AccionesRapidas() {
 
   const modificarContacto = async (contacto) => {
     try {
-      const respuesta = await fetch(
-        `${API_URL}/${contacto.id_contacto}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id_usuario: usuario.id_usuario,
-            nombre: contacto.nombre,
-            telefono: contacto.telefono,
-            relacion: contacto.relacion,
-          }),
-        }
-      );
+      const respuesta = await fetch(`${API_URL}/${contacto.id_contacto}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id_usuario: usuario.id_usuario,
+          nombre: contacto.nombre,
+          telefono: contacto.telefono,
+          relacion: contacto.relacion,
+        }),
+      });
 
       const datos = await respuesta.json();
 
@@ -82,24 +76,21 @@ function AccionesRapidas() {
 
   const eliminarContacto = async (id_contacto) => {
     const confirmar = window.confirm(
-      "¿Estás segura de que querés eliminar este contacto?"
+      "¿Estás segura de que querés eliminar este contacto?",
     );
 
     if (!confirmar) return;
 
     try {
-      const respuesta = await fetch(
-        `${API_URL}/${id_contacto}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id_usuario: usuario.id_usuario,
-          }),
-        }
-      );
+      const respuesta = await fetch(`${API_URL}/${id_contacto}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id_usuario: usuario.id_usuario,
+        }),
+      });
 
       const datos = await respuesta.json();
 
@@ -124,7 +115,6 @@ function AccionesRapidas() {
 
   return (
     <section className="acciones-rapidas">
-
       <Link to="/denuncia" className="accion-rapida">
         <i className="bi bi-exclamation-triangle accion-rapida-icono accion-rapida-icono--alerta"></i>
         <span className="accion-rapida-texto">Reportar hecho</span>
@@ -189,7 +179,6 @@ function AccionesRapidas() {
               </p>
             )}
 
-            
             {cargando ? (
               <p className="py-5 text-center text-white">
                 Cargando contactos...
@@ -206,9 +195,7 @@ function AccionesRapidas() {
                     className="rounded-lg border border-[#52677a] bg-[#263b4d] p-4 shadow-md"
                   >
                     {editando?.id_contacto === contacto.id_contacto ? (
-                     
                       <div className="space-y-3">
-
                         <label className="block text-sm font-medium text-white">
                           Nombre
                           <input
@@ -225,16 +212,23 @@ function AccionesRapidas() {
                         <label className="block text-sm font-medium text-white">
                           Teléfono
                           <input
-                            type="text"
+                            type="tel"
+                            inputMode="numeric"
                             value={editando.telefono}
-                            onChange={(e) =>
-                              actualizarCampo("telefono", e.target.value)
-                            }
-                            placeholder="Ingresá el teléfono"
+                            onChange={(e) => {
+                              const numero = e.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 10);
+                              actualizarCampo("telefono", numero);
+                            }}
+                            placeholder="Ingresá hasta 10 números"
+                            maxLength={10}
                             className="mt-1 w-full rounded-md border border-[#52677a] bg-[#1b2b3a] p-2 text-white placeholder-gray-300 outline-none focus:border-blue-500"
                           />
+                          <span className="mt-1 block text-xs text-gray-300">
+                            {editando.telefono.length}/10 números
+                          </span>
                         </label>
-
                         <label className="block text-sm font-medium text-white">
                           Relación
                           <input
@@ -267,7 +261,6 @@ function AccionesRapidas() {
                         </div>
                       </div>
                     ) : (
-                     
                       <>
                         <h3 className="text-lg font-bold text-white">
                           {contacto.nombre}
