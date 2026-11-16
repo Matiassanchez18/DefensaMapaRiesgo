@@ -25,7 +25,7 @@ function Home() {
 
         setIncidenteReciente(datos);
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error al obtener el último reporte:", error);
       } finally {
         setCargando(false);
       }
@@ -38,7 +38,8 @@ function Home() {
     <div>
       <main className="mx-auto mt-6 w-full max-w-6xl space-y-6 px-4 pb-10">
         {cargando ? (
-          <p className="text-white">Cargando último incidente...</p>
+          <p className="text-white">
+            Cargando último incidente...</p>
         ) : incidenteReciente ? (
           <UltimoIncidente incidente={incidenteReciente} />
         ) : (
