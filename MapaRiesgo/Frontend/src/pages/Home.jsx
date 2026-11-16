@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 import AccionesRapidas from "../components/AccionesRapidas";
@@ -14,7 +13,8 @@ function Home() {
     const obtenerUltimoReporte = async () => {
       try {
         const respuesta = await fetch(
-          "http://localhost:3000/api/reportes/ultimo"
+          // "http://localhost:3000/api/reportes/ultimo"
+          "http://10.0.2.2:3000/api/reportes/ultimo",
         );
 
         if (!respuesta.ok) {
@@ -25,7 +25,7 @@ function Home() {
 
         setIncidenteReciente(datos);
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error al obtener el último reporte:", error);
       } finally {
         setCargando(false);
       }
@@ -38,7 +38,8 @@ function Home() {
     <div>
       <main className="mx-auto mt-6 w-full max-w-6xl space-y-6 px-4 pb-10">
         {cargando ? (
-          <p className="text-white">Cargando último incidente...</p>
+          <p className="text-white">
+            Cargando último incidente...</p>
         ) : incidenteReciente ? (
           <UltimoIncidente incidente={incidenteReciente} />
         ) : (
@@ -49,7 +50,7 @@ function Home() {
 
         <InformacionMapa
           titulo="¿Qué es el mapa de riesgo?"
-          descripcion="Texto sobre el mapa Lorem ipsum dolor sit amet consectetur adipisicing"
+          descripcion="El Mapa de Riesgo permite identificar las zonas de una ciudad según su nivel de inseguridad, a partir de los reportes de delitos realizados por los usuarios, ayudando a prevenir situaciones de riesgo y tomar decisiones más seguras."
         />
 
         <div className="mt-25">

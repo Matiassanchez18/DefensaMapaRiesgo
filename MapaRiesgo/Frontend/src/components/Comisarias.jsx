@@ -6,8 +6,9 @@ import L from "leaflet";
 function Comisarias() {
   const [comisarias, setComisarias] = useState([]);
 
-
-const API_URL = "http://localhost:3000/api/comisarias";
+//
+// const API_URL = "http://localhost:3000/api/comisarias";
+const API_URL = "http://10.0.2.2:3000/api/comisarias"
 
 const iconoPolicia = L.divIcon({
   className: "dependencia-marcador",
