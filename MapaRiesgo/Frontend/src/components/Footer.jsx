@@ -11,7 +11,7 @@ function Footer() {
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
-  const API_URL = "http://10.0.2.2:3000/api/contactos-emergencia";
+  const API_URL = "http://localhost:3000/api/contactos-emergencia";
 
   // OBTENER CONTACTOS
   const obtenerContactos = async () => {

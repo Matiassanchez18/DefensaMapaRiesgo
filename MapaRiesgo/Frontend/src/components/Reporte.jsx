@@ -182,7 +182,7 @@ function Reporte() {
 
       const respuesta = await fetch(
         // "http://localhost:3000/api/reportes" ,
-        "http://10.0.2.2:3000/api/reportes",
+        "http://localhost:3000/api/reportes",
         {
           method: "POST",
           headers: {
@@ -324,7 +324,6 @@ function Reporte() {
             />
           </div>
 
-          {/* UBICACIÓN DEL INCIDENTE */}
           <div className="reporte-campo">
 
             <label>Ubicación del incidente</label>

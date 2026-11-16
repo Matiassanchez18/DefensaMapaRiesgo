@@ -16,7 +16,6 @@ function LlamadoEmergencia() {
     relacion: "",
   });
 
-  // ACTUALIZAR CAMPOS
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -37,7 +36,6 @@ function LlamadoEmergencia() {
     }));
   };
 
-  // AGREGAR CONTACTO
   const agregarContacto = async (e) => {
     e.preventDefault();
 
@@ -59,7 +57,7 @@ function LlamadoEmergencia() {
 
     try {
       const respuesta = await fetch(
-        "http://10.0.2.2:3000/api/contactos-emergencia",
+        "http://localhost:3000/api/contactos-emergencia",
         {
           method: "POST",
           headers: {
@@ -95,14 +93,12 @@ function LlamadoEmergencia() {
     }
   };
 
-  // CARGAR OTRO CONTACTO
   const cargarOtroContacto = () => {
     setGuardado(false);
     setError("");
     setMostrarFormulario(true);
   };
 
-  // CERRAR FORMULARIO
   const cerrarFormulario = () => {
     setMostrarFormulario(false);
     setGuardado(false);
