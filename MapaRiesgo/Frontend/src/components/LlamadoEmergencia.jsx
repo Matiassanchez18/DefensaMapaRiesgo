@@ -16,15 +16,28 @@ function LlamadoEmergencia() {
     relacion: "",
   });
 
+  // ACTUALIZAR CAMPOS
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    setNuevoContacto({
-      ...nuevoContacto,
+    if (name === "telefono") {
+      const numero = value.replace(/\D/g, "").slice(0, 10);
+
+      setNuevoContacto((anterior) => ({
+        ...anterior,
+        telefono: numero,
+      }));
+
+      return;
+    }
+
+    setNuevoContacto((anterior) => ({
+      ...anterior,
       [name]: value,
-    });
+    }));
   };
 
+  // AGREGAR CONTACTO
   const agregarContacto = async (e) => {
     e.preventDefault();
 
@@ -35,11 +48,17 @@ function LlamadoEmergencia() {
       return;
     }
 
+    const numero = String(nuevoContacto.telefono ?? "").replace(/\D/g, "");
+
+    if (numero.length !== 10) {
+      setError("El teléfono debe tener exactamente 10 números.");
+      return;
+    }
+
     setCargando(true);
 
     try {
       const respuesta = await fetch(
-        // "http://localhost:3000/api/contactos-emergencia"
         "http://10.0.2.2:3000/api/contactos-emergencia",
         {
           method: "POST",
@@ -49,7 +68,7 @@ function LlamadoEmergencia() {
           body: JSON.stringify({
             id_usuario: usuario.id_usuario,
             nombre: nuevoContacto.nombre,
-            telefono: nuevoContacto.telefono,
+            telefono: numero,
             relacion: nuevoContacto.relacion,
           }),
         },
@@ -76,12 +95,14 @@ function LlamadoEmergencia() {
     }
   };
 
+  // CARGAR OTRO CONTACTO
   const cargarOtroContacto = () => {
     setGuardado(false);
     setError("");
     setMostrarFormulario(true);
   };
 
+  // CERRAR FORMULARIO
   const cerrarFormulario = () => {
     setMostrarFormulario(false);
     setGuardado(false);
@@ -141,13 +162,19 @@ function LlamadoEmergencia() {
           <label htmlFor="telefono">Teléfono</label>
           <input
             id="telefono"
-            type="tel"
+            type="text"
+            inputMode="numeric"
             name="telefono"
             value={nuevoContacto.telefono}
             onChange={handleChange}
             placeholder="Ej: 3811234567"
+            maxLength={10}
             required
           />
+
+          <span className="block mt-1 text-xs text-gray-300">
+            Ingresá un número de 10 dígitos.
+          </span>
 
           <label htmlFor="relacion">Relación</label>
           <input

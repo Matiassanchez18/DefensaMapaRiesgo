@@ -23,7 +23,6 @@ function AccionesRapidas() {
 
     try {
       const respuesta = await fetch(`${API_URL}/${usuario.id_usuario}`);
-
       const datos = await respuesta.json();
 
       if (!respuesta.ok) {
@@ -44,8 +43,9 @@ function AccionesRapidas() {
     obtenerContactos();
   };
 
+  // MODIFICAR CONTACTO
   const modificarContacto = async (contacto) => {
-    const numero = String(contacto.telefono).replace(/\D/g, "");
+    const numero = String(contacto.telefono ?? "").replace(/\D/g, "");
 
     if (numero.length !== 10) {
       setMensaje("El teléfono debe tener exactamente 10 números.");
@@ -81,6 +81,7 @@ function AccionesRapidas() {
     }
   };
 
+  // ELIMINAR CONTACTO
   const eliminarContacto = async (id_contacto) => {
     const confirmar = window.confirm(
       "¿Estás segura de que querés eliminar este contacto?",
@@ -113,6 +114,7 @@ function AccionesRapidas() {
     }
   };
 
+  // ACTUALIZAR CAMPOS DEL CONTACTO
   const actualizarCampo = (campo, valor) => {
     setEditando((anterior) => ({
       ...anterior,
@@ -203,6 +205,7 @@ function AccionesRapidas() {
                   >
                     {editando?.id_contacto === contacto.id_contacto ? (
                       <div className="space-y-3">
+                        {/* NOMBRE */}
                         <label className="block text-sm font-medium text-white">
                           Nombre
                           <input
@@ -215,15 +218,17 @@ function AccionesRapidas() {
                             className="mt-1 w-full rounded-md border border-[#52677a] bg-[#1b2b3a] p-2 text-white placeholder-gray-300 outline-none focus:border-blue-500"
                           />
                         </label>
+
+                        {/* TELÉFONO CON VALIDACIÓN */}
                         <label className="block text-sm font-medium text-white">
                           Teléfono
                           <input
                             type="text"
                             inputMode="numeric"
-                            value={editando.telefono}
+                            value={String(editando.telefono ?? "")}
                             onChange={(e) => {
                               const numero = e.target.value
-                                .replace(/[^0-9]/g, "")
+                                .replace(/\D/g, "")
                                 .slice(0, 10);
 
                               actualizarCampo("telefono", numero);
@@ -233,10 +238,11 @@ function AccionesRapidas() {
                             className="mt-1 w-full rounded-md border border-[#52677a] bg-[#1b2b3a] p-2 text-white placeholder-gray-300 outline-none focus:border-blue-500"
                           />
                           <span className="mt-1 block text-xs text-gray-300">
-                            {String(editando.telefono).length}/10 números
+                            {String(editando.telefono ?? "").length}/10 números
                           </span>
                         </label>
 
+                        {/* BOTONES */}
                         <div className="flex flex-wrap gap-2 pt-2">
                           <button
                             type="button"
@@ -272,7 +278,15 @@ function AccionesRapidas() {
                         <div className="mt-3 flex flex-wrap gap-2">
                           <button
                             type="button"
-                            onClick={() => setEditando({ ...contacto })}
+                            onClick={() => {
+                              setMensaje("");
+                              setEditando({
+                                ...contacto,
+                                telefono: String(contacto.telefono ?? "")
+                                  .replace(/\D/g, "")
+                                  .slice(0, 10),
+                              });
+                            }}
                             className="rounded-md bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
                           >
                             Modificar
