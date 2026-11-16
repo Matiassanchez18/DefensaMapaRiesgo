@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Polygon, Popup } from "react-leaflet";
 
 const TAM_CELDA = 0.005;
-const ANGULO = 0;
 
 function colorZona(cantidad) {
   if (cantidad >= 12) return "#800000";
@@ -44,7 +43,9 @@ function ZonasRiesgo({
   useEffect(() => {
     const cargarReportes = async () => {
       try {
-        const respuesta = await fetch("http://localhost:3000/api/reportes");
+        const respuesta = await fetch(
+          "http://localhost:3000/api/reportes"
+        );
 
         if (!respuesta.ok) {
           throw new Error("No se pudieron obtener los reportes");
@@ -76,13 +77,12 @@ function ZonasRiesgo({
         const norte = sur + TAM_CELDA;
         const este = oeste + TAM_CELDA;
 
-
-       const posiciones = [
-  [sur, oeste],
-  [sur, este],
-  [norte, este],
-  [norte, oeste],
-];
+        const posiciones = [
+          [sur, oeste],
+          [sur, este],
+          [norte, este],
+          [norte, oeste],
+        ];
 
         const cantidad = grupo.length;
         const color = colorZona(cantidad);
@@ -95,6 +95,13 @@ function ZonasRiesgo({
               : cantidad >= 4
                 ? "Moderado"
                 : "Bajo";
+
+        const ultimosReportes = [...grupo]
+          .sort(
+            (a, b) =>
+              Number(b.id_reporte) - Number(a.id_reporte)
+          )
+          .slice(0, 3);
 
         return (
           <Polygon
@@ -123,16 +130,19 @@ function ZonasRiesgo({
               <Popup>
                 <strong>Zona de riesgo</strong>
                 <br />
+
                 Reportes registrados: {cantidad}
                 <br />
+
                 Nivel: {nivel}
                 <br />
+
                 <strong>Últimos reportes:</strong>
 
-                {grupo.slice(-3).reverse().map((reporte) => (
+                {ultimosReportes.map((reporte) => (
                   <div key={reporte.id_reporte}>
                     <hr />
-                    {reporte.descripcion}
+                    {reporte.descripcion || "Sin descripción"}
                   </div>
                 ))}
               </Popup>
