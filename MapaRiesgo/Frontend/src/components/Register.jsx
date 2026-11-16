@@ -8,8 +8,9 @@ import useAuthStore from "../store/Store";
 
 function Register() {
 
-    
-const API_URL = "http://localhost:3000/api/register";
+  const API_URL = "http://10.0.2.2:3000/api/register";
+
+// const API_URL = "http://localhost:3000/api/register";
 
 const SOLO_LETRAS = /^\p{L}+(?:[ '-]\p{L}+)*$/u;
 const EMAIL_VALIDO =

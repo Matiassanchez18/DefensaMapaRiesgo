@@ -181,7 +181,8 @@ function Reporte() {
       setCargando(true);
 
       const respuesta = await fetch(
-        "http://localhost:3000/api/reportes",
+        // "http://localhost:3000/api/reportes" ,
+        "http://10.0.2.2:3000/api/reportes",
         {
           method: "POST",
           headers: {
