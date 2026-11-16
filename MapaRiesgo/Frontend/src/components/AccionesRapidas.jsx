@@ -16,7 +16,6 @@ function AccionesRapidas() {
 
   const API_URL = "http://10.0.2.2:3000/api/contactos-emergencia";
 
-  // OBTENER CONTACTOS
   const obtenerContactos = async () => {
     if (!usuario?.id_usuario) return;
 
@@ -43,13 +42,11 @@ function AccionesRapidas() {
     }
   };
 
-  // ABRIR MODAL
   const abrirModal = () => {
     setMostrarModal(true);
     obtenerContactos();
   };
 
-  // MODIFICAR CONTACTO
   const modificarContacto = async (contacto) => {
     try {
       const respuesta = await fetch(
@@ -83,7 +80,6 @@ function AccionesRapidas() {
     }
   };
 
-  // ELIMINAR CONTACTO
   const eliminarContacto = async (id_contacto) => {
     const confirmar = window.confirm(
       "¿Estás segura de que querés eliminar este contacto?"
@@ -119,7 +115,6 @@ function AccionesRapidas() {
     }
   };
 
-  // ACTUALIZAR CAMPO DEL CONTACTO EN EDICIÓN
   const actualizarCampo = (campo, valor) => {
     setEditando((anterior) => ({
       ...anterior,
@@ -194,7 +189,7 @@ function AccionesRapidas() {
               </p>
             )}
 
-            {/* ESTADOS DE CARGA Y LISTADO */}
+            
             {cargando ? (
               <p className="py-5 text-center text-white">
                 Cargando contactos...
@@ -211,7 +206,7 @@ function AccionesRapidas() {
                     className="rounded-lg border border-[#52677a] bg-[#263b4d] p-4 shadow-md"
                   >
                     {editando?.id_contacto === contacto.id_contacto ? (
-                      /* FORMULARIO DE EDICIÓN */
+                     
                       <div className="space-y-3">
 
                         <label className="block text-sm font-medium text-white">
@@ -272,7 +267,7 @@ function AccionesRapidas() {
                         </div>
                       </div>
                     ) : (
-                      /* INFORMACIÓN DEL CONTACTO */
+                     
                       <>
                         <h3 className="text-lg font-bold text-white">
                           {contacto.nombre}
