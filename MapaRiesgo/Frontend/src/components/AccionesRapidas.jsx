@@ -165,7 +165,7 @@ function AccionesRapidas() {
           }}
         >
           <div
-            className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-xl border border-gray-700 bg-[#1b2b3a] p-5 text-white shadow-2xl"
+            className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-[#52677a] bg-[#1b2b3a] p-5 text-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ENCABEZADO */}
@@ -189,7 +189,7 @@ function AccionesRapidas() {
 
             {/* MENSAJES */}
             {mensaje && (
-              <p className="mb-3 rounded-md border border-gray-600 bg-[#263b4d] p-3 text-sm text-white">
+              <p className="mb-3 rounded-md border border-[#52677a] bg-[#263b4d] p-3 text-sm text-white">
                 {mensaje}
               </p>
             )}
@@ -208,7 +208,7 @@ function AccionesRapidas() {
                 {contactos.map((contacto) => (
                   <div
                     key={contacto.id_contacto}
-                    className="rounded-lg border border-gray-600 bg-[#263b4d] p-4"
+                    className="rounded-lg border border-[#52677a] bg-[#263b4d] p-4 shadow-md"
                   >
                     {editando?.id_contacto === contacto.id_contacto ? (
                       /* FORMULARIO DE EDICIÓN */
@@ -223,7 +223,7 @@ function AccionesRapidas() {
                               actualizarCampo("nombre", e.target.value)
                             }
                             placeholder="Ingresá el nombre"
-                            className="mt-1 w-full rounded-md border border-gray-600 bg-[#1b2b3a] p-2 text-white placeholder-gray-300 outline-none focus:border-blue-500"
+                            className="mt-1 w-full rounded-md border border-[#52677a] bg-[#1b2b3a] p-2 text-white placeholder-gray-300 outline-none focus:border-blue-500"
                           />
                         </label>
 
@@ -236,7 +236,7 @@ function AccionesRapidas() {
                               actualizarCampo("telefono", e.target.value)
                             }
                             placeholder="Ingresá el teléfono"
-                            className="mt-1 w-full rounded-md border border-gray-600 bg-[#1b2b3a] p-2 text-white placeholder-gray-300 outline-none focus:border-blue-500"
+                            className="mt-1 w-full rounded-md border border-[#52677a] bg-[#1b2b3a] p-2 text-white placeholder-gray-300 outline-none focus:border-blue-500"
                           />
                         </label>
 
@@ -249,7 +249,7 @@ function AccionesRapidas() {
                               actualizarCampo("relacion", e.target.value)
                             }
                             placeholder="Ej: Familiar, amigo..."
-                            className="mt-1 w-full rounded-md border border-gray-600 bg-[#1b2b3a] p-2 text-white placeholder-gray-300 outline-none focus:border-blue-500"
+                            className="mt-1 w-full rounded-md border border-[#52677a] bg-[#1b2b3a] p-2 text-white placeholder-gray-300 outline-none focus:border-blue-500"
                           />
                         </label>
 
