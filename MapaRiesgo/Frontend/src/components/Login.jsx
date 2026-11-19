@@ -23,7 +23,6 @@ function Login() {
     setError("");
 
     try {
-
       //const respuesta = await fetch("http://localhost:3000/api/login", {
       const respuesta = await fetch("http://localhost:3000/api/login", {
         method: "POST",
@@ -34,6 +33,7 @@ function Login() {
       });
 
       const data = await respuesta.json();
+
       console.log("Respuesta del servidor:", data);
       if (!respuesta.ok) {
         setError(data.mensaje);
@@ -42,7 +42,11 @@ function Login() {
 
       login(data.usuario);
 
-      navigate("/");
+      if (data.usuario?.rol === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch {
       setError("Error al conectar con el servidor.");
     } finally {
