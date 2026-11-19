@@ -28,7 +28,16 @@ function Footer() {
 
         const datos = await respuesta.json();
 
-        setVariacionRobos(datos.variacionRobos);
+        console.log("Variación recibida:", datos.variacionRobos);
+
+        setVariacionRobos({
+          actual: Number(datos.variacionRobos.actual),
+          anterior: Number(datos.variacionRobos.anterior),
+          porcentaje:
+            datos.variacionRobos.porcentaje === null
+              ? null
+              : Number(datos.variacionRobos.porcentaje),
+        });
       } catch (error) {
         console.error("Error al obtener variación de robos:", error);
       }
@@ -113,6 +122,7 @@ function Footer() {
       <footer className="fixed bottom-0 left-0 z-50 w-full bg-[#1b2b3a] text-[#f1f3f5]">
         <div className="border-b border-gray-600">
           <div className="grid grid-cols-3 text-center">
+
             <div className="border-r border-gray-600 py-2">
               <h4 className="mb-0 text-[22px] font-bold md:text-2xl lg:text-base">
                 268
@@ -141,6 +151,7 @@ function Footer() {
                 ESTE MES
               </small>
             </div>
+
           </div>
         </div>
 
