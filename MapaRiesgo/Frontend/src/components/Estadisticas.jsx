@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   ResponsiveContainer,
@@ -39,16 +38,34 @@ function Estadisticas() {
   useEffect(() => {
     const obtenerEstadisticas = async () => {
       try {
-        const respuesta = await fetch(
-          "http://localhost:3000/api/estadisticas"
-        );
+        const respuesta = await fetch("http://localhost:3000/api/estadisticas");
 
         if (!respuesta.ok) {
           throw new Error("No se pudieron obtener las estadísticas");
         }
 
         const resultado = await respuesta.json();
-        setDatos(resultado);
+        setDatos({
+          delitos: resultado.delitos.map((item) => ({
+            ...item,
+            cantidad: Number(item.cantidad),
+          })),
+
+          robosPorDia: resultado.robosPorDia.map((item) => ({
+            ...item,
+            cantidad: Number(item.cantidad),
+          })),
+
+          usuariosPorMes: resultado.usuariosPorMes.map((item) => ({
+            ...item,
+            cantidad: Number(item.cantidad),
+          })),
+
+          zonas: resultado.zonas.map((item) => ({
+            ...item,
+            cantidad: Number(item.cantidad),
+          })),
+        });
       } catch (error) {
         console.error("Error en estadísticas:", error);
         setError("No se pudieron cargar las estadísticas.");
@@ -79,12 +96,9 @@ function Estadisticas() {
 
   return (
     <section className="mt-6">
-      <h2 className="mb-4 text-xl font-bold">
-        Estadísticas de seguridad
-      </h2>
+      <h2 className="mb-4 text-xl font-bold">Estadísticas de seguridad</h2>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-
         {grafico(
           "Delitos más repetidos",
           datos.delitos.length === 0 ? (
@@ -114,11 +128,11 @@ function Estadisticas() {
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
-          )
+          ),
         )}
 
         {grafico(
-          "Robos por día de la semana",
+          "DElito por día de la semana",
           datos.robosPorDia.length === 0 ? (
             <p className="py-10 text-center text-xs text-muted">
               No hay datos disponibles.
@@ -130,14 +144,10 @@ function Estadisticas() {
                 <XAxis dataKey="dia" stroke="#9CA3AF" />
                 <YAxis stroke="#9CA3AF" />
                 <Tooltip />
-                <Bar
-                  dataKey="cantidad"
-                  fill="#EF4444"
-                  radius={[5, 5, 0, 0]}
-                />
+                <Bar dataKey="cantidad" fill="#EF4444" radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          )
+          ),
         )}
 
         {grafico(
@@ -162,7 +172,7 @@ function Estadisticas() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          )
+          ),
         )}
 
         {/* DELITOS POR ZONA */}
@@ -188,16 +198,11 @@ function Estadisticas() {
                   width={90}
                 />
                 <Tooltip />
-                <Bar
-                  dataKey="cantidad"
-                  fill="#3B82F6"
-                  radius={[0, 5, 5, 0]}
-                />
+                <Bar dataKey="cantidad" fill="#3B82F6" radius={[0, 5, 5, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          )
+          ),
         )}
-
       </div>
     </section>
   );

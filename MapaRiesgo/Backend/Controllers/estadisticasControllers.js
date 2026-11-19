@@ -25,27 +25,25 @@ const obtenerEstadisticas = async (req, res) => {
       ORDER BY cantidad DESC
     `;
 
-    const consultaRobosPorDia = `
-      SELECT
-        CASE DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d'))
-          WHEN 1 THEN 'Domingo'
-          WHEN 2 THEN 'Lunes'
-          WHEN 3 THEN 'Martes'
-          WHEN 4 THEN 'Miércoles'
-          WHEN 5 THEN 'Jueves'
-          WHEN 6 THEN 'Viernes'
-          WHEN 7 THEN 'Sábado'
-        END AS dia,
-        SUM(e.cantidad_delitos) AS cantidad
-      FROM estadistica e
-      INNER JOIN delito d ON e.id_delito = d.id_delito
-      WHERE LOWER(d.nombre) LIKE '%robo%'
-      GROUP BY DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d'))
-      ORDER BY FIELD(
-        DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d')),
-        2, 3, 4, 5, 6, 7, 1
-      )
-    `;
+   const consultaRobosPorDia = `
+  SELECT
+    CASE DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d'))
+      WHEN 1 THEN 'Domingo'
+      WHEN 2 THEN 'Lunes'
+      WHEN 3 THEN 'Martes'
+      WHEN 4 THEN 'Miércoles'
+      WHEN 5 THEN 'Jueves'
+      WHEN 6 THEN 'Viernes'
+      WHEN 7 THEN 'Sábado'
+    END AS dia,
+    SUM(e.cantidad_delitos) AS cantidad
+  FROM estadistica e
+  GROUP BY DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d'))
+  ORDER BY FIELD(
+    DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d')),
+    2, 3, 4, 5, 6, 7, 1
+  )
+`;
 
     const consultaUsuariosPorMes = `
       SELECT
