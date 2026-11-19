@@ -1,4 +1,3 @@
-
 const db = require("../Config/db");
 
 const TAM_CELDA = 0.005;
@@ -40,19 +39,14 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
       centroLongitud,
     ],
     (error, resultado) => {
-      if (error) {
-        return callback(error);
-      }
+      if (error) return callback(error);
 
       callback(null, resultado.insertId);
-    },
+    }
   );
 };
 
 const agregarReporte = (req, res) => {
-  console.log("BODY RECIBIDO:", req.body);
-  console.log("ID USUARIO RECIBIDO:", req.body?.id_usuario);
-
   const {
     id_usuario,
     id_delito,
@@ -63,10 +57,17 @@ const agregarReporte = (req, res) => {
     longitud,
   } = req.body;
 
-  // Validar que se haya enviado el usuario.
   if (!id_usuario || !Number.isInteger(Number(id_usuario))) {
     return res.status(400).json({
       mensaje: "Debés iniciar sesión para cargar un reporte.",
+    });
+  }
+
+  const idDelito = Number(id_delito);
+
+  if (!Number.isInteger(idDelito) || idDelito <= 0) {
+    return res.status(400).json({
+      mensaje: "El delito indicado no es válido.",
     });
   }
 
@@ -86,9 +87,6 @@ const agregarReporte = (req, res) => {
     });
   }
 
-  console.log("Usuario que carga el reporte:", id_usuario);
-  console.log("Coordenadas recibidas:", lat, lng);
-
   obtenerOCrearZona(lat, lng, (error, idZona) => {
     if (error) {
       console.error("Error al obtener o crear zona:", error);
@@ -99,7 +97,7 @@ const agregarReporte = (req, res) => {
       });
     }
 
-    const sql = `
+    const sqlReporte = `
       INSERT INTO reporte
       (
         id_usuario,
@@ -118,21 +116,21 @@ const agregarReporte = (req, res) => {
     `;
 
     db.query(
-      sql,
+      sqlReporte,
       [
         Number(id_usuario),
-        id_delito,
+        idDelito,
         idZona,
         descripcion,
         lat,
         lng,
         "Pendiente",
-        testigos,
+        testigos ? 1 : 0,
         direccion,
       ],
       (error, resultado) => {
         if (error) {
-          console.error("Error SQL:", error);
+          console.error("Error al guardar reporte:", error);
 
           return res.status(500).json({
             mensaje: "Error al guardar el reporte.",
@@ -140,13 +138,44 @@ const agregarReporte = (req, res) => {
           });
         }
 
-        res.status(201).json({
-          mensaje: "Reporte guardado correctamente.",
-          id_reporte: resultado.insertId,
-          id_zona: idZona,
-          id_usuario: Number(id_usuario),
-        });
-      },
+        const sqlEstadistica = `
+          INSERT INTO estadistica
+          (
+            id_zona,
+            id_delito,
+            cantidad_delitos,
+            periodo,
+            fecha_actualizacion
+          )
+          VALUES (?, ?, 1, CURDATE(), CURDATE())
+          ON DUPLICATE KEY UPDATE
+            cantidad_delitos = cantidad_delitos + 1,
+            fecha_actualizacion = CURDATE()
+        `;
+
+        db.query(
+          sqlEstadistica,
+          [idZona, idDelito],
+          (error) => {
+            if (error) {
+              console.error("Error al actualizar estadística:", error);
+
+              return res.status(500).json({
+                mensaje: "El reporte se guardó, pero no se pudo actualizar la estadística.",
+                id_reporte: resultado.insertId,
+                detalle: error.sqlMessage,
+              });
+            }
+
+            res.status(201).json({
+              mensaje: "Reporte guardado correctamente.",
+              id_reporte: resultado.insertId,
+              id_zona: idZona,
+              id_usuario: Number(id_usuario),
+            });
+          }
+        );
+      }
     );
   });
 };
@@ -269,28 +298,86 @@ const actualizarReporte = (req, res) => {
 const eliminarReporte = (req, res) => {
   const { id } = req.params;
 
-  const sql = `
-    DELETE FROM reporte
+  const sqlBuscar = `
+    SELECT
+      id_zona,
+      id_delito,
+      DATE_FORMAT(fecha, '%Y-%m-%d') AS periodo
+    FROM reporte
     WHERE id_reporte = ?
   `;
 
-  db.query(sql, [id], (error, resultado) => {
+  db.query(sqlBuscar, [id], (error, reportes) => {
     if (error) {
-      console.error("Error al eliminar reporte:", error);
+      console.error("Error al buscar reporte:", error);
 
       return res.status(500).json({
-        mensaje: "Error al eliminar el reporte.",
+        mensaje: "Error al buscar el reporte.",
       });
     }
 
-    if (resultado.affectedRows === 0) {
+    if (reportes.length === 0) {
       return res.status(404).json({
         mensaje: "No se encontró el reporte.",
       });
     }
 
-    res.status(200).json({
-      mensaje: "Reporte eliminado correctamente.",
+    const reporte = reportes[0];
+
+    const sqlEliminar = `
+      DELETE FROM reporte
+      WHERE id_reporte = ?
+    `;
+
+    db.query(sqlEliminar, [id], (error) => {
+      if (error) {
+        console.error("Error al eliminar reporte:", error);
+
+        return res.status(500).json({
+          mensaje: "Error al eliminar el reporte.",
+        });
+      }
+
+      const sqlDescontar = `
+        UPDATE estadistica
+        SET
+          cantidad_delitos = cantidad_delitos - 1,
+          fecha_actualizacion = CURDATE()
+        WHERE id_zona = ?
+          AND id_delito = ?
+          AND periodo = ?
+      `;
+
+      db.query(
+        sqlDescontar,
+        [reporte.id_zona, reporte.id_delito, reporte.periodo],
+        (error) => {
+          if (error) {
+            console.error("Error al descontar estadística:", error);
+
+            return res.status(500).json({
+              mensaje: "El reporte se eliminó, pero no se pudo actualizar la estadística.",
+              detalle: error.sqlMessage,
+            });
+          }
+
+          // Eliminar filas cuya cantidad llegó a cero
+          const sqlLimpiar = `
+            DELETE FROM estadistica
+            WHERE cantidad_delitos <= 0
+          `;
+
+          db.query(sqlLimpiar, (error) => {
+            if (error) {
+              console.error("Error al limpiar estadística:", error);
+            }
+
+            res.status(200).json({
+              mensaje: "Reporte eliminado y estadística actualizada.",
+            });
+          });
+        }
+      );
     });
   });
 };

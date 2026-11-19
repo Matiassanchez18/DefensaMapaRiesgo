@@ -1,20 +1,33 @@
+
 const db = require("../Config/db");
 
 const obtenerEstadisticas = async (req, res) => {
   try {
+    const ejecutarConsulta = (sql) => {
+      return new Promise((resolve, reject) => {
+        db.query(sql, (error, resultados) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(resultados);
+          }
+        });
+      });
+    };
+
     const consultaDelitos = `
       SELECT
         d.nombre AS nombre,
-        COUNT(r.id_reporte) AS cantidad
-      FROM delito d
-      INNER JOIN reporte r ON d.id_delito = r.id_delito
+        SUM(e.cantidad_delitos) AS cantidad
+      FROM estadistica e
+      INNER JOIN delito d ON e.id_delito = d.id_delito
       GROUP BY d.id_delito, d.nombre
       ORDER BY cantidad DESC
     `;
 
     const consultaRobosPorDia = `
       SELECT
-        CASE DAYOFWEEK(r.fecha)
+        CASE DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d'))
           WHEN 1 THEN 'Domingo'
           WHEN 2 THEN 'Lunes'
           WHEN 3 THEN 'Martes'
@@ -23,13 +36,13 @@ const obtenerEstadisticas = async (req, res) => {
           WHEN 6 THEN 'Viernes'
           WHEN 7 THEN 'Sábado'
         END AS dia,
-        COUNT(r.id_reporte) AS cantidad
-      FROM reporte r
-      INNER JOIN delito d ON r.id_delito = d.id_delito
+        SUM(e.cantidad_delitos) AS cantidad
+      FROM estadistica e
+      INNER JOIN delito d ON e.id_delito = d.id_delito
       WHERE LOWER(d.nombre) LIKE '%robo%'
-      GROUP BY DAYOFWEEK(r.fecha)
+      GROUP BY DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d'))
       ORDER BY FIELD(
-        DAYOFWEEK(r.fecha),
+        DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d')),
         2, 3, 4, 5, 6, 7, 1
       )
     `;
@@ -47,39 +60,104 @@ const obtenerEstadisticas = async (req, res) => {
     const consultaZonas = `
       SELECT
         z.nombre AS nombre,
-        COUNT(r.id_reporte) AS cantidad
-      FROM zona z
-      INNER JOIN reporte r ON z.id_zona = r.id_zona
+        SUM(e.cantidad_delitos) AS cantidad
+      FROM estadistica e
+      INNER JOIN zona z ON e.id_zona = z.id_zona
       GROUP BY z.id_zona, z.nombre
       ORDER BY cantidad DESC
       LIMIT 10
     `;
 
-    const ejecutarConsulta = (sql) => {
-      return new Promise((resolve, reject) => {
-        db.query(sql, (error, resultados) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(resultados);
-          }
-        });
-      });
-    };
+    const consultaVariacionRobos = `
+      SELECT
+        (
+          SELECT COALESCE(SUM(e.cantidad_delitos), 0)
+          FROM estadistica e
+          INNER JOIN delito d ON e.id_delito = d.id_delito
+          WHERE LOWER(d.nombre) LIKE '%robo%'
+            AND STR_TO_DATE(e.periodo, '%Y-%m-%d')
+              BETWEEN DATE_SUB(
+                CURDATE(),
+                INTERVAL DAY(CURDATE()) - 1 DAY
+              )
+              AND CURDATE()
+        ) AS actual,
 
-    const [delitos, robosPorDia, usuariosPorMes, zonas] =
-      await Promise.all([
-        ejecutarConsulta(consultaDelitos),
-        ejecutarConsulta(consultaRobosPorDia),
-        ejecutarConsulta(consultaUsuariosPorMes),
-        ejecutarConsulta(consultaZonas),
-      ]);
+        (
+          SELECT COALESCE(SUM(e.cantidad_delitos), 0)
+          FROM estadistica e
+          INNER JOIN delito d ON e.id_delito = d.id_delito
+          WHERE LOWER(d.nombre) LIKE '%robo%'
+            AND STR_TO_DATE(e.periodo, '%Y-%m-%d')
+              BETWEEN
+                DATE_SUB(
+                  DATE_SUB(
+                    CURDATE(),
+                    INTERVAL DAY(CURDATE()) - 1 DAY
+                  ),
+                  INTERVAL 1 MONTH
+                )
+              AND LEAST(
+                DATE_ADD(
+                  DATE_SUB(
+                    DATE_SUB(
+                      CURDATE(),
+                      INTERVAL DAY(CURDATE()) - 1 DAY
+                    ),
+                    INTERVAL 1 MONTH
+                  ),
+                  INTERVAL DAY(CURDATE()) - 1 DAY
+                ),
+                LAST_DAY(
+                  DATE_SUB(
+                    DATE_SUB(
+                      CURDATE(),
+                      INTERVAL DAY(CURDATE()) - 1 DAY
+                    ),
+                    INTERVAL 1 MONTH
+                  )
+                )
+              )
+        ) AS anterior
+    `;
+
+    const [
+      delitos,
+      robosPorDia,
+      usuariosPorMes,
+      zonas,
+      resultadoVariacion,
+    ] = await Promise.all([
+      ejecutarConsulta(consultaDelitos),
+      ejecutarConsulta(consultaRobosPorDia),
+      ejecutarConsulta(consultaUsuariosPorMes),
+      ejecutarConsulta(consultaZonas),
+      ejecutarConsulta(consultaVariacionRobos),
+    ]);
+
+    const actual = Number(resultadoVariacion[0].actual);
+    const anterior = Number(resultadoVariacion[0].anterior);
+
+    let porcentaje = 0;
+
+    if (anterior > 0) {
+      porcentaje = Math.round(
+        ((actual - anterior) / anterior) * 100
+      );
+    } else if (actual > 0) {
+      porcentaje = null;
+    }
 
     res.status(200).json({
       delitos,
       robosPorDia,
       usuariosPorMes,
       zonas,
+      variacionRobos: {
+        actual,
+        anterior,
+        porcentaje,
+      },
     });
 
   } catch (error) {
