@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Estadisticas from "../components/Estadisticas";
 
 function DashboardAdmin() {
   const [datos, setDatos] = useState({
@@ -110,6 +111,8 @@ function DashboardAdmin() {
   return (
     <>
       <h1 className="mb-4 text-xl font-bold">Dashboard</h1>
+
+       <Estadisticas />
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
