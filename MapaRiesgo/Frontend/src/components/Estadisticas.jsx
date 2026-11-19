@@ -85,7 +85,6 @@ function Estadisticas() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 
-        {/* DELITOS MÁS REPETIDOS */}
         {grafico(
           "Delitos más repetidos",
           datos.delitos.length === 0 ? (
@@ -118,7 +117,6 @@ function Estadisticas() {
           )
         )}
 
-        {/* ROBOS POR DÍA */}
         {grafico(
           "Robos por día de la semana",
           datos.robosPorDia.length === 0 ? (
@@ -142,7 +140,6 @@ function Estadisticas() {
           )
         )}
 
-        {/* USUARIOS POR MES */}
         {grafico(
           "Usuarios registrados en el tiempo",
           datos.usuariosPorMes.length === 0 ? (
