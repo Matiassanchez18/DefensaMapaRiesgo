@@ -42,11 +42,11 @@ function Login() {
 
       login(data.usuario);
 
-      if (data.usuario?.rol === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
+      // if (data.usuario?.rol === "admin") {
+      //   navigate("/admin");
+      // } else {
+      //   navigate("/");
+      // }
     } catch {
       setError("Error al conectar con el servidor.");
     } finally {
