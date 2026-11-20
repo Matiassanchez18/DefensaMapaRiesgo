@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import "../style/Formulario.css";
 import useAuthStore from "../store/Store";
@@ -144,6 +143,8 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
 
       alert("¡Reporte guardado correctamente!");
 
+      window.dispatchEvent(new Event("actualizarEstadisticas"));
+
       formulario.reset();
       setTestigo(false);
       setErrores({
@@ -265,9 +266,7 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                         placeholder="Ej: Juan"
                         maxLength={100}
                         required
-                        onChange={(e) =>
-                          manejarNombre(e, "nombre_testigo")
-                        }
+                        onChange={(e) => manejarNombre(e, "nombre_testigo")}
                       />
                       {errores.nombre_testigo && (
                         <small className="error-campo">
@@ -286,9 +285,7 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                         placeholder="Ej: Pérez"
                         maxLength={100}
                         required
-                        onChange={(e) =>
-                          manejarNombre(e, "apellido_testigo")
-                        }
+                        onChange={(e) => manejarNombre(e, "apellido_testigo")}
                       />
                       {errores.apellido_testigo && (
                         <small className="error-campo">

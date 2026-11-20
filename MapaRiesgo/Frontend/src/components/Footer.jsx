@@ -38,26 +38,57 @@ function Footer() {
   }, []);
 
   const API_URL = "http://localhost:3000/api/contactos-emergencia";
+  
+useEffect(() => {
+  const obtenerTotales = async () => {
+    try {
+      const respuesta = await fetch(
+        "http://localhost:3000/api/reportes/dashboard"
+      );
 
-  useEffect(() => {
-    const obtenerVariacionRobos = async () => {
-      try {
-        const respuesta = await fetch("http://localhost:3000/api/estadisticas");
-
-        if (!respuesta.ok) {
-          throw new Error("Error al obtener estadísticas");
-        }
-
-        const datos = await respuesta.json();
-
-        setVariacionRobos(datos.variacionRobos);
-      } catch (error) {
-        console.error("Error al obtener variación de robos:", error);
+      if (!respuesta.ok) {
+        throw new Error("Error al obtener los totales");
       }
-    };
 
-    obtenerVariacionRobos();
-  }, []);
+      const datos = await respuesta.json();
+
+      setTotalReportes(datos.estadisticas.reportesTotales);
+      setTotalZonas(datos.estadisticas.zonasMonitoreadas);
+    } catch (error) {
+      console.error("Error al obtener reportes y zonas:", error);
+    }
+  };
+
+  obtenerTotales();
+
+  window.addEventListener("actualizarEstadisticas", obtenerTotales);
+
+  return () => {
+    window.removeEventListener("actualizarEstadisticas", obtenerTotales);
+  };
+}, []);
+
+useEffect(() => {
+  const obtenerVariacionRobos = async () => {
+    try {
+      const respuesta = await fetch(
+        "http://localhost:3000/api/estadisticas"
+      );
+
+      if (!respuesta.ok) {
+        throw new Error("Error al obtener estadísticas");
+      }
+
+      const datos = await respuesta.json();
+
+      setVariacionRobos(datos.variacionRobos);
+    } catch (error) {
+      console.error("Error al obtener variación de robos:", error);
+    }
+  };
+
+  obtenerVariacionRobos();
+}, []);
 
   const obtenerContactos = async () => {
     if (!usuario?.id_usuario) {
