@@ -1,5 +1,18 @@
+
 function UltimoIncidente({ incidente }) {
   const { titulo, nivelRiesgo } = incidente;
+
+  const coloresRiesgo = {
+    alto: "bg-red-600 text-white border-red-500",
+    medio: "bg-orange-500 text-white border-orange-400",
+    bajo: "bg-green-600 text-white border-green-500",
+  };
+
+  const nivel = nivelRiesgo?.toString().trim().toLowerCase();
+
+  const colorNivel =
+    coloresRiesgo[nivel] || "bg-gray-500 text-white border-gray-400";
+
   return (
     <div>
       <section className="overflow-hidden rounded-lg border border-slate-700 bg-[#1B2B3A]">
@@ -8,14 +21,20 @@ function UltimoIncidente({ incidente }) {
             Último incidente reportado
           </h2>
         </header>
-        <div className="px-4 py-10">
-          <h2 className="text-2xl font-bold text-white py-5">{titulo}</h2>
 
-          <div className="mt-6 flex items-center gap-2">
-            <span className="rounded-full bg-gray-500 px-3 py-1 text-sm text-white">
-              Tipo de Riesgo:{" "}
+        <div className="px-4 py-10">
+          <h2 className="py-5 text-2xl font-bold text-white">
+            {titulo}
+          </h2>
+
+          <div className="mt-6 flex items-center gap-3">
+            <span className="text-sm text-slate-300">
+              Nivel de riesgo:
             </span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-600 text-sm text-white">
+
+            <span
+              className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${colorNivel}`}
+            >
               {nivelRiesgo}
             </span>
           </div>
@@ -24,4 +43,5 @@ function UltimoIncidente({ incidente }) {
     </div>
   );
 }
+
 export default UltimoIncidente;
