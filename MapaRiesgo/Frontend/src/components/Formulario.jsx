@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import "../style/Formulario.css";
 import useAuthStore from "../store/Store";
@@ -72,9 +71,7 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
       const resultado = await respuesta.json();
 
       if (!respuesta.ok) {
-        throw new Error(
-          resultado.mensaje || "Error al guardar el reporte."
-        );
+        throw new Error(resultado.mensaje || "Error al guardar el reporte.");
       }
 
       alert("¡Reporte guardado correctamente!");
@@ -170,8 +167,8 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                     <div>
                       <h4>Datos del testigo</h4>
                       <p>
-                        Información de contacto de la persona que presenció
-                        el hecho.
+                        Información de contacto de la persona que presenció el
+                        hecho.
                       </p>
                     </div>
                   </div>
@@ -213,6 +210,9 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                           name="telefono_testigo"
                           placeholder="Ej: 3815555555"
                           required
+                          maxLength={10}
+                          inputMode="numeric"
+                          pattern="[0-9]{10}"
                         />
                       </div>
                     </div>
@@ -221,8 +221,8 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                   <div className="testigo-nota">
                     <i className="bi bi-info-circle"></i>
                     <span>
-                      Estos datos permitirán identificar y contactar al
-                      testigo si es necesario.
+                      Estos datos permitirán identificar y contactar al testigo
+                      si es necesario.
                     </span>
                   </div>
                 </div>
