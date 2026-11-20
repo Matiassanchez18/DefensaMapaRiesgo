@@ -1,18 +1,15 @@
-
+import { useState } from "react";
 import "../style/Formulario.css";
 import useAuthStore from "../store/Store";
 
-function Formulario({
-  darValor,
-  ubicacion,
-  seleccionarEnMapa,
-}) {
+function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
   const ocultarModal = () => {
     darValor(false);
   };
 
+  const [testigo, setTestigo] = useState(false);
+
   const usuario = useAuthStore((state) => state.usuario);
-  console.log("USUARIO EN ZUSTAND:", usuario);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,7 +66,6 @@ function Formulario({
 
       e.target.reset();
       ocultarModal();
-
     } catch (error) {
       console.error("Error al guardar el reporte:", error);
       alert(error.message);
@@ -126,16 +122,90 @@ function Formulario({
             <div className="reporte-campo">
               <label>¿Hubo testigos?</label>
               <div className="reporte-opciones">
-                <label className="reporte-opcion">
+                <label
+                  className="reporte-opcion"
+                  onChange={() => setTestigo(true)}
+                >
                   <input type="radio" name="testigos" value="si" required />
                   Sí
                 </label>
 
-                <label className="reporte-opcion">
+                <label
+                  className="reporte-opcion"
+                  onChange={() => setTestigo(false)}
+                >
                   <input type="radio" name="testigos" value="no" />
                   No
                 </label>
               </div>
+
+              {testigo && (
+                <div className="testigo-formulario">
+                  <div className="testigo-header">
+                    <div className="testigo-icono">
+                      <i className="bi bi-person-vcard"></i>
+                    </div>
+
+                    <div>
+                      <h4>Datos del testigo</h4>
+                      <p>
+                        Información de contacto de la persona que presenció el
+                        hecho.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="testigo-campos">
+                    <div className="reporte-campo">
+                      <label htmlFor="nombre_testigo">Nombre</label>
+                      <input
+                        type="text"
+                        id="nombre_testigo"
+                        name="nombre_testigo"
+                        className="reporte-input-icono"
+                        placeholder="Ej: Juan"
+                        required
+                      />
+                    </div>
+
+                    <div className="reporte-campo">
+                      <label htmlFor="apellido_testigo">Apellido</label>
+                      <input
+                        type="text"
+                        id="apellido_testigo"
+                        name="apellido_testigo"
+                        className="reporte-input-icono"
+                        placeholder="Ej: Pérez"
+                        required
+                      />
+                    </div>
+
+                    <div className="reporte-campo">
+                      <label htmlFor="telefono_testigo">
+                        Teléfono de contacto
+                      </label>
+                      <div className="testigo-telefono">
+                        <i className="bi bi-telephone"></i>
+                        <input
+                          type="tel"
+                          id="telefono_testigo"
+                          name="telefono_testigo"
+                          placeholder="Ej: 3815555555"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="testigo-nota">
+                    <i className="bi bi-info-circle"></i>
+                    <span>
+                      Estos datos permitirán identificar y contactar al testigo
+                      si es necesario.
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="reporte-campo">
@@ -178,10 +248,7 @@ function Formulario({
                 Cancelar
               </button>
 
-              <button
-                type="submit"
-                className="reporte-btn-enviar"
-              >
+              <button type="submit" className="reporte-btn-enviar">
                 Enviar reporte
               </button>
             </div>
