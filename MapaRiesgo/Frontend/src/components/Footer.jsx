@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import useAuthStore from "../store/Store";
@@ -12,15 +11,38 @@ function Footer() {
   const [mensaje, setMensaje] = useState("");
 
   const [variacionRobos, setVariacionRobos] = useState(null);
+  const [totalReportes, setTotalReportes] = useState(0);
+  const [totalZonas, setTotalZonas] = useState(0);
+
+  useEffect(() => {
+    const obtenerTotales = async () => {
+      try {
+        const respuesta = await fetch(
+          "http://localhost:3000/api/reportes/dashboard",
+        );
+
+        if (!respuesta.ok) {
+          throw new Error("Error al obtener los totales");
+        }
+
+        const datos = await respuesta.json();
+
+        setTotalReportes(datos.estadisticas.reportesTotales);
+        setTotalZonas(datos.estadisticas.zonasMonitoreadas);
+      } catch (error) {
+        console.error("Error al obtener reportes y zonas:", error);
+      }
+    };
+
+    obtenerTotales();
+  }, []);
 
   const API_URL = "http://localhost:3000/api/contactos-emergencia";
 
   useEffect(() => {
     const obtenerVariacionRobos = async () => {
       try {
-        const respuesta = await fetch(
-          "http://localhost:3000/api/estadisticas"
-        );
+        const respuesta = await fetch("http://localhost:3000/api/estadisticas");
 
         if (!respuesta.ok) {
           throw new Error("Error al obtener estadísticas");
@@ -94,19 +116,19 @@ function Footer() {
     porcentaje === null || porcentaje === undefined
       ? "bi-dash"
       : porcentaje > 0
-      ? "bi-arrow-up"
-      : porcentaje < 0
-      ? "bi-arrow-down"
-      : "bi-dash";
+        ? "bi-arrow-up"
+        : porcentaje < 0
+          ? "bi-arrow-down"
+          : "bi-dash";
 
   const colorVariacion =
     porcentaje === null || porcentaje === undefined
       ? "text-gray-300"
       : porcentaje > 0
-      ? "text-red-400"
-      : porcentaje < 0
-      ? "text-green-400"
-      : "text-gray-300";
+        ? "text-red-400"
+        : porcentaje < 0
+          ? "text-green-400"
+          : "text-gray-300";
 
   return (
     <div>
@@ -115,7 +137,7 @@ function Footer() {
           <div className="grid grid-cols-3 text-center">
             <div className="border-r border-gray-600 py-2">
               <h4 className="mb-0 text-[22px] font-bold md:text-2xl lg:text-base">
-                268
+                {totalReportes}
               </h4>
               <small className="block text-xs leading-tight md:text-[13px] lg:text-[10px]">
                 REPORTES
@@ -124,7 +146,7 @@ function Footer() {
 
             <div className="border-r border-gray-600 py-2">
               <h4 className="mb-0 text-[22px] font-bold md:text-2xl lg:text-base">
-                18
+                {totalZonas}
               </h4>
               <small className="block text-xs leading-tight md:text-[13px] lg:text-[10px]">
                 ZONAS
@@ -132,9 +154,10 @@ function Footer() {
             </div>
 
             <div className="py-2">
-              <h4 className={`mb-0 text-[22px] font-bold md:text-2xl lg:text-base ${colorVariacion}`}>
-                <i className={`bi ${iconoVariacion}`}></i>{" "}
-                {textoVariacion}
+              <h4
+                className={`mb-0 text-[22px] font-bold md:text-2xl lg:text-base ${colorVariacion}`}
+              >
+                <i className={`bi ${iconoVariacion}`}></i> {textoVariacion}
               </h4>
 
               <small className="block text-xs leading-tight md:text-[13px] lg:text-[10px]">
