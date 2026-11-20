@@ -1,3 +1,4 @@
+
 const { z } = require("zod");
 
 const reporteSchema = z.object({
@@ -26,6 +27,10 @@ const reporteSchema = z.object({
   testigos: z.boolean({
     error: "Indicá si hubo testigos",
   }),
+
+  nombre_testigo: z.string().trim().nullable().optional(),
+  apellido_testigo: z.string().trim().nullable().optional(),
+  telefono_testigo: z.string().trim().nullable().optional(),
 
   latitud: z.coerce.number().min(-90).max(90),
 

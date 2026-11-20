@@ -1,21 +1,21 @@
+
 import { useState } from "react";
 import "../style/Formulario.css";
 import useAuthStore from "../store/Store";
 
 function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
-  const ocultarModal = () => {
-    darValor(false);
-  };
-
   const [testigo, setTestigo] = useState(false);
 
   const usuario = useAuthStore((state) => state.usuario);
 
+  const ocultarModal = () => {
+    darValor(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!usuario || !usuario.id_usuario) {
-      console.log("ID DEL USUARIO:", usuario?.id_usuario);
+    if (!usuario?.id_usuario) {
       alert("Debés iniciar sesión para cargar un reporte.");
       return;
     }
@@ -25,19 +25,40 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
       return;
     }
 
-    const datosFormulario = new FormData(e.target);
+    const formulario = e.currentTarget;
+    const datos = new FormData(formulario);
+
+    const hayTestigos = datos.get("testigos") === "si";
+
+    const nombreTestigo = hayTestigos
+      ? String(datos.get("nombre_testigo") || "").trim()
+      : null;
+
+    const apellidoTestigo = hayTestigos
+      ? String(datos.get("apellido_testigo") || "").trim()
+      : null;
+
+    const telefonoTestigo = hayTestigos
+      ? String(datos.get("telefono_testigo") || "").trim()
+      : null;
+
+    if (hayTestigos && (!nombreTestigo || !apellidoTestigo)) {
+      alert("Completá el nombre y apellido del testigo.");
+      return;
+    }
 
     const reporte = {
       id_usuario: usuario.id_usuario,
-      id_delito: Number(datosFormulario.get("id_delito")),
-      direccion: datosFormulario.get("direccion").trim(),
-      descripcion: datosFormulario.get("descripcion").trim(),
-      testigos: datosFormulario.get("testigos") === "si",
+      id_delito: Number(datos.get("id_delito")),
+      direccion: String(datos.get("direccion") || "").trim(),
+      descripcion: String(datos.get("descripcion") || "").trim(),
+      testigos: hayTestigos,
+      nombre_testigo: nombreTestigo,
+      apellido_testigo: apellidoTestigo,
+      telefono_testigo: telefonoTestigo,
       latitud: Number(ubicacion[0]),
       longitud: Number(ubicacion[1]),
     };
-
-    console.log("Datos enviados:", reporte);
 
     try {
       const respuesta = await fetch("http://localhost:3000/api/reportes", {
@@ -48,23 +69,18 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
         body: JSON.stringify(reporte),
       });
 
-      const datos = await respuesta.json();
+      const resultado = await respuesta.json();
 
       if (!respuesta.ok) {
-        if (datos.errores && datos.errores.length > 0) {
-          const mensajes = datos.errores
-            .map((error) => `${error.campo}: ${error.mensaje}`)
-            .join("\n");
-
-          throw new Error(mensajes);
-        }
-
-        throw new Error(datos.mensaje || "Error al guardar el reporte");
+        throw new Error(
+          resultado.mensaje || "Error al guardar el reporte."
+        );
       }
 
       alert("¡Reporte guardado correctamente!");
 
-      e.target.reset();
+      formulario.reset();
+      setTestigo(false);
       ocultarModal();
     } catch (error) {
       console.error("Error al guardar el reporte:", error);
@@ -121,20 +137,26 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
 
             <div className="reporte-campo">
               <label>¿Hubo testigos?</label>
+
               <div className="reporte-opciones">
-                <label
-                  className="reporte-opcion"
-                  onChange={() => setTestigo(true)}
-                >
-                  <input type="radio" name="testigos" value="si" required />
+                <label className="reporte-opcion">
+                  <input
+                    type="radio"
+                    name="testigos"
+                    value="si"
+                    required
+                    onChange={() => setTestigo(true)}
+                  />
                   Sí
                 </label>
 
-                <label
-                  className="reporte-opcion"
-                  onChange={() => setTestigo(false)}
-                >
-                  <input type="radio" name="testigos" value="no" />
+                <label className="reporte-opcion">
+                  <input
+                    type="radio"
+                    name="testigos"
+                    value="no"
+                    onChange={() => setTestigo(false)}
+                  />
                   No
                 </label>
               </div>
@@ -145,12 +167,11 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                     <div className="testigo-icono">
                       <i className="bi bi-person-vcard"></i>
                     </div>
-
                     <div>
                       <h4>Datos del testigo</h4>
                       <p>
-                        Información de contacto de la persona que presenció el
-                        hecho.
+                        Información de contacto de la persona que presenció
+                        el hecho.
                       </p>
                     </div>
                   </div>
@@ -200,8 +221,8 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                   <div className="testigo-nota">
                     <i className="bi bi-info-circle"></i>
                     <span>
-                      Estos datos permitirán identificar y contactar al testigo
-                      si es necesario.
+                      Estos datos permitirán identificar y contactar al
+                      testigo si es necesario.
                     </span>
                   </div>
                 </div>
@@ -222,7 +243,6 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
 
             <div className="reporte-campo">
               <label>Ubicación del incidente</label>
-
               <p>
                 {ubicacion
                   ? "Se utilizará tu ubicación GPS actual o el punto que marques en el mapa."
