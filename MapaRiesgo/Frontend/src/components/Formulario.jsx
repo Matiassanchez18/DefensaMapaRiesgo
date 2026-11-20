@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import "../style/Formulario.css";
 import useAuthStore from "../store/Store";
@@ -5,7 +6,65 @@ import useAuthStore from "../store/Store";
 function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
   const [testigo, setTestigo] = useState(false);
 
+  const [errores, setErrores] = useState({
+    nombre_testigo: "",
+    apellido_testigo: "",
+    telefono_testigo: "",
+  });
+
   const usuario = useAuthStore((state) => state.usuario);
+
+  const validarNombre = (valor) => {
+    if (!valor.trim()) {
+      return "Este campo es obligatorio.";
+    }
+
+    if (valor.trim().length < 2) {
+      return "Debe tener al menos 2 caracteres.";
+    }
+
+    if (!/^[\p{L}]+(?:[ '\u2019-][\p{L}]+)*$/u.test(valor.trim())) {
+      return "Ingresá solamente letras.";
+    }
+
+    return "";
+  };
+
+  const validarTelefono = (valor) => {
+    if (!valor.trim()) {
+      return "El teléfono es obligatorio.";
+    }
+
+    if (!/^\d{10}$/.test(valor)) {
+      return "El teléfono debe tener exactamente 10 dígitos.";
+    }
+
+    return "";
+  };
+
+  const manejarNombre = (e, campo) => {
+    const valor = e.target.value;
+
+    const valorFiltrado = valor.replace(/[^\p{L} '\u2019-]/gu, "");
+
+    e.target.value = valorFiltrado;
+
+    setErrores((prev) => ({
+      ...prev,
+      [campo]: validarNombre(valorFiltrado),
+    }));
+  };
+
+  const manejarTelefono = (e) => {
+    const valor = e.target.value.replace(/\D/g, "").slice(0, 10);
+
+    e.target.value = valor;
+
+    setErrores((prev) => ({
+      ...prev,
+      telefono_testigo: validarTelefono(valor),
+    }));
+  };
 
   const ocultarModal = () => {
     darValor(false);
@@ -41,9 +100,18 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
       ? String(datos.get("telefono_testigo") || "").trim()
       : null;
 
-    if (hayTestigos && (!nombreTestigo || !apellidoTestigo)) {
-      alert("Completá el nombre y apellido del testigo.");
-      return;
+    if (hayTestigos) {
+      const nuevosErrores = {
+        nombre_testigo: validarNombre(nombreTestigo),
+        apellido_testigo: validarNombre(apellidoTestigo),
+        telefono_testigo: validarTelefono(telefonoTestigo),
+      };
+
+      setErrores(nuevosErrores);
+
+      if (Object.values(nuevosErrores).some((error) => error !== "")) {
+        return;
+      }
     }
 
     const reporte = {
@@ -78,6 +146,12 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
 
       formulario.reset();
       setTestigo(false);
+      setErrores({
+        nombre_testigo: "",
+        apellido_testigo: "",
+        telefono_testigo: "",
+      });
+
       ocultarModal();
     } catch (error) {
       console.error("Error al guardar el reporte:", error);
@@ -152,7 +226,14 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                     type="radio"
                     name="testigos"
                     value="no"
-                    onChange={() => setTestigo(false)}
+                    onChange={() => {
+                      setTestigo(false);
+                      setErrores({
+                        nombre_testigo: "",
+                        apellido_testigo: "",
+                        telefono_testigo: "",
+                      });
+                    }}
                   />
                   No
                 </label>
@@ -182,8 +263,17 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                         name="nombre_testigo"
                         className="reporte-input-icono"
                         placeholder="Ej: Juan"
+                        maxLength={100}
                         required
+                        onChange={(e) =>
+                          manejarNombre(e, "nombre_testigo")
+                        }
                       />
+                      {errores.nombre_testigo && (
+                        <small className="error-campo">
+                          {errores.nombre_testigo}
+                        </small>
+                      )}
                     </div>
 
                     <div className="reporte-campo">
@@ -194,8 +284,17 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                         name="apellido_testigo"
                         className="reporte-input-icono"
                         placeholder="Ej: Pérez"
+                        maxLength={100}
                         required
+                        onChange={(e) =>
+                          manejarNombre(e, "apellido_testigo")
+                        }
                       />
+                      {errores.apellido_testigo && (
+                        <small className="error-campo">
+                          {errores.apellido_testigo}
+                        </small>
+                      )}
                     </div>
 
                     <div className="reporte-campo">
@@ -213,8 +312,14 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
                           maxLength={10}
                           inputMode="numeric"
                           pattern="[0-9]{10}"
+                          onChange={manejarTelefono}
                         />
                       </div>
+                      {errores.telefono_testigo && (
+                        <small className="error-campo">
+                          {errores.telefono_testigo}
+                        </small>
+                      )}
                     </div>
                   </div>
 

@@ -317,6 +317,13 @@
   flex-shrink: 0;
 }
 
+.error-campo {
+  display: block;
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
 @keyframes aparecerTestigo {
   from {
     opacity: 0;
