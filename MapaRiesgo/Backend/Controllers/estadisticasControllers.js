@@ -1,4 +1,3 @@
-
 const db = require("../Config/db");
 
 const obtenerEstadisticas = async (req, res) => {
