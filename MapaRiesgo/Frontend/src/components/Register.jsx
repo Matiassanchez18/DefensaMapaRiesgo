@@ -8,123 +8,119 @@ import useAuthStore from "../store/Store";
 
 function Register() {
 
-  const API_URL = "http://localhost:3000/api/register";
+    const API_URL = "http://localhost:3000/api/register";
 
-// const API_URL = "http://localhost:3000/api/register";
+    // const API_URL = "http://localhost:3000/api/register";
 
-const SOLO_LETRAS = /^\p{L}+(?:[ '-]\p{L}+)*$/u;
-const EMAIL_VALIDO =
-    /^(?:[A-Za-z0-9_'+-]+\.)*[A-Za-z0-9_'+-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9-]*\.)+[A-Za-z]{2,}$/;
+    const SOLO_LETRAS = /^\p{L}+(?:[ '-]\p{L}+)*$/u;
+    const EMAIL_VALIDO =
+        /^(?:[A-Za-z0-9_'+-]+\.)*[A-Za-z0-9_'+-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9-]*\.)+[A-Za-z]{2,}$/;
 
-const CAMPOS = [
-    {
-        name: "nombre",
-        label: "Nombre",
-        type: "text",
-        placeholder: "Tu nombre",
-        autoComplete: "given-name",
-        maxLength: 50,
-    },
-    {
-        name: "apellido",
-        label: "Apellido",
-        type: "text",
-        placeholder: "Tu apellido",
-        autoComplete: "family-name",
-        maxLength: 50,
-    },
-    {
-        name: "email",
-        label: "Correo electrónico",
-        type: "email",
-        placeholder: "tucorreo@ejemplo.com",
-        autoComplete: "email",
-        maxLength: 150,
-    },
-    {
-        name: "password",
-        label: "Contraseña",
-        type: "password",
-        placeholder: "Creá una contraseña",
-        autoComplete: "new-password",
-        maxLength: 64,
-        ayuda: "Mínimo 8 caracteres, con al menos una letra y un número.",
-    },
-    {
-        name: "telefono",
-        label: "Teléfono",
-        type: "tel",
-        placeholder: "+54 381 555 1234",
-        autoComplete: "tel",
-        maxLength: 20,
-    },
-];
+    const CAMPOS = [
+        {
+            name: "nombre",
+            label: "Nombre",
+            type: "text",
+            placeholder: "Tu nombre",
+            autoComplete: "given-name",
+            maxLength: 50,
+        },
+        {
+            name: "apellido",
+            label: "Apellido",
+            type: "text",
+            placeholder: "Tu apellido",
+            autoComplete: "family-name",
+            maxLength: 50,
+        },
+        {
+            name: "email",
+            label: "Correo electrónico",
+            type: "email",
+            placeholder: "tucorreo@ejemplo.com",
+            autoComplete: "email",
+            maxLength: 150,
+        },
+        {
+            name: "password",
+            label: "Contraseña",
+            type: "password",
+            placeholder: "Creá una contraseña",
+            autoComplete: "new-password",
+            maxLength: 64,
+            ayuda: "Mínimo 8 caracteres, con al menos una letra y un número.",
+        },
+        {
+            name: "telefono",
+            label: "Teléfono",
+            type: "tel",
+            placeholder: "3815551234",
+            autoComplete: "tel",
+            maxLength: 10,
+            inputMode: "numeric",
+            ayuda: "Solo números, 10 dígitos. Ej: 3815551234",
+        },
+    ];
 
 
-const validarNombreApellido = (valor, etiqueta) => {
-    const texto = valor.trim();
+    const validarNombreApellido = (valor, etiqueta) => {
+        const texto = valor.trim();
 
-    if (!texto) return `El ${etiqueta} es obligatorio`;
-    if (texto.length < 2) return `El ${etiqueta} debe tener al menos 2 caracteres`;
-    if (texto.length > 50) return `El ${etiqueta} es demasiado largo (máximo 50)`;
-    if (!SOLO_LETRAS.test(texto)) {
-        return `El ${etiqueta} solo puede tener letras, espacios, guiones o apóstrofes`;
-    }
-    return "";
-};
+        if (!texto) return `El ${etiqueta} es obligatorio`;
+        if (texto.length < 2) return `El ${etiqueta} debe tener al menos 2 caracteres`;
+        if (texto.length > 50) return `El ${etiqueta} es demasiado largo (máximo 50)`;
+        if (!SOLO_LETRAS.test(texto)) {
+            return `El ${etiqueta} solo puede tener letras, espacios, guiones o apóstrofes`;
+        }
+        return "";
+    };
 
-const validarEmail = (valor) => {
-    const texto = valor.trim();
+    const validarEmail = (valor) => {
+        const texto = valor.trim();
 
-    if (!texto) return "El email es obligatorio";
-    if (texto.length > 150) return "El email es demasiado largo (máximo 150)";
-    if (!EMAIL_VALIDO.test(texto)) {
-        return "Ingresá un email válido, por ejemplo tucorreo@ejemplo.com";
-    }
-    return "";
-};
+        if (!texto) return "El email es obligatorio";
+        if (texto.length > 150) return "El email es demasiado largo (máximo 150)";
+        if (!EMAIL_VALIDO.test(texto)) {
+            return "Ingresá un email válido, por ejemplo tucorreo@ejemplo.com";
+        }
+        return "";
+    };
 
-const validarPassword = (valor) => {
-    if (!valor) return "La contraseña es obligatoria";
-    if (/\s/.test(valor)) return "La contraseña no puede tener espacios";
-    if (valor.length < 8) return "La contraseña debe tener al menos 8 caracteres";
-    if (valor.length > 64) return "La contraseña es demasiado larga (máximo 64)";
-    if (!/[A-Za-z]/.test(valor)) return "La contraseña debe tener al menos una letra";
-    if (!/\d/.test(valor)) return "La contraseña debe tener al menos un número";
-    return "";
-};
+    const validarPassword = (valor) => {
+        if (!valor) return "La contraseña es obligatoria";
+        if (/\s/.test(valor)) return "La contraseña no puede tener espacios";
+        if (valor.length < 8) return "La contraseña debe tener al menos 8 caracteres";
+        if (valor.length > 64) return "La contraseña es demasiado larga (máximo 64)";
+        if (!/[A-Za-z]/.test(valor)) return "La contraseña debe tener al menos una letra";
+        if (!/\d/.test(valor)) return "La contraseña debe tener al menos un número";
+        return "";
+    };
 
-const validarTelefono = (valor) => {
-    const texto = valor.trim();
+    const validarTelefono = (valor) => {
+        const texto = valor.trim();
 
-    if (!texto) return "El teléfono es obligatorio";
-    if (!/^\+?[\d\s-]+$/.test(texto)) {
-        return "El teléfono solo puede tener números, espacios, guiones y un + al inicio";
-    }
+        if (!texto) return "El teléfono es obligatorio";
+        if (!/^\d+$/.test(texto)) return "El teléfono solo puede tener números";
+        if (texto.length !== 10) return "El teléfono debe tener exactamente 10 dígitos";
+        return "";
+    };
 
-    const cantidad = texto.replace(/\D/g, "").length;
-    if (cantidad < 8 || cantidad > 15) {
-        return "El teléfono debe tener entre 8 y 15 dígitos";
-    }
-    return "";
-};
-
-const validarCampo = (name, valor) => {
-    switch (name) {
-        case "nombre":
-            return validarNombreApellido(valor, "nombre");
-        case "apellido":
-            return validarNombreApellido(valor, "apellido");
-        case "email":
-            return validarEmail(valor);
-        case "password":
-            return validarPassword(valor);
-        case "telefono":
-            return validarTelefono(valor);
-        default:
-            return "";
-    }
-};
+    const validarCampo = (name, valor) => {
+        switch (name) {
+            case "nombre":
+                return validarNombreApellido(valor, "nombre");
+            case "apellido":
+                return validarNombreApellido(valor, "apellido");
+            case "email":
+                return validarEmail(valor);
+            case "password":
+                return validarPassword(valor);
+            case "telefono":
+                return validarTelefono(valor);
+            default:
+                return "";
+        }
+    };
 
     const navigate = useNavigate();
     const login = useAuthStore((state) => state.login);
@@ -141,7 +137,9 @@ const validarCampo = (name, valor) => {
     const [enviando, setEnviando] = useState(false);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name } = e.target;
+        const value =
+            name === "telefono" ? e.target.value.replace(/\D/g, "") : e.target.value;
         setDatos({ ...datos, [name]: value });
 
         if (errores[name]) {
@@ -203,6 +201,11 @@ const validarCampo = (name, valor) => {
                 return;
             }
 
+
+            // Token JWT (dura 1 día) para no tener que volver a ingresar los datos
+            if (resultado.token) {
+                localStorage.setItem("token", resultado.token);
+            }
             login(resultado.usuario);
             console.log("Usuario guardado en Zustand:", useAuthStore.getState());
             alert("¡Usuario registrado correctamente!");
@@ -246,6 +249,7 @@ const validarCampo = (name, valor) => {
                                 placeholder={campo.placeholder}
                                 autoComplete={campo.autoComplete}
                                 maxLength={campo.maxLength}
+                                inputMode={campo.inputMode}
                                 aria-invalid={Boolean(errores[campo.name])}
                                 aria-describedby={
                                     errores[campo.name] ? `${campo.name}-error` : undefined
