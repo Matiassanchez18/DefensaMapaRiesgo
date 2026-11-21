@@ -5,10 +5,10 @@ const TAM_CELDA = 0.005;
 const obtenerOCrearZona = (latitud, longitud, callback) => {
   const fila = Math.floor(latitud / TAM_CELDA);
   const columna = Math.floor(longitud / TAM_CELDA);
-  const codigoCelda = ${fila}_${columna};
+  const codigoCelda = `${fila}${columna}`;
   const centroLatitud = (fila + 0.5) * TAM_CELDA;
   const centroLongitud = (columna + 0.5) * TAM_CELDA;
-  const nombre = Zona ${codigoCelda};
+  const nombre = `Zona ${codigoCelda}`;
 
   const sql = `
     INSERT INTO zona
