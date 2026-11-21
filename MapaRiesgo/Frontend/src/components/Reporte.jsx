@@ -273,8 +273,8 @@ function Reporte() {
         throw new Error(resultado.mensaje || "Error al enviar el reporte.");
       }
 
-      setMensaje("Reporte registrado correctamente.");
-
+      alert("Reporte enviado correctamente.");
+      
       e.target.reset();
       setTestigos(false);
 
