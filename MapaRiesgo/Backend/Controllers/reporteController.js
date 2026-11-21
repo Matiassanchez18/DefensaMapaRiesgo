@@ -274,9 +274,8 @@ const obtenerUltimoReporte = (req, res) => {
   const sql = `
     SELECT
       r.id_reporte,
-      d.nombre AS titulo,
-      d.nivel_gravedad AS nivelRiesgo,
-      r.descripcion,
+      r.descripcion AS titulo,
+      d.nivel_delito AS nivelRiesgo,
       r.direccion,
       r.fecha,
       r.hora,
@@ -290,7 +289,7 @@ const obtenerUltimoReporte = (req, res) => {
     ORDER BY r.id_reporte DESC
     LIMIT 1
   `;
-  
+
   db.query(sql, (error, resultados) => {
     if (error) {
       console.error("Error al obtener el último reporte:", error);
