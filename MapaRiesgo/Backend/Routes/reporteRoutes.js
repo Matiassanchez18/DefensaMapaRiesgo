@@ -12,9 +12,8 @@ const {
 } = require("../Controllers/reporteController");
 
 const validarReporte = require("../MiddleWare/validarReporte");
-const verificarToken = require("../MiddleWare/authToken");
 
-router.post("/", verificarToken, validarReporte, agregarReporte);
+router.post("/", validarReporte, agregarReporte);
 
 router.get("/", obtenerReportes);
 router.get("/ultimo", obtenerUltimoReporte);

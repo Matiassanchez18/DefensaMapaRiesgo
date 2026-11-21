@@ -5,13 +5,10 @@ const TAM_CELDA = 0.005;
 const obtenerOCrearZona = (latitud, longitud, callback) => {
   const fila = Math.floor(latitud / TAM_CELDA);
   const columna = Math.floor(longitud / TAM_CELDA);
-
-  const codigoCelda = `${fila}_${columna}`;
-
+  const codigoCelda = ${fila}_${columna};
   const centroLatitud = (fila + 0.5) * TAM_CELDA;
   const centroLongitud = (columna + 0.5) * TAM_CELDA;
-
-  const nombre = `Zona ${codigoCelda}`;
+  const nombre = Zona ${codigoCelda};
 
   const sql = `
     INSERT INTO zona
@@ -42,7 +39,7 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
       if (error) return callback(error);
 
       callback(null, resultado.insertId);
-    }
+    },
   );
 };
 
@@ -55,7 +52,20 @@ const agregarReporte = (req, res) => {
     testigos,
     latitud,
     longitud,
+    nombre_testigo,
+    apellido_testigo,
+    telefono_testigo,
   } = req.body;
+
+  const hayTestigos =
+    testigos === true ||
+    testigos === 1 ||
+    testigos === "1" ||
+    testigos === "si";
+
+  const nombre = String(nombre_testigo || "").trim();
+  const apellido = String(apellido_testigo || "").trim();
+  const telefono = String(telefono_testigo || "").trim();
 
   if (!id_usuario || !Number.isInteger(Number(id_usuario))) {
     return res.status(400).json({
@@ -84,6 +94,17 @@ const agregarReporte = (req, res) => {
   ) {
     return res.status(400).json({
       mensaje: "Las coordenadas no son válidas.",
+    });
+  }
+
+  if (hayTestigos && (!nombre || !apellido)) {
+    return res.status(400).json({
+      mensaje: "Debés completar el nombre y apellido del testigo.",
+      recibido: {
+        nombre_testigo,
+        apellido_testigo,
+        testigos,
+      },
     });
   }
 
@@ -125,7 +146,7 @@ const agregarReporte = (req, res) => {
         lat,
         lng,
         "Pendiente",
-        testigos ? 1 : 0,
+        hayTestigos ? 1 : 0,
         direccion,
       ],
       (error, resultado) => {
@@ -138,44 +159,78 @@ const agregarReporte = (req, res) => {
           });
         }
 
-        const sqlEstadistica = `
-          INSERT INTO estadistica
-          (
-            id_zona,
-            id_delito,
-            cantidad_delitos,
-            periodo,
-            fecha_actualizacion
-          )
-          VALUES (?, ?, 1, CURDATE(), CURDATE())
-          ON DUPLICATE KEY UPDATE
-            cantidad_delitos = cantidad_delitos + 1,
-            fecha_actualizacion = CURDATE()
-        `;
+        const idReporte = resultado.insertId;
 
-        db.query(
-          sqlEstadistica,
-          [idZona, idDelito],
-          (error) => {
+        const guardarEstadistica = () => {
+          const sqlEstadistica = `
+            INSERT INTO estadistica
+            (
+              id_zona,
+              id_delito,
+              cantidad_delitos,
+              periodo,
+              fecha_actualizacion
+            )
+            VALUES (?, ?, 1, CURDATE(), CURDATE())
+            ON DUPLICATE KEY UPDATE
+              cantidad_delitos = cantidad_delitos + 1,
+              fecha_actualizacion = CURDATE()
+          `;
+
+          db.query(sqlEstadistica, [idZona, idDelito], (error) => {
             if (error) {
               console.error("Error al actualizar estadística:", error);
 
               return res.status(500).json({
-                mensaje: "El reporte se guardó, pero no se pudo actualizar la estadística.",
-                id_reporte: resultado.insertId,
+                mensaje:
+                  "El reporte se guardó, pero no se pudo actualizar la estadística.",
+                id_reporte: idReporte,
                 detalle: error.sqlMessage,
               });
             }
 
-            res.status(201).json({
+            return res.status(201).json({
               mensaje: "Reporte guardado correctamente.",
-              id_reporte: resultado.insertId,
+              id_reporte: idReporte,
               id_zona: idZona,
               id_usuario: Number(id_usuario),
             });
-          }
-        );
-      }
+          });
+        };
+
+        const insertarTestigo = () => {
+          const sqlTestigo = `
+            INSERT INTO testigo
+            (nombre, apellido, telefono, id_reporte)
+            VALUES (?, ?, ?, ?)
+          `;
+
+          db.query(
+            sqlTestigo,
+            [nombre, apellido, telefono || null, idReporte],
+            (error) => {
+              if (error) {
+                console.error("Error al guardar testigo:", error);
+
+                return res.status(500).json({
+                  mensaje:
+                    "El reporte se guardó, pero no se pudo guardar el testigo.",
+                  id_reporte: idReporte,
+                  detalle: error.sqlMessage,
+                });
+              }
+
+              guardarEstadistica();
+            },
+          );
+        };
+
+        if (hayTestigos) {
+          insertarTestigo();
+        } else {
+          guardarEstadistica();
+        }
+      },
     );
   });
 };
@@ -215,19 +270,18 @@ const obtenerReportes = (req, res) => {
 
 const obtenerUltimoReporte = (req, res) => {
   const sql = `
-    SELECT
-      r.id_reporte,
-      r.descripcion AS titulo,
-      r.direccion,
-      r.fecha,
-      r.hora,
-      r.estado,
-      z.nombre AS zona,
-      z.nivel_riesgo AS nivelRiesgo
-    FROM reporte r
-    INNER JOIN zona z ON r.id_zona = z.id_zona
-    ORDER BY r.id_reporte DESC
-    LIMIT 1
+   SELECT
+  r.id_reporte,
+  d.nombre AS nombreDelito,
+  r.descripcion AS descripcion,
+  d.nivel_delito AS nivelRiesgo,
+  r.direccion,
+  z.nombre AS zona
+  FROM reporte r
+  INNER JOIN delito d ON r.id_delito = d.id_delito
+  LEFT JOIN zona z ON r.id_zona = z.id_zona
+  ORDER BY r.id_reporte DESC
+  LIMIT 1
   `;
 
   db.query(sql, (error, resultados) => {
@@ -356,12 +410,12 @@ const eliminarReporte = (req, res) => {
             console.error("Error al descontar estadística:", error);
 
             return res.status(500).json({
-              mensaje: "El reporte se eliminó, pero no se pudo actualizar la estadística.",
+              mensaje:
+                "El reporte se eliminó, pero no se pudo actualizar la estadística.",
               detalle: error.sqlMessage,
             });
           }
 
-          // Eliminar filas cuya cantidad llegó a cero
           const sqlLimpiar = `
             DELETE FROM estadistica
             WHERE cantidad_delitos <= 0
@@ -376,7 +430,7 @@ const eliminarReporte = (req, res) => {
               mensaje: "Reporte eliminado y estadística actualizada.",
             });
           });
-        }
+        },
       );
     });
   });

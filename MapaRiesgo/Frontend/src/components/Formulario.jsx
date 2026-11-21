@@ -1,24 +1,78 @@
-
+import { useState } from "react";
 import "../style/Formulario.css";
 import useAuthStore from "../store/Store";
 
-function Formulario({
-  darValor,
-  ubicacion,
-  seleccionarEnMapa,
-}) {
+function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
+  const [testigo, setTestigo] = useState(false);
+
+  const [errores, setErrores] = useState({
+    nombre_testigo: "",
+    apellido_testigo: "",
+    telefono_testigo: "",
+  });
+
+  const usuario = useAuthStore((state) => state.usuario);
+
+  const validarNombre = (valor) => {
+    if (!valor.trim()) {
+      return "Este campo es obligatorio.";
+    }
+
+    if (valor.trim().length < 2) {
+      return "Debe tener al menos 2 caracteres.";
+    }
+
+    if (!/^[\p{L}]+(?:[ '\u2019-][\p{L}]+)*$/u.test(valor.trim())) {
+      return "Ingresá solamente letras.";
+    }
+
+    return "";
+  };
+
+  const validarTelefono = (valor) => {
+    if (!valor.trim()) {
+      return "El teléfono es obligatorio.";
+    }
+
+    if (!/^\d{10}$/.test(valor)) {
+      return "El teléfono debe tener exactamente 10 dígitos.";
+    }
+
+    return "";
+  };
+
+  const manejarNombre = (e, campo) => {
+    const valor = e.target.value;
+
+    const valorFiltrado = valor.replace(/[^\p{L} '\u2019-]/gu, "");
+
+    e.target.value = valorFiltrado;
+
+    setErrores((prev) => ({
+      ...prev,
+      [campo]: validarNombre(valorFiltrado),
+    }));
+  };
+
+  const manejarTelefono = (e) => {
+    const valor = e.target.value.replace(/\D/g, "").slice(0, 10);
+
+    e.target.value = valor;
+
+    setErrores((prev) => ({
+      ...prev,
+      telefono_testigo: validarTelefono(valor),
+    }));
+  };
+
   const ocultarModal = () => {
     darValor(false);
   };
 
-  const usuario = useAuthStore((state) => state.usuario);
-  console.log("USUARIO EN ZUSTAND:", usuario);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!usuario || !usuario.id_usuario) {
-      console.log("ID DEL USUARIO:", usuario?.id_usuario);
+    if (!usuario?.id_usuario) {
       alert("Debés iniciar sesión para cargar un reporte.");
       return;
     }
@@ -28,19 +82,49 @@ function Formulario({
       return;
     }
 
-    const datosFormulario = new FormData(e.target);
+    const formulario = e.currentTarget;
+    const datos = new FormData(formulario);
+
+    const hayTestigos = datos.get("testigos") === "si";
+
+    const nombreTestigo = hayTestigos
+      ? String(datos.get("nombre_testigo") || "").trim()
+      : null;
+
+    const apellidoTestigo = hayTestigos
+      ? String(datos.get("apellido_testigo") || "").trim()
+      : null;
+
+    const telefonoTestigo = hayTestigos
+      ? String(datos.get("telefono_testigo") || "").trim()
+      : null;
+
+    if (hayTestigos) {
+      const nuevosErrores = {
+        nombre_testigo: validarNombre(nombreTestigo),
+        apellido_testigo: validarNombre(apellidoTestigo),
+        telefono_testigo: validarTelefono(telefonoTestigo),
+      };
+
+      setErrores(nuevosErrores);
+
+      if (Object.values(nuevosErrores).some((error) => error !== "")) {
+        return;
+      }
+    }
 
     const reporte = {
       id_usuario: usuario.id_usuario,
-      id_delito: Number(datosFormulario.get("id_delito")),
-      direccion: datosFormulario.get("direccion").trim(),
-      descripcion: datosFormulario.get("descripcion").trim(),
-      testigos: datosFormulario.get("testigos") === "si",
+      id_delito: Number(datos.get("id_delito")),
+      direccion: String(datos.get("direccion") || "").trim(),
+      descripcion: String(datos.get("descripcion") || "").trim(),
+      testigos: hayTestigos,
+      nombre_testigo: nombreTestigo,
+      apellido_testigo: apellidoTestigo,
+      telefono_testigo: telefonoTestigo,
       latitud: Number(ubicacion[0]),
       longitud: Number(ubicacion[1]),
     };
-
-    console.log("Datos enviados:", reporte);
 
     try {
       const respuesta = await fetch("http://localhost:3000/api/reportes", {
@@ -51,25 +135,25 @@ function Formulario({
         body: JSON.stringify(reporte),
       });
 
-      const datos = await respuesta.json();
+      const resultado = await respuesta.json();
 
       if (!respuesta.ok) {
-        if (datos.errores && datos.errores.length > 0) {
-          const mensajes = datos.errores
-            .map((error) => `${error.campo}: ${error.mensaje}`)
-            .join("\n");
-
-          throw new Error(mensajes);
-        }
-
-        throw new Error(datos.mensaje || "Error al guardar el reporte");
+        throw new Error(resultado.mensaje || "Error al guardar el reporte.");
       }
 
       alert("¡Reporte guardado correctamente!");
 
-      e.target.reset();
-      ocultarModal();
+      window.dispatchEvent(new Event("actualizarEstadisticas"));
 
+      formulario.reset();
+      setTestigo(false);
+      setErrores({
+        nombre_testigo: "",
+        apellido_testigo: "",
+        telefono_testigo: "",
+      });
+
+      ocultarModal();
     } catch (error) {
       console.error("Error al guardar el reporte:", error);
       alert(error.message);
@@ -125,17 +209,126 @@ function Formulario({
 
             <div className="reporte-campo">
               <label>¿Hubo testigos?</label>
+
               <div className="reporte-opciones">
                 <label className="reporte-opcion">
-                  <input type="radio" name="testigos" value="si" required />
+                  <input
+                    type="radio"
+                    name="testigos"
+                    value="si"
+                    required
+                    onChange={() => setTestigo(true)}
+                  />
                   Sí
                 </label>
 
                 <label className="reporte-opcion">
-                  <input type="radio" name="testigos" value="no" />
+                  <input
+                    type="radio"
+                    name="testigos"
+                    value="no"
+                    onChange={() => {
+                      setTestigo(false);
+                      setErrores({
+                        nombre_testigo: "",
+                        apellido_testigo: "",
+                        telefono_testigo: "",
+                      });
+                    }}
+                  />
                   No
                 </label>
               </div>
+
+              {testigo && (
+                <div className="testigo-formulario">
+                  <div className="testigo-header">
+                    <div className="testigo-icono">
+                      <i className="bi bi-person-vcard"></i>
+                    </div>
+                    <div>
+                      <h4>Datos del testigo</h4>
+                      <p>
+                        Información de contacto de la persona que presenció el
+                        hecho.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="testigo-campos">
+                    <div className="reporte-campo">
+                      <label htmlFor="nombre_testigo">Nombre</label>
+                      <input
+                        type="text"
+                        id="nombre_testigo"
+                        name="nombre_testigo"
+                        className="reporte-input-icono"
+                        placeholder="Ej: Juan"
+                        maxLength={100}
+                        required
+                        onChange={(e) => manejarNombre(e, "nombre_testigo")}
+                      />
+                      {errores.nombre_testigo && (
+                        <small className="error-campo">
+                          {errores.nombre_testigo}
+                        </small>
+                      )}
+                    </div>
+
+                    <div className="reporte-campo">
+                      <label htmlFor="apellido_testigo">Apellido</label>
+                      <input
+                        type="text"
+                        id="apellido_testigo"
+                        name="apellido_testigo"
+                        className="reporte-input-icono"
+                        placeholder="Ej: Pérez"
+                        maxLength={100}
+                        required
+                        onChange={(e) => manejarNombre(e, "apellido_testigo")}
+                      />
+                      {errores.apellido_testigo && (
+                        <small className="error-campo">
+                          {errores.apellido_testigo}
+                        </small>
+                      )}
+                    </div>
+
+                    <div className="reporte-campo">
+                      <label htmlFor="telefono_testigo">
+                        Teléfono de contacto
+                      </label>
+                      <div className="testigo-telefono">
+                        <i className="bi bi-telephone"></i>
+                        <input
+                          type="tel"
+                          id="telefono_testigo"
+                          name="telefono_testigo"
+                          placeholder="Ej: 3815555555"
+                          required
+                          maxLength={10}
+                          inputMode="numeric"
+                          pattern="[0-9]{10}"
+                          onChange={manejarTelefono}
+                        />
+                      </div>
+                      {errores.telefono_testigo && (
+                        <small className="error-campo">
+                          {errores.telefono_testigo}
+                        </small>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="testigo-nota">
+                    <i className="bi bi-info-circle"></i>
+                    <span>
+                      Estos datos permitirán identificar y contactar al testigo
+                      si es necesario.
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="reporte-campo">
@@ -152,7 +345,6 @@ function Formulario({
 
             <div className="reporte-campo">
               <label>Ubicación del incidente</label>
-
               <p>
                 {ubicacion
                   ? "Se utilizará tu ubicación GPS actual o el punto que marques en el mapa."
@@ -178,10 +370,7 @@ function Formulario({
                 Cancelar
               </button>
 
-              <button
-                type="submit"
-                className="reporte-btn-enviar"
-              >
+              <button type="submit" className="reporte-btn-enviar">
                 Enviar reporte
               </button>
             </div>

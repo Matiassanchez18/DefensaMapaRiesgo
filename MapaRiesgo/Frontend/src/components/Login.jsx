@@ -42,9 +42,9 @@ function Login() {
 
       // Solo funciona si el backend devuelve "rol" en el usuario
       if (data.usuario?.rol === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/");
+       navigate("/admin");
+       } else {
+         navigate("/");
       }
     } catch {
       setError("Error al conectar con el servidor.");

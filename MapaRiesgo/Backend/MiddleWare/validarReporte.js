@@ -1,5 +1,28 @@
 const { z } = require("zod");
 
+const nombreSchema = z
+  .string()
+  .trim()
+  .min(2, "Debe tener al menos 2 caracteres")
+  .max(100, "No puede superar los 100 caracteres")
+  .regex(
+    /^[\p{L}]+(?:[ '\u2019-][\p{L}]+)*$/u,
+    "Solo se permiten letras, espacios y guiones"
+  );
+
+const telefonoSchema = z
+  .string()
+  .trim()
+  .refine((telefono) => {
+    const numero = telefono.replace(/[\s()+.-]/g, "");
+
+    return (
+      /^\d{10}$/.test(numero) ||
+      /^54\d{10}$/.test(numero) ||
+      /^549\d{10}$/.test(numero)
+    );
+  }, "Ingresá un teléfono argentino válido");
+
 const reporteSchema = z.object({
   id_usuario: z.coerce
     .number()
@@ -27,9 +50,36 @@ const reporteSchema = z.object({
     error: "Indicá si hubo testigos",
   }),
 
+  nombre_testigo: nombreSchema.nullable().optional(),
+
+  apellido_testigo: nombreSchema.nullable().optional(),
+
+  telefono_testigo: z
+    .union([telefonoSchema, z.literal("")])
+    .nullable()
+    .optional(),
+
   latitud: z.coerce.number().min(-90).max(90),
 
   longitud: z.coerce.number().min(-180).max(180),
+}).superRefine((datos, ctx) => {
+  if (datos.testigos) {
+    if (!datos.nombre_testigo) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["nombre_testigo"],
+        message: "El nombre del testigo es obligatorio",
+      });
+    }
+
+    if (!datos.apellido_testigo) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["apellido_testigo"],
+        message: "El apellido del testigo es obligatorio",
+      });
+    }
+  }
 });
 
 const validarReporte = (req, res, next) => {

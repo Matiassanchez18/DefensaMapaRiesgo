@@ -1,4 +1,3 @@
-
 const db = require("../Config/db");
 
 const obtenerEstadisticas = async (req, res) => {
@@ -27,7 +26,7 @@ const obtenerEstadisticas = async (req, res) => {
 
    const consultaRobosPorDia = `
   SELECT
-    CASE DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d'))
+    CASE dia_semana
       WHEN 1 THEN 'Domingo'
       WHEN 2 THEN 'Lunes'
       WHEN 3 THEN 'Martes'
@@ -36,15 +35,16 @@ const obtenerEstadisticas = async (req, res) => {
       WHEN 6 THEN 'Viernes'
       WHEN 7 THEN 'Sábado'
     END AS dia,
-    SUM(e.cantidad_delitos) AS cantidad
-  FROM estadistica e
-  GROUP BY DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d'))
-  ORDER BY FIELD(
-    DAYOFWEEK(STR_TO_DATE(e.periodo, '%Y-%m-%d')),
-    2, 3, 4, 5, 6, 7, 1
-  )
+    SUM(cantidad_delitos) AS cantidad
+  FROM (
+    SELECT
+      DAYOFWEEK(STR_TO_DATE(periodo, '%Y-%m-%d')) AS dia_semana,
+      cantidad_delitos
+    FROM estadistica
+  ) AS datos
+  GROUP BY dia_semana
+  ORDER BY FIELD(dia_semana, 2, 3, 4, 5, 6, 7, 1)
 `;
-
     const consultaUsuariosPorMes = `
       SELECT
         DATE_FORMAT(fecha_registro, '%Y-%m') AS periodo,

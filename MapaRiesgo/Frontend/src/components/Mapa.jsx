@@ -66,7 +66,6 @@ function Mapa() {
   const [errorBusqueda, setErrorBusqueda] = useState("");
   const [posicionBusqueda, setPosicionBusqueda] = useState(null);
 
-  // GPS: funciona independientemente de si el usuario inició sesión.
   useEffect(() => {
     if (!navigator.geolocation) {
       setErrorGPS("Tu navegador no admite geolocalización.");
@@ -117,7 +116,6 @@ function Mapa() {
     };
   }, []);
 
-  // Control del scroll del documento al interactuar con el mapa.
   useEffect(() => {
     const mapa = document.querySelector(".leaflet-container");
 
