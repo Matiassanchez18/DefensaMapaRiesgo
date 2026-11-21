@@ -274,7 +274,7 @@ function Reporte() {
       }
 
       alert("Reporte enviado correctamente.");
-      
+
       e.target.reset();
       setTestigos(false);
 
@@ -560,7 +560,6 @@ function Reporte() {
                       );
                     })}
 
-                    {/* UBICACIÓN SELECCIONADA */}
                     {ubicacion && (
                       <CircleMarker
                         center={ubicacion}
