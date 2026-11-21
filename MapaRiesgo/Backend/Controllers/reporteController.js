@@ -5,12 +5,9 @@ const TAM_CELDA = 0.005;
 const obtenerOCrearZona = (latitud, longitud, callback) => {
   const fila = Math.floor(latitud / TAM_CELDA);
   const columna = Math.floor(longitud / TAM_CELDA);
-
   const codigoCelda = `${fila}_${columna}`;
-
   const centroLatitud = (fila + 0.5) * TAM_CELDA;
   const centroLongitud = (columna + 0.5) * TAM_CELDA;
-
   const nombre = `Zona ${codigoCelda}`;
 
   const sql = `
@@ -45,7 +42,6 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
     },
   );
 };
-
 
 const agregarReporte = (req, res) => {
   const {
@@ -225,7 +221,7 @@ const agregarReporte = (req, res) => {
               }
 
               guardarEstadistica();
-            }
+            },
           );
         };
 
@@ -234,11 +230,10 @@ const agregarReporte = (req, res) => {
         } else {
           guardarEstadistica();
         }
-      }
+      },
     );
   });
 };
-
 
 const obtenerReportes = (req, res) => {
   const sql = `
@@ -275,19 +270,18 @@ const obtenerReportes = (req, res) => {
 
 const obtenerUltimoReporte = (req, res) => {
   const sql = `
-    SELECT
-      r.id_reporte,
-      r.descripcion AS titulo,
-      r.direccion,
-      r.fecha,
-      r.hora,
-      r.estado,
-      z.nombre AS zona,
-      z.nivel_riesgo AS nivelRiesgo
-    FROM reporte r
-    INNER JOIN zona z ON r.id_zona = z.id_zona
-    ORDER BY r.id_reporte DESC
-    LIMIT 1
+   SELECT
+  r.id_reporte,
+  d.nombre AS nombreDelito,
+  r.descripcion AS descripcion,
+  d.nivel_delito AS nivelRiesgo,
+  r.direccion,
+  z.nombre AS zona
+  FROM reporte r
+  INNER JOIN delito d ON r.id_delito = d.id_delito
+  LEFT JOIN zona z ON r.id_zona = z.id_zona
+  ORDER BY r.id_reporte DESC
+  LIMIT 1
   `;
 
   db.query(sql, (error, resultados) => {
