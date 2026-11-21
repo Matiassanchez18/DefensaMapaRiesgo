@@ -5,12 +5,9 @@ const TAM_CELDA = 0.005;
 const obtenerOCrearZona = (latitud, longitud, callback) => {
   const fila = Math.floor(latitud / TAM_CELDA);
   const columna = Math.floor(longitud / TAM_CELDA);
-
   const codigoCelda = `${fila}_${columna}`;
-
   const centroLatitud = (fila + 0.5) * TAM_CELDA;
   const centroLongitud = (columna + 0.5) * TAM_CELDA;
-
   const nombre = `Zona ${codigoCelda}`;
 
   const sql = `
@@ -277,19 +274,23 @@ const obtenerUltimoReporte = (req, res) => {
   const sql = `
     SELECT
       r.id_reporte,
-      r.descripcion AS titulo,
+      d.nombre AS titulo,
+      d.nivel_gravedad AS nivelRiesgo,
+      r.descripcion,
       r.direccion,
       r.fecha,
       r.hora,
       r.estado,
-      z.nombre AS zona,
-      z.nivel_riesgo AS nivelRiesgo
+      z.nombre AS zona
     FROM reporte r
-    INNER JOIN zona z ON r.id_zona = z.id_zona
+    INNER JOIN delito d
+      ON r.id_delito = d.id_delito
+    LEFT JOIN zona z
+      ON r.id_zona = z.id_zona
     ORDER BY r.id_reporte DESC
     LIMIT 1
   `;
-
+  
   db.query(sql, (error, resultados) => {
     if (error) {
       console.error("Error al obtener el último reporte:", error);
