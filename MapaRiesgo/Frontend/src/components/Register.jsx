@@ -201,6 +201,11 @@ function Register() {
                 return;
             }
 
+
+            // Token JWT (dura 1 día) para no tener que volver a ingresar los datos
+            if (resultado.token) {
+                localStorage.setItem("token", resultado.token);
+            }
             login(resultado.usuario);
             console.log("Usuario guardado en Zustand:", useAuthStore.getState());
             alert("¡Usuario registrado correctamente!");

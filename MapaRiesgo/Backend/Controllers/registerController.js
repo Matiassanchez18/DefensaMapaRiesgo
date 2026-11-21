@@ -1,5 +1,5 @@
-
 const db = require("../Config/db");
+const { generarToken } = require("../Utils/token");
 
 const registrarUsuario = (req, res) => {
   const { nombre, apellido, email, password, telefono } = req.body;
@@ -56,18 +56,33 @@ const registrarUsuario = (req, res) => {
           });
         }
 
+        const usuario = {
+          id_usuario: resultado.insertId,
+          nombre,
+          apellido,
+          email,
+          telefono,
+          rol: "usuario",
+        };
+
+        // Token JWT que dura 1 día (se arma en Utils/token.js)
+        let token = null;
+        try {
+          token = generarToken({
+            id_usuario: usuario.id_usuario,
+            email: usuario.email,
+            rol: usuario.rol,
+          });
+        } catch (errorToken) {
+          console.error("ERROR AL GENERAR EL TOKEN:", errorToken);
+        }
+
         res.status(201).json({
           mensaje: "Usuario registrado correctamente",
-          usuario: {
-            id_usuario: resultado.insertId,
-            nombre,
-            apellido,
-            email,
-            telefono,
-            rol: "usuario",
-          },
+          token,
+          usuario,
         });
-      }
+      },
     );
   });
 };
