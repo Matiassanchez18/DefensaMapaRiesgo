@@ -1,17 +1,11 @@
-
 const db = require("../Config/db");
+const jwt = require("jsonwebtoken");
 
 const iniciarSesion = (req, res) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({
-      mensaje: "El correo y la contraseña son obligatorios.",
-    });
-  }
-
   const sql = `
-    SELECT id_usuario, nombre, apellido, email, rol
+    SELECT id_usuario, nombre, apellido, email
     FROM usuario
     WHERE email = ? AND \`contraseña\` = ?
   `;
@@ -19,9 +13,7 @@ const iniciarSesion = (req, res) => {
   db.query(sql, [email, password], (error, resultados) => {
     if (error) {
       console.error("Error SQL:", error);
-      return res.status(500).json({
-        mensaje: "Error al iniciar sesión.",
-      });
+      return res.status(500).json({ mensaje: "Error al iniciar sesión." });
     }
 
     if (resultados.length === 0) {
@@ -30,9 +22,18 @@ const iniciarSesion = (req, res) => {
       });
     }
 
+    const usuario = resultados[0];
+
+    const token = jwt.sign(
+      { id_usuario: usuario.id_usuario, email: usuario.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+
     res.status(200).json({
       mensaje: "Inicio de sesión correcto.",
-      usuario: resultados[0],
+      usuario,
+      token,
     });
   });
 };
