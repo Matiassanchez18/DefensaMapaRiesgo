@@ -1,4 +1,4 @@
-import Reporte from "../Components/Reporte";
+import Reporte from "../components/Reporte";
 
 
 function Denuncia() {
