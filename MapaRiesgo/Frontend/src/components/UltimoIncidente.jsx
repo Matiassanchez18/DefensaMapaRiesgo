@@ -47,7 +47,7 @@ function UltimoIncidente({ incidente }) {
           <div className="mt-6 flex items-center gap-3">
 
             <span className="text-sm text-slate-300">
-              Nivel de riesgo:
+              Peligrosidad de zona:
             </span>
 
             <span
