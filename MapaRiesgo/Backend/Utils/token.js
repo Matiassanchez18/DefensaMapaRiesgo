@@ -1,7 +1,6 @@
 const path = require("path");
 const jwt = require("jsonwebtoken");
 
-// Lee el archivo Backend/.env (JWT_SECRET) sin importar desde qué carpeta se inicie el servidor
 require("dotenv").config({
   path: path.join(__dirname, "..", ".env"),
   quiet: true,
@@ -15,14 +14,12 @@ if (!SECRET) {
   );
 }
 
-const DURACION = "1d"; // el token vence al día
+const DURACION = "1d";
 
-// Crea un token firmado con los datos del usuario
 const generarToken = (datos) => {
   return jwt.sign(datos, SECRET, { expiresIn: DURACION });
 };
 
-// Devuelve los datos del token si es válido y no venció; si no, devuelve null
 const verificarToken = (token) => {
   try {
     return jwt.verify(token, SECRET);

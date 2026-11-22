@@ -1,10 +1,20 @@
 const db = require("../Config/db");
 const { generarToken } = require("../Utils/token");
+const bcrypt = require("bcrypt");
 
-const registrarUsuario = (req, res) => {
+const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password, telefono } = req.body;
 
-  const sqlExiste = "SELECT id_usuario FROM usuario WHERE email = ?";
+  // La contraseña se encripta con bcrypt: en la base se guarda el hash, nunca el texto real
+  let passwordHash;
+  try {
+    passwordHash = await bcrypt.hash(password, 10);
+  } catch (errorHash) {
+    console.error("ERROR AL ENCRIPTAR:", errorHash);
+    return res.status(500).json({
+      mensaje: "Error al registrar el usuario",
+    });
+  }
 
   db.query(sqlExiste, [email], (error, filas) => {
     if (error) {
@@ -34,7 +44,7 @@ const registrarUsuario = (req, res) => {
 
     db.query(
       sqlInsert,
-      [nombre, apellido, email, password, telefono],
+      [nombre, apellido, email, passwordHash, telefono],
       (error, resultado) => {
         if (error) {
           if (error.code === "ER_DUP_ENTRY") {
