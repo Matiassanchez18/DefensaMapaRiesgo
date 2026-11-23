@@ -15,6 +15,7 @@ import Usuarios from "./pages/Usuarios";
 import RutaPrivada from "./components/RutaPrivada";
 import NotFound from "./pages/NotFound";
 import CrudTestigos from "./pages/CrudTestigo";
+import Criminales from "./pages/Criminales";
 
 function App() {
   return (
@@ -37,7 +38,8 @@ function App() {
             <Route path="reportes" element={<DashboardReportes />} />
             <Route path="mapa" element={<PaginaMapa />} />
             <Route path="usuarios" element={<Usuarios />} />
-            <Route path="crudTestigos" element={<CrudTestigos/>} />
+            <Route path="crudTestigos" element={<CrudTestigos />} />
+            <Route path="criminales" element={<Criminales />} />
           </Route>
         </Route>
       </Routes>
