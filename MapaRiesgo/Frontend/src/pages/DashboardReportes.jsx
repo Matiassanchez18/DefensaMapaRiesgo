@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 
 const API = "http://localhost:3000/api/reportes";
@@ -22,7 +21,9 @@ const colorEstado = {
 };
 
 const normalizarRiesgo = (riesgo) => {
-  const valor = String(riesgo || "").trim().toLowerCase();
+  const valor = String(riesgo || "")
+    .trim()
+    .toLowerCase();
 
   if (valor === "alta" || valor === "alto") return "Alto";
   if (valor === "media" || valor === "medio") return "Medio";
@@ -102,19 +103,19 @@ function DashboardReportes() {
   }, []);
 
   const pendientes = reportes.filter(
-    (reporte) => reporte.estado === "Pendiente"
+    (reporte) => reporte.estado === "Pendiente",
   ).length;
 
   const resueltos = reportes.filter(
-    (reporte) => reporte.estado === "Resuelto"
+    (reporte) => reporte.estado === "Resuelto",
   ).length;
 
   const enRevision = reportes.filter(
-    (reporte) => reporte.estado === "En revisión"
+    (reporte) => reporte.estado === "En revisión",
   ).length;
 
   const reportesAlto = reportes.filter(
-    (reporte) => reporte.riesgo === "Alto"
+    (reporte) => reporte.riesgo === "Alto",
   ).length;
 
   const cards = [
@@ -166,8 +167,7 @@ function DashboardReportes() {
         reporte.titulo?.toLowerCase().includes(busqueda.toLowerCase()) ||
         String(reporte.id).includes(busqueda);
 
-      const coincideZona =
-        filtroZona === "" || reporte.zona === filtroZona;
+      const coincideZona = filtroZona === "" || reporte.zona === filtroZona;
 
       const coincideRiesgo =
         filtroRiesgo === "" ||
@@ -177,22 +177,19 @@ function DashboardReportes() {
         filtroEstado === "" || reporte.estado === filtroEstado;
 
       return (
-        coincideBusqueda &&
-        coincideZona &&
-        coincideRiesgo &&
-        coincideEstado
+        coincideBusqueda && coincideZona && coincideRiesgo && coincideEstado
       );
     });
   }, [reportes, busqueda, filtroZona, filtroRiesgo, filtroEstado]);
 
   const totalPaginas = Math.max(
     1,
-    Math.ceil(reportesFiltrados.length / reportesPorPagina)
+    Math.ceil(reportesFiltrados.length / reportesPorPagina),
   );
 
   const reportesPaginados = reportesFiltrados.slice(
     (paginaActual - 1) * reportesPorPagina,
-    paginaActual * reportesPorPagina
+    paginaActual * reportesPorPagina,
   );
 
   useEffect(() => {
@@ -201,9 +198,7 @@ function DashboardReportes() {
 
   const seleccionarReporte = (id) => {
     setSeleccionados((prev) =>
-      prev.includes(id)
-        ? prev.filter((item) => item !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   };
 
@@ -211,19 +206,15 @@ function DashboardReportes() {
     const idsPagina = reportesPaginados.map((reporte) => reporte.id);
 
     if (e.target.checked) {
-      setSeleccionados((prev) => [
-        ...new Set([...prev, ...idsPagina]),
-      ]);
+      setSeleccionados((prev) => [...new Set([...prev, ...idsPagina])]);
     } else {
-      setSeleccionados((prev) =>
-        prev.filter((id) => !idsPagina.includes(id))
-      );
+      setSeleccionados((prev) => prev.filter((id) => !idsPagina.includes(id)));
     }
   };
 
   const eliminar = async (id) => {
     const confirmar = window.confirm(
-      "¿Estás seguro de que querés eliminar este reporte?"
+      "¿Estás seguro de que querés eliminar este reporte?",
     );
 
     if (!confirmar) return;
@@ -239,13 +230,9 @@ function DashboardReportes() {
         throw new Error(datos.mensaje || "No se pudo eliminar el reporte.");
       }
 
-      setReportes((prev) =>
-        prev.filter((reporte) => reporte.id !== id)
-      );
+      setReportes((prev) => prev.filter((reporte) => reporte.id !== id));
 
-      setSeleccionados((prev) =>
-        prev.filter((item) => item !== id)
-      );
+      setSeleccionados((prev) => prev.filter((item) => item !== id));
 
       if (viendo?.id === id) setViendo(null);
       if (editando?.id === id) setEditando(null);
@@ -284,8 +271,8 @@ function DashboardReportes() {
                 titulo: editando.titulo,
                 estado: editando.estado,
               }
-            : reporte
-        )
+            : reporte,
+        ),
       );
 
       setEditando(null);
@@ -297,7 +284,6 @@ function DashboardReportes() {
 
   return (
     <div className="space-y-6">
-
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="mb-1 flex items-center gap-2 text-blue-400">
@@ -315,16 +301,6 @@ function DashboardReportes() {
             Supervisá, filtrá y administrá los reportes de zonas de riesgo.
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={obtenerReportes}
-          disabled={cargando}
-          className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-blue-400/30 hover:bg-blue-500/10 hover:text-blue-300 disabled:opacity-50"
-        >
-          <i className={`bi bi-arrow-clockwise ${cargando ? "animate-spin" : ""}`}></i>
-          Actualizar lista
-        </button>
       </div>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -348,7 +324,9 @@ function DashboardReportes() {
                 </p>
               </div>
 
-              <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-xl ${card.fondo} ${card.color}`}>
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-xl text-xl ${card.fondo} ${card.color}`}
+              >
                 <i className={`bi ${card.icono}`}></i>
               </div>
             </div>
@@ -357,12 +335,9 @@ function DashboardReportes() {
       </section>
 
       <section className="rounded-xl border border-white/10 bg-white/[0.03]">
-
         <div className="flex flex-col gap-3 border-b border-white/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-sm font-bold text-white">
-              Lista de reportes
-            </h2>
+            <h2 className="text-sm font-bold text-white">Lista de reportes</h2>
 
             <p className="mt-1 text-[11px] text-slate-400">
               Consultá y administrá los reportes registrados.
@@ -370,8 +345,14 @@ function DashboardReportes() {
           </div>
 
           <div className="flex items-center gap-2 text-[11px] text-slate-400">
-            <span className={`h-2 w-2 rounded-full ${error ? "bg-red-400" : cargando ? "bg-yellow-400" : "bg-emerald-400"}`}></span>
-            {error ? "Error de conexión" : cargando ? "Consultando API..." : "API conectada"}
+            <span
+              className={`h-2 w-2 rounded-full ${error ? "bg-red-400" : cargando ? "bg-yellow-400" : "bg-emerald-400"}`}
+            ></span>
+            {error
+              ? "Error de conexión"
+              : cargando
+                ? "Consultando API..."
+                : "API conectada"}
           </div>
         </div>
 
@@ -443,9 +424,7 @@ function DashboardReportes() {
         {cargando ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500/20 border-t-blue-500"></div>
-            <p className="mt-3 text-xs text-slate-400">
-              Cargando reportes...
-            </p>
+            <p className="mt-3 text-xs text-slate-400">Cargando reportes...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-14">
@@ -472,7 +451,6 @@ function DashboardReportes() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[950px] text-left text-xs">
-
               <thead className="bg-white/[0.03]">
                 <tr className="text-[10px] uppercase tracking-wider text-slate-500">
                   <th className="px-5 py-4">
@@ -481,7 +459,7 @@ function DashboardReportes() {
                       checked={
                         reportesPaginados.length > 0 &&
                         reportesPaginados.every((reporte) =>
-                          seleccionados.includes(reporte.id)
+                          seleccionados.includes(reporte.id),
                         )
                       }
                       onChange={seleccionarTodos}
@@ -495,7 +473,9 @@ function DashboardReportes() {
                   <th className="px-3 py-4 font-semibold">Riesgo</th>
                   <th className="px-3 py-4 font-semibold">Estado</th>
                   <th className="px-3 py-4 font-semibold">Fecha</th>
-                  <th className="px-5 py-4 text-right font-semibold">Acciones</th>
+                  <th className="px-5 py-4 text-right font-semibold">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
 
@@ -504,7 +484,9 @@ function DashboardReportes() {
                   <tr
                     key={reporte.id}
                     className={`border-t border-white/[0.06] transition hover:bg-white/[0.025] ${
-                      seleccionados.includes(reporte.id) ? "bg-blue-500/[0.04]" : ""
+                      seleccionados.includes(reporte.id)
+                        ? "bg-blue-500/[0.04]"
+                        : ""
                     }`}
                   >
                     <td className="px-5 py-4">
@@ -526,20 +508,22 @@ function DashboardReportes() {
                       </span>
                     </td>
 
-                    <td className="px-3 py-4 text-slate-400">
-                      {reporte.zona}
-                    </td>
+                    <td className="px-3 py-4 text-slate-400">{reporte.zona}</td>
 
                     <td className="px-3 py-4">
                       <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold text-slate-300">
-                        <span className={`h-2 w-2 rounded-full ${colorRiesgo[reporte.riesgo] || "bg-gray-400"}`}></span>
+                        <span
+                          className={`h-2 w-2 rounded-full ${colorRiesgo[reporte.riesgo] || "bg-gray-400"}`}
+                        ></span>
                         {reporte.riesgo}
                       </span>
                     </td>
 
                     <td className="px-3 py-4">
                       <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold text-slate-300">
-                        <span className={`h-2 w-2 rounded-full ${colorEstado[reporte.estado] || "bg-gray-400"}`}></span>
+                        <span
+                          className={`h-2 w-2 rounded-full ${colorEstado[reporte.estado] || "bg-gray-400"}`}
+                        ></span>
                         {reporte.estado}
                       </span>
                     </td>
@@ -593,7 +577,7 @@ function DashboardReportes() {
                 {(paginaActual - 1) * reportesPorPagina + 1}-
                 {Math.min(
                   paginaActual * reportesPorPagina,
-                  reportesFiltrados.length
+                  reportesFiltrados.length,
                 )}
               </span>{" "}
               de{" "}
@@ -613,20 +597,22 @@ function DashboardReportes() {
                 <i className="bi bi-chevron-left"></i>
               </button>
 
-              {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((pagina) => (
-                <button
-                  key={pagina}
-                  type="button"
-                  onClick={() => setPaginaActual(pagina)}
-                  className={`h-8 min-w-8 rounded-lg px-2 text-[11px] font-semibold transition ${
-                    paginaActual === pagina
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
-                      : "border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
-                  }`}
-                >
-                  {pagina}
-                </button>
-              ))}
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(
+                (pagina) => (
+                  <button
+                    key={pagina}
+                    type="button"
+                    onClick={() => setPaginaActual(pagina)}
+                    className={`h-8 min-w-8 rounded-lg px-2 text-[11px] font-semibold transition ${
+                      paginaActual === pagina
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
+                        : "border border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {pagina}
+                  </button>
+                ),
+              )}
 
               <button
                 type="button"
@@ -699,7 +685,9 @@ function DashboardReportes() {
                     Riesgo
                   </p>
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-2.5 py-1 text-xs text-slate-300">
-                    <span className={`h-2 w-2 rounded-full ${colorRiesgo[viendo.riesgo] || "bg-gray-400"}`}></span>
+                    <span
+                      className={`h-2 w-2 rounded-full ${colorRiesgo[viendo.riesgo] || "bg-gray-400"}`}
+                    ></span>
                     {viendo.riesgo}
                   </span>
                 </div>
@@ -709,7 +697,9 @@ function DashboardReportes() {
                     Estado
                   </p>
                   <span className="inline-flex items-center gap-2 rounded-full bg-white/[0.05] px-2.5 py-1 text-xs text-slate-300">
-                    <span className={`h-2 w-2 rounded-full ${colorEstado[viendo.estado] || "bg-gray-400"}`}></span>
+                    <span
+                      className={`h-2 w-2 rounded-full ${colorEstado[viendo.estado] || "bg-gray-400"}`}
+                    ></span>
                     {viendo.estado}
                   </span>
                 </div>
@@ -747,9 +737,7 @@ function DashboardReportes() {
             className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-[#111b2b] shadow-2xl shadow-black/40"
           >
             <div className="border-b border-white/10 px-6 py-5">
-              <h2 className="text-base font-bold text-white">
-                Editar reporte
-              </h2>
+              <h2 className="text-base font-bold text-white">Editar reporte</h2>
               <p className="mt-1 text-xs text-slate-400">
                 Modificá la descripción y el estado del reporte #{editando.id}.
               </p>
@@ -830,7 +818,6 @@ function DashboardReportes() {
           </form>
         </div>
       )}
-
     </div>
   );
 }

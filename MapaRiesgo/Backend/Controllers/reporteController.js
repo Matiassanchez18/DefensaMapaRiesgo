@@ -1,4 +1,3 @@
-
 const db = require("../Config/db");
 
 const TAM_CELDA = 0.005;
@@ -6,12 +5,9 @@ const TAM_CELDA = 0.005;
 const obtenerOCrearZona = (latitud, longitud, callback) => {
   const fila = Math.floor(latitud / TAM_CELDA);
   const columna = Math.floor(longitud / TAM_CELDA);
-
-  const codigoCelda = `${fila}_${columna}`;
-
+  const codigoCelda = `${fila}${columna}`;
   const centroLatitud = (fila + 0.5) * TAM_CELDA;
   const centroLongitud = (columna + 0.5) * TAM_CELDA;
-
   const nombre = `Zona ${codigoCelda}`;
 
   const sql = `
@@ -40,9 +36,7 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
       centroLongitud,
     ],
     (error, resultado) => {
-      if (error) {
-        return callback(error);
-      }
+      if (error) return callback(error);
 
       callback(null, resultado.insertId);
     },
@@ -50,23 +44,38 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
 };
 
 const agregarReporte = (req, res) => {
-  console.log("BODY RECIBIDO:", req.body);
-  console.log("ID USUARIO RECIBIDO:", req.body?.id_usuario);
+  // CAMBIO JWT: el usuario sale del token verificado, no del cuerpo
+  const id_usuario = req.usuario.id_usuario;
 
   const {
-    id_usuario,
     id_delito,
     direccion,
     descripcion,
     testigos,
     latitud,
     longitud,
+    nombre_testigo,
+    apellido_testigo,
+    telefono_testigo,
   } = req.body;
 
-  // Validar que se haya enviado el usuario.
-  if (!id_usuario || !Number.isInteger(Number(id_usuario))) {
+  const hayTestigos =
+    testigos === true ||
+    testigos === 1 ||
+    testigos === "1" ||
+    testigos === "si";
+
+  const nombre = String(nombre_testigo || "").trim();
+  const apellido = String(apellido_testigo || "").trim();
+  const telefono = String(telefono_testigo || "").trim();
+
+  // CAMBIO JWT: se borró el bloque que validaba id_usuario del cuerpo
+
+  const idDelito = Number(id_delito);
+
+  if (!Number.isInteger(idDelito) || idDelito <= 0) {
     return res.status(400).json({
-      mensaje: "Debés iniciar sesión para cargar un reporte.",
+      mensaje: "El delito indicado no es válido.",
     });
   }
 
@@ -86,8 +95,16 @@ const agregarReporte = (req, res) => {
     });
   }
 
-  console.log("Usuario que carga el reporte:", id_usuario);
-  console.log("Coordenadas recibidas:", lat, lng);
+  if (hayTestigos && (!nombre || !apellido)) {
+    return res.status(400).json({
+      mensaje: "Debés completar el nombre y apellido del testigo.",
+      recibido: {
+        nombre_testigo,
+        apellido_testigo,
+        testigos,
+      },
+    });
+  }
 
   obtenerOCrearZona(lat, lng, (error, idZona) => {
     if (error) {
@@ -99,7 +116,7 @@ const agregarReporte = (req, res) => {
       });
     }
 
-    const sql = `
+    const sqlReporte = `
       INSERT INTO reporte
       (
         id_usuario,
@@ -118,21 +135,21 @@ const agregarReporte = (req, res) => {
     `;
 
     db.query(
-      sql,
+      sqlReporte,
       [
         Number(id_usuario),
-        id_delito,
+        idDelito,
         idZona,
         descripcion,
         lat,
         lng,
         "Pendiente",
-        testigos,
+        hayTestigos ? 1 : 0,
         direccion,
       ],
       (error, resultado) => {
         if (error) {
-          console.error("Error SQL:", error);
+          console.error("Error al guardar reporte:", error);
 
           return res.status(500).json({
             mensaje: "Error al guardar el reporte.",
@@ -140,12 +157,77 @@ const agregarReporte = (req, res) => {
           });
         }
 
-        res.status(201).json({
-          mensaje: "Reporte guardado correctamente.",
-          id_reporte: resultado.insertId,
-          id_zona: idZona,
-          id_usuario: Number(id_usuario),
-        });
+        const idReporte = resultado.insertId;
+
+        const guardarEstadistica = () => {
+          const sqlEstadistica = `
+            INSERT INTO estadistica
+            (
+              id_zona,
+              id_delito,
+              cantidad_delitos,
+              periodo,
+              fecha_actualizacion
+            )
+            VALUES (?, ?, 1, CURDATE(), CURDATE())
+            ON DUPLICATE KEY UPDATE
+              cantidad_delitos = cantidad_delitos + 1,
+              fecha_actualizacion = CURDATE()
+          `;
+
+          db.query(sqlEstadistica, [idZona, idDelito], (error) => {
+            if (error) {
+              console.error("Error al actualizar estadística:", error);
+
+              return res.status(500).json({
+                mensaje:
+                  "El reporte se guardó, pero no se pudo actualizar la estadística.",
+                id_reporte: idReporte,
+                detalle: error.sqlMessage,
+              });
+            }
+
+            return res.status(201).json({
+              mensaje: "Reporte guardado correctamente.",
+              id_reporte: idReporte,
+              id_zona: idZona,
+              id_usuario: Number(id_usuario),
+            });
+          });
+        };
+
+        const insertarTestigo = () => {
+          const sqlTestigo = `
+            INSERT INTO testigo
+            (nombre, apellido, telefono, id_reporte)
+            VALUES (?, ?, ?, ?)
+          `;
+
+          db.query(
+            sqlTestigo,
+            [nombre, apellido, telefono || null, idReporte],
+            (error) => {
+              if (error) {
+                console.error("Error al guardar testigo:", error);
+
+                return res.status(500).json({
+                  mensaje:
+                    "El reporte se guardó, pero no se pudo guardar el testigo.",
+                  id_reporte: idReporte,
+                  detalle: error.sqlMessage,
+                });
+              }
+
+              guardarEstadistica();
+            },
+          );
+        };
+
+        if (hayTestigos) {
+          insertarTestigo();
+        } else {
+          guardarEstadistica();
+        }
       },
     );
   });
@@ -186,19 +268,18 @@ const obtenerReportes = (req, res) => {
 
 const obtenerUltimoReporte = (req, res) => {
   const sql = `
-    SELECT
-      r.id_reporte,
-      r.descripcion AS titulo,
-      r.direccion,
-      r.fecha,
-      r.hora,
-      r.estado,
-      z.nombre AS zona,
-      z.nivel_riesgo AS nivelRiesgo
-    FROM reporte r
-    INNER JOIN zona z ON r.id_zona = z.id_zona
-    ORDER BY r.id_reporte DESC
-    LIMIT 1
+   SELECT
+  r.id_reporte,
+  d.nombre AS nombreDelito,
+  r.descripcion AS descripcion,
+  d.nivel_delito AS nivelRiesgo,
+  r.direccion,
+  z.nombre AS zona
+  FROM reporte r
+  INNER JOIN delito d ON r.id_delito = d.id_delito
+  LEFT JOIN zona z ON r.id_zona = z.id_zona
+  ORDER BY r.id_reporte DESC
+  LIMIT 1
   `;
 
   db.query(sql, (error, resultados) => {
@@ -269,28 +350,86 @@ const actualizarReporte = (req, res) => {
 const eliminarReporte = (req, res) => {
   const { id } = req.params;
 
-  const sql = `
-    DELETE FROM reporte
+  const sqlBuscar = `
+    SELECT
+      id_zona,
+      id_delito,
+      DATE_FORMAT(fecha, '%Y-%m-%d') AS periodo
+    FROM reporte
     WHERE id_reporte = ?
   `;
 
-  db.query(sql, [id], (error, resultado) => {
+  db.query(sqlBuscar, [id], (error, reportes) => {
     if (error) {
-      console.error("Error al eliminar reporte:", error);
+      console.error("Error al buscar reporte:", error);
 
       return res.status(500).json({
-        mensaje: "Error al eliminar el reporte.",
+        mensaje: "Error al buscar el reporte.",
       });
     }
 
-    if (resultado.affectedRows === 0) {
+    if (reportes.length === 0) {
       return res.status(404).json({
         mensaje: "No se encontró el reporte.",
       });
     }
 
-    res.status(200).json({
-      mensaje: "Reporte eliminado correctamente.",
+    const reporte = reportes[0];
+
+    const sqlEliminar = `
+      DELETE FROM reporte
+      WHERE id_reporte = ?
+    `;
+
+    db.query(sqlEliminar, [id], (error) => {
+      if (error) {
+        console.error("Error al eliminar reporte:", error);
+
+        return res.status(500).json({
+          mensaje: "Error al eliminar el reporte.",
+        });
+      }
+
+      const sqlDescontar = `
+        UPDATE estadistica
+        SET
+          cantidad_delitos = cantidad_delitos - 1,
+          fecha_actualizacion = CURDATE()
+        WHERE id_zona = ?
+          AND id_delito = ?
+          AND periodo = ?
+      `;
+
+      db.query(
+        sqlDescontar,
+        [reporte.id_zona, reporte.id_delito, reporte.periodo],
+        (error) => {
+          if (error) {
+            console.error("Error al descontar estadística:", error);
+
+            return res.status(500).json({
+              mensaje:
+                "El reporte se eliminó, pero no se pudo actualizar la estadística.",
+              detalle: error.sqlMessage,
+            });
+          }
+
+          const sqlLimpiar = `
+            DELETE FROM estadistica
+            WHERE cantidad_delitos <= 0
+          `;
+
+          db.query(sqlLimpiar, (error) => {
+            if (error) {
+              console.error("Error al limpiar estadística:", error);
+            }
+
+            res.status(200).json({
+              mensaje: "Reporte eliminado y estadística actualizada.",
+            });
+          });
+        },
+      );
     });
   });
 };

@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 
@@ -14,6 +15,8 @@ import Registrarse from "./pages/RegisterP";
 import Usuarios from "./pages/Usuarios";
 import RutaPrivada from "./components/RutaPrivada";
 import NotFound from "./pages/NotFound";
+import CrudTestigos from "./pages/CrudTestigo";
+import Criminales from "./pages/Criminales";
 
 function App() {
   return (
@@ -21,7 +24,6 @@ function App() {
       <Routes>
         <Route path="/login" element={<IniciarSesion />} />
         <Route path="/register" element={<Registrarse />} />
-        <Route path="*" element={<NotFound/>}></Route>
 
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
@@ -36,8 +38,12 @@ function App() {
             <Route path="reportes" element={<DashboardReportes />} />
             <Route path="mapa" element={<PaginaMapa />} />
             <Route path="usuarios" element={<Usuarios />} />
+            <Route path="crudTestigos" element={<CrudTestigos />} />
+            <Route path="criminales" element={<Criminales />} />
           </Route>
         </Route>
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

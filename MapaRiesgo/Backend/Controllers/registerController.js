@@ -1,14 +1,34 @@
 
 const db = require("../Config/db");
+const { generarToken } = require("../Utils/token");
+const bcrypt = require("bcrypt");
 
-const registrarUsuario = (req, res) => {
+const registrarUsuario = async (req, res) => {
   const { nombre, apellido, email, password, telefono } = req.body;
 
-  const sqlExiste = "SELECT id_usuario FROM usuario WHERE email = ?";
+  // Encriptar contraseña
+  let passwordHash;
+
+  try {
+    passwordHash = await bcrypt.hash(password, 10);
+  } catch (errorHash) {
+    console.error("ERROR AL ENCRIPTAR:", errorHash);
+
+    return res.status(500).json({
+      mensaje: "Error al registrar el usuario",
+    });
+  }
+
+  const sqlExiste = `
+    SELECT id_usuario
+    FROM usuario
+    WHERE email = ?
+  `;
 
   db.query(sqlExiste, [email], (error, filas) => {
     if (error) {
       console.error("ERROR MYSQL:", error);
+
       return res.status(500).json({
         mensaje: "Error al registrar el usuario",
       });
@@ -26,6 +46,7 @@ const registrarUsuario = (req, res) => {
       });
     }
 
+    // Insertar usuario
     const sqlInsert = `
       INSERT INTO usuario
         (nombre, apellido, email, \`contraseña\`, telefono, fecha_registro, rol)
@@ -34,7 +55,7 @@ const registrarUsuario = (req, res) => {
 
     db.query(
       sqlInsert,
-      [nombre, apellido, email, password, telefono],
+      [nombre, apellido, email, passwordHash, telefono],
       (error, resultado) => {
         if (error) {
           if (error.code === "ER_DUP_ENTRY") {
@@ -56,16 +77,32 @@ const registrarUsuario = (req, res) => {
           });
         }
 
-        res.status(201).json({
+        const usuario = {
+          id_usuario: resultado.insertId,
+          nombre,
+          apellido,
+          email,
+          telefono,
+          rol: "usuario",
+        };
+
+        // Generar JWT
+        let token = null;
+
+        try {
+          token = generarToken({
+            id_usuario: usuario.id_usuario,
+            email: usuario.email,
+            rol: usuario.rol,
+          });
+        } catch (errorToken) {
+          console.error("ERROR AL GENERAR EL TOKEN:", errorToken);
+        }
+
+        return res.status(201).json({
           mensaje: "Usuario registrado correctamente",
-          usuario: {
-            id_usuario: resultado.insertId,
-            nombre,
-            apellido,
-            email,
-            telefono,
-            rol: "usuario",
-          },
+          token,
+          usuario,
         });
       }
     );

@@ -43,15 +43,8 @@ const registerSchema = z.object({
     .string({ error: "El teléfono es obligatorio" })
     .trim()
     .min(1, "El teléfono es obligatorio")
-    .refine(
-      (valor) => /^\+?[\d\s-]+$/.test(valor),
-      "El teléfono solo puede tener números, espacios, guiones y un + al inicio",
-    )
-    .refine((valor) => {
-      const cantidad = valor.replace(/\D/g, "").length;
-      return cantidad >= 8 && cantidad <= 15;
-    }, "El teléfono debe tener entre 8 y 15 dígitos")
-    .transform((valor) => valor.replace(/[\s-]/g, "")),
+    .regex(/^\d+$/, "El teléfono solo puede tener números")
+    .length(10, "El teléfono debe tener exactamente 10 dígitos"),
 });
 
 const validarRegister = (req, res, next) => {

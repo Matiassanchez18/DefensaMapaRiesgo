@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import useAuthStore from "../store/Store";
 
@@ -11,9 +10,86 @@ function Footer() {
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
-  const API_URL = "http://localhost:3000/api/contactos-emergencia";
+  const [variacionRobos, setVariacionRobos] = useState(null);
+  const [totalReportes, setTotalReportes] = useState(0);
+  const [totalZonas, setTotalZonas] = useState(0);
 
-  // OBTENER CONTACTOS
+  useEffect(() => {
+    const obtenerTotales = async () => {
+      try {
+        const respuesta = await fetch(
+          "http://localhost:3000/api/reportes/dashboard",
+        );
+
+        if (!respuesta.ok) {
+          throw new Error("Error al obtener los totales");
+        }
+
+        const datos = await respuesta.json();
+
+        setTotalReportes(datos.estadisticas.reportesTotales);
+        setTotalZonas(datos.estadisticas.zonasMonitoreadas);
+      } catch (error) {
+        console.error("Error al obtener reportes y zonas:", error);
+      }
+    };
+
+    obtenerTotales();
+  }, []);
+
+  const API_URL = "http://localhost:3000/api/contactos-emergencia";
+  
+useEffect(() => {
+  const obtenerTotales = async () => {
+    try {
+      const respuesta = await fetch(
+        "http://localhost:3000/api/reportes/dashboard"
+      );
+
+      if (!respuesta.ok) {
+        throw new Error("Error al obtener los totales");
+      }
+
+      const datos = await respuesta.json();
+
+      setTotalReportes(datos.estadisticas.reportesTotales);
+      setTotalZonas(datos.estadisticas.zonasMonitoreadas);
+    } catch (error) {
+      console.error("Error al obtener reportes y zonas:", error);
+    }
+  };
+
+  obtenerTotales();
+
+  window.addEventListener("actualizarEstadisticas", obtenerTotales);
+
+  return () => {
+    window.removeEventListener("actualizarEstadisticas", obtenerTotales);
+  };
+}, []);
+
+useEffect(() => {
+  const obtenerVariacionRobos = async () => {
+    try {
+      const respuesta = await fetch(
+        "http://localhost:3000/api/estadisticas"
+      );
+
+      if (!respuesta.ok) {
+        throw new Error("Error al obtener estadísticas");
+      }
+
+      const datos = await respuesta.json();
+
+      setVariacionRobos(datos.variacionRobos);
+    } catch (error) {
+      console.error("Error al obtener variación de robos:", error);
+    }
+  };
+
+  obtenerVariacionRobos();
+}, []);
+
   const obtenerContactos = async () => {
     if (!usuario?.id_usuario) {
       setMensaje("Iniciá sesión para consultar tus contactos de emergencia.");
@@ -44,14 +120,12 @@ function Footer() {
     }
   };
 
-  // ABRIR MODAL
   const abrirModalEmergencia = () => {
     setMostrarModal(true);
     setContactos([]);
     obtenerContactos();
   };
 
-  // CERRAR MODAL
   const cerrarModal = () => {
     setMostrarModal(false);
     setMensaje("");
@@ -62,6 +136,31 @@ function Footer() {
       isActive ? "text-white" : "text-gray-400 hover:text-white"
     }`;
 
+  const porcentaje = variacionRobos?.porcentaje;
+
+  const textoVariacion =
+    porcentaje === null || porcentaje === undefined
+      ? "N/D"
+      : `${porcentaje > 0 ? "+" : ""}${porcentaje}%`;
+
+  const iconoVariacion =
+    porcentaje === null || porcentaje === undefined
+      ? "bi-dash"
+      : porcentaje > 0
+        ? "bi-arrow-up"
+        : porcentaje < 0
+          ? "bi-arrow-down"
+          : "bi-dash";
+
+  const colorVariacion =
+    porcentaje === null || porcentaje === undefined
+      ? "text-gray-300"
+      : porcentaje > 0
+        ? "text-red-400"
+        : porcentaje < 0
+          ? "text-green-400"
+          : "text-gray-300";
+
   return (
     <div>
       <footer className="fixed bottom-0 left-0 z-50 w-full bg-[#1b2b3a] text-[#f1f3f5]">
@@ -69,7 +168,7 @@ function Footer() {
           <div className="grid grid-cols-3 text-center">
             <div className="border-r border-gray-600 py-2">
               <h4 className="mb-0 text-[22px] font-bold md:text-2xl lg:text-base">
-                268
+                {totalReportes}
               </h4>
               <small className="block text-xs leading-tight md:text-[13px] lg:text-[10px]">
                 REPORTES
@@ -78,7 +177,7 @@ function Footer() {
 
             <div className="border-r border-gray-600 py-2">
               <h4 className="mb-0 text-[22px] font-bold md:text-2xl lg:text-base">
-                18
+                {totalZonas}
               </h4>
               <small className="block text-xs leading-tight md:text-[13px] lg:text-[10px]">
                 ZONAS
@@ -86,9 +185,12 @@ function Footer() {
             </div>
 
             <div className="py-2">
-              <h4 className="mb-0 text-[22px] font-bold md:text-2xl lg:text-base">
-                <i className="bi bi-arrow-up"></i> 12%
+              <h4
+                className={`mb-0 text-[22px] font-bold md:text-2xl lg:text-base ${colorVariacion}`}
+              >
+                <i className={`bi ${iconoVariacion}`}></i> {textoVariacion}
               </h4>
+
               <small className="block text-xs leading-tight md:text-[13px] lg:text-[10px]">
                 ESTE MES
               </small>
@@ -160,7 +262,6 @@ function Footer() {
               </button>
             </div>
 
-            {/* ESTADOS */}
             {cargando ? (
               <p className="py-5 text-center text-gray-300">
                 Cargando contactos...

@@ -1,4 +1,3 @@
-
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import "../style/DashboardAdmin.css";
 import useAuthStore from "../store/Store";
@@ -53,7 +52,18 @@ function SideBar() {
             <i className="bi bi-people"></i>
             Usuarios
           </NavLink>
+
+          <NavLink to="/admin/crudTestigos" className="nav-link">
+            <i className="bi bi-person-lines-fill"></i>
+            Testigos
+          </NavLink>
         </nav>
+
+        <NavLink to="/admin/criminales" className="nav-link">
+          <i className="bi bi-incognito"></i>
+          Criminales
+        </NavLink>
+
 
         <div className="mt-6 flex items-center gap-2.5 border-t border-line px-3 pt-4">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">
