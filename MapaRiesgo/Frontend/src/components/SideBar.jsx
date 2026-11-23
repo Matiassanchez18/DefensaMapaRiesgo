@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import "../style/DashboardAdmin.css";
 import useAuthStore from "../store/Store";
 
@@ -6,40 +7,105 @@ function SideBar() {
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
 
+  const [menuAbierto, setMenuAbierto] = useState(false);
+
   const cerrarSesion = () => {
     logout();
     navigate("/");
   };
 
+  const cerrarMenu = () => {
+    setMenuAbierto(false);
+  };
+
+  const linkClass = ({ isActive }) =>
+    `nav-link ${isActive ? "active" : ""}`;
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row text-white">
-      <aside className="flex w-full shrink-0 flex-col border-r border-line bg-sidebar px-3.5 py-5 md:w-[232px]">
-        <div className="flex items-center gap-2.5 px-3 pb-1 text-[15px] font-bold tracking-wide text-white">
+
+      {/* BOTÓN HAMBURGUESA - SOLO MOBILE */}
+      <header className="flex items-center justify-between border-b border-line bg-sidebar px-4 py-3 md:hidden">
+        <div className="flex items-center gap-2 font-bold text-white">
           <i className="bi bi-geo-alt"></i>
           MAPA DE RIESGO
         </div>
 
-        <nav className="flex flex-1 flex-col gap-0.5">
+        <button
+          type="button"
+          onClick={() => setMenuAbierto(!menuAbierto)}
+          className="flex h-10 w-10 items-center justify-center rounded-md text-xl hover:bg-white/10"
+          aria-label="Abrir o cerrar menú"
+        >
+          <i className={`bi ${menuAbierto ? "bi-x-lg" : "bi-list"}`}></i>
+        </button>
+      </header>
+
+      {/* FONDO OSCURO MOBILE */}
+      {menuAbierto && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={cerrarMenu}
+        ></div>
+      )}
+
+      {/* SIDEBAR */}
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50
+          flex h-screen w-[250px] shrink-0 flex-col
+          border-r border-line bg-sidebar px-3.5 py-5
+          transition-transform duration-300 ease-in-out
+          md:relative md:z-auto md:flex md:w-[232px] md:translate-x-0
+          ${menuAbierto ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        {/* TÍTULO */}
+        <div className="mb-2 flex items-center gap-2.5 px-3 pb-1 text-[15px] font-bold tracking-wide text-white">
+          <i className="bi bi-geo-alt"></i>
+          MAPA DE RIESGO
+        </div>
+
+        {/* NAVEGACIÓN */}
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
+
           <p className="mx-3 mb-1.5 mt-5 text-[11px] font-semibold uppercase tracking-widest">
             General
           </p>
 
-          <NavLink to="/" className="nav-link">
+          <NavLink
+            to="/"
+            className={linkClass}
+            onClick={cerrarMenu}
+          >
             <i className="bi bi-house"></i>
             Inicio
           </NavLink>
 
-          <NavLink to="/admin" end className="nav-link">
+          <NavLink
+            to="/admin"
+            end
+            className={linkClass}
+            onClick={cerrarMenu}
+          >
             <i className="bi bi-grid"></i>
             Dashboard
           </NavLink>
 
-          <NavLink to="/admin/reportes" className="nav-link">
+          <NavLink
+            to="/admin/reportes"
+            className={linkClass}
+            onClick={cerrarMenu}
+          >
             <i className="bi bi-file-earmark-text"></i>
             Reportes
           </NavLink>
 
-          <NavLink to="/admin/mapa" className="nav-link">
+          <NavLink
+            to="/admin/mapa"
+            className={linkClass}
+            onClick={cerrarMenu}
+          >
             <i className="bi bi-map"></i>
             Mapa
           </NavLink>
@@ -48,25 +114,39 @@ function SideBar() {
             Administración
           </p>
 
-          <NavLink to="/admin/usuarios" className="nav-link">
+          <NavLink
+            to="/admin/usuarios"
+            className={linkClass}
+            onClick={cerrarMenu}
+          >
             <i className="bi bi-people"></i>
             Usuarios
           </NavLink>
 
-          <NavLink to="/admin/crudTestigos" className="nav-link">
+          <NavLink
+            to="/admin/crudTestigos"
+            className={linkClass}
+            onClick={cerrarMenu}
+          >
             <i className="bi bi-person-lines-fill"></i>
             Testigos
           </NavLink>
+
+          {/* CRIMINALES: AHORA JUNTO A LOS DEMÁS */}
+          <NavLink
+            to="/admin/criminales"
+            className={linkClass}
+            onClick={cerrarMenu}
+          >
+            <i className="bi bi-incognito"></i>
+            Criminales
+          </NavLink>
+
         </nav>
 
-        <NavLink to="/admin/criminales" className="nav-link">
-          <i className="bi bi-incognito"></i>
-          Criminales
-        </NavLink>
-
-
-        <div className="mt-6 flex items-center gap-2.5 border-t border-line px-3 pt-4">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">
+        {/* USUARIO Y CIERRE DE SESIÓN */}
+        <div className="mt-4 flex items-center gap-2.5 border-t border-line px-3 pt-4">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">
             A
           </div>
 
@@ -86,7 +166,8 @@ function SideBar() {
         </div>
       </aside>
 
-      <main className="flex-1 bg-fondo p-6 text-white">
+      {/* CONTENIDO */}
+      <main className="min-w-0 flex-1 bg-fondo p-4 text-white sm:p-6">
         <Outlet />
       </main>
     </div>

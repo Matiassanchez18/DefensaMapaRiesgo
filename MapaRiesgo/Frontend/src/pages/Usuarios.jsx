@@ -129,15 +129,7 @@ function Usuarios() {
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={obtenerUsuarios}
-                    disabled={cargando}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-slate-300 transition hover:border-blue-400/30 hover:bg-blue-500/10 hover:text-blue-300 disabled:opacity-50"
-                >
-                    <i className={`bi bi-arrow-clockwise ${cargando ? "animate-spin" : ""}`}></i>
-                    Actualizar lista
-                </button>
+                
             </div>
 
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
