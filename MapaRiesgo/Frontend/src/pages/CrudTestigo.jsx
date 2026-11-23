@@ -38,6 +38,8 @@ function CrudTestigos() {
       setCargando(true);
       setError("");
 
+      console.log("Token:", token);
+
       const respuesta = await fetch(API_URL, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -115,6 +117,9 @@ function CrudTestigos() {
 
       const metodo = idEditar ? "PUT" : "POST";
 
+
+      console.log("Token:", token);
+
       const respuesta = await fetch(url, {
         method: metodo,
         headers: {
@@ -172,6 +177,8 @@ function CrudTestigos() {
 
     try {
       setError("");
+
+      console.log("Token:", token);
 
       const respuesta = await fetch(`${API_URL}/${id}`, {
         method: "DELETE",

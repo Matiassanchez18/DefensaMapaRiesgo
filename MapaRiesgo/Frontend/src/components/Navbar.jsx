@@ -103,7 +103,7 @@ function Navbar() {
                   className="flex items-center gap-2 rounded-lg border border-blue-400/20 bg-blue-500/15 px-4 py-2.5 text-sm font-semibold text-blue-300 transition hover:border-blue-400/40 hover:bg-blue-500/25 hover:text-white"
                 >
                   <i className="bi bi-speedometer2 text-base"></i>
-                  Dashboard Admin
+                  Panel de control
                 </Link>
               </li>
             )}

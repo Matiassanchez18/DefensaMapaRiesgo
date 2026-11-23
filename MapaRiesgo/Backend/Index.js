@@ -26,7 +26,7 @@ app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/contactos-emergencia", contactoEmergenciaRoutes);
 app.use("/api/estadisticas", estadisticaRoutes);
 app.use("/api/criminales", criminalesRoutes);
-app.use("./api/testigos",testigoRoutes)
+app.use("/api/testigos",testigoRoutes)
 
 app.listen(3000, () => {
   console.log("Servidor funcionando en el puerto 3000");
