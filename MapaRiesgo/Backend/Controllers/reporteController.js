@@ -44,8 +44,10 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
 };
 
 const agregarReporte = (req, res) => {
+  // CAMBIO JWT: el usuario sale del token verificado, no del cuerpo
+  const id_usuario = req.usuario.id_usuario;
+
   const {
-    id_usuario,
     id_delito,
     direccion,
     descripcion,
@@ -67,11 +69,7 @@ const agregarReporte = (req, res) => {
   const apellido = String(apellido_testigo || "").trim();
   const telefono = String(telefono_testigo || "").trim();
 
-  if (!id_usuario || !Number.isInteger(Number(id_usuario))) {
-    return res.status(400).json({
-      mensaje: "Debés iniciar sesión para cargar un reporte.",
-    });
-  }
+  // CAMBIO JWT: se borró el bloque que validaba id_usuario del cuerpo
 
   const idDelito = Number(id_delito);
 

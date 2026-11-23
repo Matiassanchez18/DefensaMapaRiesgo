@@ -5,7 +5,7 @@ const iniciarSesion = (req, res) => {
   const { email, password } = req.body;
 
   const sql = `
-    SELECT id_usuario, nombre, apellido, email
+    SELECT id_usuario, nombre, apellido, email, rol
     FROM usuario
     WHERE email = ? AND \`contraseña\` = ?
   `;
@@ -25,7 +25,7 @@ const iniciarSesion = (req, res) => {
     const usuario = resultados[0];
 
     const token = jwt.sign(
-      { id_usuario: usuario.id_usuario, email: usuario.email },
+      { id_usuario: usuario.id_usuario, email: usuario.email, rol: usuario.rol },
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );

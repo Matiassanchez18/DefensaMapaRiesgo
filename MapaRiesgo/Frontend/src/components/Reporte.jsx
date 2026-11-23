@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom"; // NUEVO
 
 import {
   MapContainer,
@@ -47,14 +48,22 @@ function Reporte() {
   });
 
   const [cargando, setCargando] = useState(false);
-  const [mensaje, setMensaje] = useState("");
-
+const [mensaje, setMensaje] = useState(() =>
+  "geolocation" in navigator ? "" : "Tu navegador no permite obtener la ubicación.",
+);
   const [mostrarMapa, setMostrarMapa] = useState(false);
-  const [obteniendoGPS, setObteniendoGPS] = useState(true);
+  const [obteniendoGPS, setObteniendoGPS] = useState(
+  () => "geolocation" in navigator,
+);
 
   const seleccionManual = useRef(false);
+  const [seleccionManualMapa, setSeleccionManualMapa] = useState(false); 
 
-  const usuario = useAuthStore((state) => state.usuario);
+  // CAMBIO: antes se leía "usuario"; ahora se lee el token y se suman logout y navigate
+  const token = useAuthStore((state) => state.token);
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+
   const validarNombre = (valor) => {
     if (!valor.trim()) return "Este campo es obligatorio.";
 
@@ -124,6 +133,7 @@ function Reporte() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargarReportes();
 
     const intervalo = setInterval(() => {
@@ -134,11 +144,7 @@ function Reporte() {
   }, [cargarReportes]);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setMensaje("Tu navegador no permite obtener la ubicación.");
-      setObteniendoGPS(false);
-      return;
-    }
+  if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       (posicion) => {
@@ -177,6 +183,7 @@ function Reporte() {
 
   const finalizarSeleccion = (coordenadas) => {
     seleccionManual.current = true;
+  setSeleccionManualMapa(true); // NUEVO
 
     setUbicacion(coordenadas);
 
@@ -187,18 +194,9 @@ function Reporte() {
     e.preventDefault();
     setMensaje("");
 
-    if (!usuario) {
+    // CAMBIO: un solo chequeo de sesión, basado en el token se borra el id_usuario del reporte
+    if (!token) {
       setMensaje("Tenés que iniciar sesión para realizar un reporte.");
-      return;
-    }
-
-    const idUsuario = Number(usuario.id_usuario);
-
-    if (!Number.isInteger(idUsuario) || idUsuario <= 0) {
-      console.error("Datos del usuario:", usuario);
-
-      setMensaje("No se pudo identificar al usuario. Volvé a iniciar sesión.");
-
       return;
     }
 
@@ -226,8 +224,8 @@ function Reporte() {
       }
     }
 
+    // CAMBIO: ya no se envía id_usuario; el servidor lo toma del token
     const reporte = {
-      id_usuario: idUsuario,
       id_delito: Number(datosFormulario.get("id_delito")),
       direccion: datosFormulario.get("direccion").trim(),
       descripcion: datosFormulario.get("descripcion").trim(),
@@ -247,25 +245,30 @@ function Reporte() {
     try {
       setCargando(true);
 
-      const respuesta = await fetch(
-        // "http://localhost:3000/api/reportes" ,
-        "http://localhost:3000/api/reportes",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(reporte),
+      // CAMBIO: se envía el token en el encabezado Authorization 
+      const respuesta = await fetch("http://localhost:3000/api/reportes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify(reporte),
+      });
 
       const resultado = await respuesta.json();
+
+      // NUEVO: token vencido o inválido, se cierra la sesión
+      if (respuesta.status === 401) {
+        logout();
+        navigate("/login");
+        return;
+      }
 
       if (!respuesta.ok) {
         if (resultado.errores?.length > 0) {
           throw new Error(
             resultado.errores
-              .map((error) => ${error.campo}: ${error.mensaje})
+              .map((error) => `${error.campo}: ${error.mensaje}`)
               .join("\n"),
           );
         }
@@ -292,7 +295,7 @@ function Reporte() {
 
       setUbicacion(ubicacionGPS);
       seleccionManual.current = false;
-
+setSeleccionManualMapa(false); // NUEVO
       await cargarReportes();
     } catch (error) {
       console.error("Error al enviar reporte:", error);
@@ -468,17 +471,16 @@ function Reporte() {
             <label>Ubicación del incidente</label>
 
             <p>
-              {obteniendoGPS
-                ? "Obteniendo ubicación GPS..."
-                : ubicacion
-                  ? seleccionManual.current
-                    ? "Ubicación seleccionada en el mapa."
-                    : "Se utilizará tu ubicación actual."
-                  : ubicacionGPS
-                    ? "Se utilizará tu ubicación actual."
-                    : "Todavía no hay una ubicación disponible."}
-            </p>
-
+  {obteniendoGPS
+    ? "Obteniendo ubicación GPS..."
+    : ubicacion
+      ? seleccionManualMapa
+        ? "Ubicación seleccionada en el mapa."
+        : "Se utilizará tu ubicación actual."
+      : ubicacionGPS
+        ? "Se utilizará tu ubicación actual."
+        : "Todavía no hay una ubicación disponible."}
+</p>
             <button
               type="button"
               className="reporte-input-icono"
