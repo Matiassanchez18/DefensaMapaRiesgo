@@ -32,12 +32,12 @@ function App() {
         </Route>
 
         <Route element={<RutaPrivada soloAdmin={true} />}>
+            <Route path="/usuarios" element={<Usuarios />} />
+            <Route path="/crudTestigos" element={<CrudTestigos/>} />
           <Route path="/admin" element={<SideBar />}>
             <Route index element={<DashboardAdmin />} />
             <Route path="reportes" element={<DashboardReportes />} />
             <Route path="mapa" element={<PaginaMapa />} />
-            <Route path="usuarios" element={<Usuarios />} />
-            <Route path="crudTestigos" element={<CrudTestigos/>} />
           </Route>
         </Route>
       </Routes>
