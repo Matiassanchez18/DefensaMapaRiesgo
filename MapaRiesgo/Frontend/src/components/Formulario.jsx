@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../style/Formulario.css";
 import useAuthStore from "../store/Store";
 
@@ -11,7 +12,9 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
     telefono_testigo: "",
   });
 
-  const usuario = useAuthStore((state) => state.usuario);
+  const token = useAuthStore((state) => state.token);
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
 
   const validarNombre = (valor) => {
     if (!valor.trim()) {
@@ -72,7 +75,7 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!usuario?.id_usuario) {
+    if (!token) {
       alert("Debés iniciar sesión para cargar un reporte.");
       return;
     }
@@ -114,7 +117,6 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
     }
 
     const reporte = {
-      id_usuario: usuario.id_usuario,
       id_delito: Number(datos.get("id_delito")),
       direccion: String(datos.get("direccion") || "").trim(),
       descripcion: String(datos.get("descripcion") || "").trim(),
@@ -131,11 +133,19 @@ function Formulario({ darValor, ubicacion, seleccionarEnMapa }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(reporte),
       });
 
       const resultado = await respuesta.json();
+
+      // Token vencido o inválido: se cierra la sesión y se manda al login
+      if (respuesta.status === 401) {
+        logout();
+        navigate("/login");
+        return;
+      }
 
       if (!respuesta.ok) {
         throw new Error(resultado.mensaje || "Error al guardar el reporte.");
