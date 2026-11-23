@@ -1,9 +1,23 @@
-
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import useAuthStore from "../store/Store";
 
 const API_URL = "http://localhost:3000/api/testigos";
 
 function CrudTestigos() {
+  const token = useAuthStore((state) => state.token);
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+
+  // Si el token venció o no es válido, se cierra la sesión y se vuelve al login
+  const sesionVencida = (respuesta) => {
+    if (respuesta.status !== 401) return false;
+
+    logout();
+    navigate("/login");
+    return true;
+  };
+
   const [testigos, setTestigos] = useState([]);
 
   const [formulario, setFormulario] = useState({
@@ -24,7 +38,11 @@ function CrudTestigos() {
       setCargando(true);
       setError("");
 
-      const respuesta = await fetch(API_URL);
+      const respuesta = await fetch(API_URL, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (sesionVencida(respuesta)) return;
 
       if (!respuesta.ok) {
         throw new Error("No se pudieron obtener los testigos.");
@@ -42,7 +60,10 @@ function CrudTestigos() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     obtenerTestigos();
+    // Se carga una sola vez al entrar a la página
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const manejarCambio = (e) => {
@@ -98,9 +119,12 @@ function CrudTestigos() {
         method: metodo,
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(datos),
       });
+
+      if (sesionVencida(respuesta)) return;
 
       const resultado = await respuesta.json();
 
@@ -151,7 +175,10 @@ function CrudTestigos() {
 
       const respuesta = await fetch(`${API_URL}/${id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
+
+      if (sesionVencida(respuesta)) return;
 
       if (!respuesta.ok) {
         const resultado = await respuesta.json();
