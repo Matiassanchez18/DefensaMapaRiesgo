@@ -1,7 +1,9 @@
 const express = require("express");
 const cors = require("cors");
+
 require("dotenv").config();
 
+const testigoRoutes=require("./Routes/testigoRoutes")
 const registerRoutes = require("./Routes/registerRoutes");
 const reporteRoutes = require("./Routes/reporteRoutes");
 const comisariaRoutes = require("./Routes/comisariaRoutes");
@@ -24,6 +26,7 @@ app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/contactos-emergencia", contactoEmergenciaRoutes);
 app.use("/api/estadisticas", estadisticaRoutes);
 app.use("/api/criminales", criminalesRoutes);
+app.use("./api/testigos",testigoRoutes)
 
 app.listen(3000, () => {
   console.log("Servidor funcionando en el puerto 3000");
