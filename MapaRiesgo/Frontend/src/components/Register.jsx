@@ -1,20 +1,17 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../style/Login.css";
 import "../style/Register.css";
 import useAuthStore from "../store/Store";
 
-
-
 function Register() {
-
     const API_URL = "http://localhost:3000/api/register";
 
-    // const API_URL = "http://localhost:3000/api/register";
-
     const SOLO_LETRAS = /^\p{L}+(?:[ '-]\p{L}+)*$/u;
+
     const EMAIL_VALIDO =
-        /^(?:[A-Za-z0-9_'+-]+\.)*[A-Za-z0-9_'+-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9-]*\.)+[A-Za-z]{2,}$/;
+        /^(?:[A-Za-z0-9_'+-]+(?:\.[A-Za-z0-9_'+-]+)*)@[A-Za-z0-9](?:[A-Za-z0-9-]*\.)+[A-Za-z]{2,}$/;
 
     const CAMPOS = [
         {
@@ -62,16 +59,19 @@ function Register() {
         },
     ];
 
-
     const validarNombreApellido = (valor, etiqueta) => {
         const texto = valor.trim();
 
         if (!texto) return `El ${etiqueta} es obligatorio`;
-        if (texto.length < 2) return `El ${etiqueta} debe tener al menos 2 caracteres`;
-        if (texto.length > 50) return `El ${etiqueta} es demasiado largo (máximo 50)`;
+        if (texto.length < 2)
+            return `El ${etiqueta} debe tener al menos 2 caracteres`;
+        if (texto.length > 50)
+            return `El ${etiqueta} es demasiado largo (máximo 50)`;
+
         if (!SOLO_LETRAS.test(texto)) {
             return `El ${etiqueta} solo puede tener letras, espacios, guiones o apóstrofes`;
         }
+
         return "";
     };
 
@@ -79,20 +79,29 @@ function Register() {
         const texto = valor.trim();
 
         if (!texto) return "El email es obligatorio";
-        if (texto.length > 150) return "El email es demasiado largo (máximo 150)";
+        if (texto.length > 150)
+            return "El email es demasiado largo (máximo 150)";
+
         if (!EMAIL_VALIDO.test(texto)) {
             return "Ingresá un email válido, por ejemplo tucorreo@ejemplo.com";
         }
+
         return "";
     };
 
     const validarPassword = (valor) => {
         if (!valor) return "La contraseña es obligatoria";
-        if (/\s/.test(valor)) return "La contraseña no puede tener espacios";
-        if (valor.length < 8) return "La contraseña debe tener al menos 8 caracteres";
-        if (valor.length > 64) return "La contraseña es demasiado larga (máximo 64)";
-        if (!/[A-Za-z]/.test(valor)) return "La contraseña debe tener al menos una letra";
-        if (!/\d/.test(valor)) return "La contraseña debe tener al menos un número";
+        if (/\s/.test(valor))
+            return "La contraseña no puede tener espacios";
+        if (valor.length < 8)
+            return "La contraseña debe tener al menos 8 caracteres";
+        if (valor.length > 64)
+            return "La contraseña es demasiado larga (máximo 64)";
+        if (!/[A-Za-z]/.test(valor))
+            return "La contraseña debe tener al menos una letra";
+        if (!/\d/.test(valor))
+            return "La contraseña debe tener al menos un número";
+
         return "";
     };
 
@@ -100,8 +109,11 @@ function Register() {
         const texto = valor.trim();
 
         if (!texto) return "El teléfono es obligatorio";
-        if (!/^\d+$/.test(texto)) return "El teléfono solo puede tener números";
-        if (texto.length !== 10) return "El teléfono debe tener exactamente 10 dígitos";
+        if (!/^\d+$/.test(texto))
+            return "El teléfono solo puede tener números";
+        if (texto.length !== 10)
+            return "El teléfono debe tener exactamente 10 dígitos";
+
         return "";
     };
 
@@ -132,24 +144,36 @@ function Register() {
         password: "",
         telefono: "",
     });
+
     const [errores, setErrores] = useState({});
     const [errorServidor, setErrorServidor] = useState("");
     const [enviando, setEnviando] = useState(false);
 
     const handleChange = (e) => {
         const { name } = e.target;
+
         const value =
-            name === "telefono" ? e.target.value.replace(/\D/g, "") : e.target.value;
+            name === "telefono"
+                ? e.target.value.replace(/\D/g, "")
+                : e.target.value;
+
         setDatos({ ...datos, [name]: value });
 
         if (errores[name]) {
-            setErrores({ ...errores, [name]: validarCampo(name, value) });
+            setErrores({
+                ...errores,
+                [name]: validarCampo(name, value),
+            });
         }
     };
 
     const handleBlur = (e) => {
         const { name, value } = e.target;
-        setErrores({ ...errores, [name]: validarCampo(name, value) });
+
+        setErrores({
+            ...errores,
+            [name]: validarCampo(name, value),
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -157,14 +181,21 @@ function Register() {
         setErrorServidor("");
 
         const nuevosErrores = {};
+
         CAMPOS.forEach(({ name }) => {
             const mensaje = validarCampo(name, datos[name]);
-            if (mensaje) nuevosErrores[name] = mensaje;
+
+            if (mensaje) {
+                nuevosErrores[name] = mensaje;
+            }
         });
 
         setErrores(nuevosErrores);
 
-        const primerError = CAMPOS.find(({ name }) => nuevosErrores[name]);
+        const primerError = CAMPOS.find(
+            ({ name }) => nuevosErrores[name]
+        );
+
         if (primerError) {
             document.getElementById(primerError.name)?.focus();
             return;
@@ -175,7 +206,9 @@ function Register() {
         try {
             const respuesta = await fetch(API_URL, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify({
                     nombre: datos.nombre.trim(),
                     apellido: datos.apellido.trim(),
@@ -190,32 +223,54 @@ function Register() {
             if (!respuesta.ok) {
                 if (resultado.errores?.length > 0) {
                     const erroresServidor = {};
+
                     resultado.errores.forEach(({ campo, mensaje }) => {
                         erroresServidor[campo] = mensaje;
                     });
+
                     setErrores(erroresServidor);
-                    document.getElementById(resultado.errores[0].campo)?.focus();
+
+                    document
+                        .getElementById(resultado.errores[0].campo)
+                        ?.focus();
                 } else {
-                    setErrorServidor(resultado.mensaje || "No se pudo completar el registro");
+                    setErrorServidor(
+                        resultado.mensaje ||
+                        "No se pudo completar el registro"
+                    );
                 }
+
                 return;
             }
 
+            if (!resultado.token || !resultado.usuario) {
+                console.error("Respuesta incompleta del registro:", resultado);
 
-            // Token JWT (dura 1 día) para no tener que volver a ingresar los datos
-            if (resultado.token) {
-                localStorage.setItem("token", resultado.token);
+                setErrorServidor(
+                    "El usuario se registró, pero no se pudo iniciar la sesión."
+                );
+
+                return;
             }
-            login(resultado.usuario);
-            console.log("Usuario guardado en Zustand:", useAuthStore.getState());
+
+            login(resultado.usuario, resultado.token);
+
+            console.log(
+                "Usuario guardado en Zustand:",
+                useAuthStore.getState()
+            );
+
             alert("¡Usuario registrado correctamente!");
 
             navigate("/", { replace: true });
+
         } catch (error) {
             console.error("Error al registrar el usuario:", error);
+
             setErrorServidor(
-                "No se pudo conectar con el servidor. Probá de nuevo en unos minutos.",
+                "No se pudo conectar con el servidor. Probá de nuevo en unos minutos."
             );
+
         } finally {
             setEnviando(false);
         }
@@ -232,10 +287,20 @@ function Register() {
                     </p>
                 )}
 
-                <form onSubmit={handleSubmit} className="login-form" noValidate>
+                <form
+                    onSubmit={handleSubmit}
+                    className="login-form"
+                    noValidate
+                >
                     {CAMPOS.map((campo) => (
-                        <div key={campo.name} className="register-grupo">
-                            <label className="login-label" htmlFor={campo.name}>
+                        <div
+                            key={campo.name}
+                            className="register-grupo"
+                        >
+                            <label
+                                className="login-label"
+                                htmlFor={campo.name}
+                            >
                                 {campo.label}
                             </label>
 
@@ -252,9 +317,15 @@ function Register() {
                                 inputMode={campo.inputMode}
                                 aria-invalid={Boolean(errores[campo.name])}
                                 aria-describedby={
-                                    errores[campo.name] ? `${campo.name}-error` : undefined
+                                    errores[campo.name]
+                                        ? `${campo.name}-error`
+                                        : undefined
                                 }
-                                className={`login-campo${errores[campo.name] ? " campo-invalido" : ""}`}
+                                className={`login-campo${
+                                    errores[campo.name]
+                                        ? " campo-invalido"
+                                        : ""
+                                }`}
                             />
 
                             {errores[campo.name] ? (
@@ -266,12 +337,20 @@ function Register() {
                                     {errores[campo.name]}
                                 </p>
                             ) : (
-                                campo.ayuda && <p className="register-ayuda">{campo.ayuda}</p>
+                                campo.ayuda && (
+                                    <p className="register-ayuda">
+                                        {campo.ayuda}
+                                    </p>
+                                )
                             )}
                         </div>
                     ))}
 
-                    <button type="submit" className="login-boton" disabled={enviando}>
+                    <button
+                        type="submit"
+                        className="login-boton"
+                        disabled={enviando}
+                    >
                         {enviando ? "Registrando..." : "Registrarse"}
                     </button>
                 </form>

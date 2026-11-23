@@ -44,9 +44,21 @@ const obtenerOCrearZona = (latitud, longitud, callback) => {
 };
 
 const agregarReporte = (req, res) => {
-  // CAMBIO JWT: el usuario sale del token verificado, no del cuerpo
+  console.log("========== DEBUG REPORTE ==========");
+  console.log("Usuario JWT:", req.usuario);
+  console.log("ID usuario:", req.usuario?.id_usuario);
+  console.log("Datos recibidos:", req.body);
+  console.log("===================================");
+
+  if (!req.usuario || !req.usuario.id_usuario) {
+    return res.status(401).json({
+      mensaje: "No se pudo identificar al usuario autenticado.",
+    });
+  }
+
   const id_usuario = req.usuario.id_usuario;
 
+  // El resto de tu código continúa igual.
   const {
     id_delito,
     direccion,
@@ -58,6 +70,8 @@ const agregarReporte = (req, res) => {
     apellido_testigo,
     telefono_testigo,
   } = req.body;
+
+  // Desde acá continúa tu código original...
 
   const hayTestigos =
     testigos === true ||
