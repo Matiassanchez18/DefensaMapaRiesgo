@@ -18,14 +18,12 @@ function SideBar() {
     setMenuAbierto(false);
   };
 
-  const linkClass = ({ isActive }) =>
-    `nav-link ${isActive ? "active" : ""}`;
+  const linkClass = ({ isActive }) => `nav-link ${isActive ? "active" : ""}`;
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row text-white">
-
-      {/* BOTÓN HAMBURGUESA - SOLO MOBILE */}
-      <header className="flex items-center justify-between border-b border-line bg-sidebar px-4 py-3 md:hidden">
+    <div className="flex h-screen flex-col overflow-hidden text-white md:flex-row">
+      {/* HEADER MOBILE */}
+      <header className="flex shrink-0 items-center justify-between border-b border-line bg-sidebar px-4 py-3 md:hidden">
         <div className="flex items-center gap-2 font-bold text-white">
           <i className="bi bi-geo-alt"></i>
           MAPA DE RIESGO
@@ -55,39 +53,30 @@ function SideBar() {
           fixed inset-y-0 left-0 z-50
           flex h-screen w-[250px] shrink-0 flex-col
           border-r border-line bg-sidebar px-3.5 py-5
+          overflow-hidden
           transition-transform duration-300 ease-in-out
-          md:relative md:z-auto md:flex md:w-[232px] md:translate-x-0
+          md:sticky md:top-0 md:z-auto md:flex md:h-screen md:w-[232px] md:translate-x-0
           ${menuAbierto ? "translate-x-0" : "-translate-x-full"}
         `}
       >
         {/* TÍTULO */}
-        <div className="mb-2 flex items-center gap-2.5 px-3 pb-1 text-[15px] font-bold tracking-wide text-white">
+        <div className="mb-2 flex shrink-0 items-center gap-2.5 px-3 pb-1 text-[15px] font-bold tracking-wide text-white">
           <i className="bi bi-geo-alt"></i>
           MAPA DE RIESGO
         </div>
 
         {/* NAVEGACIÓN */}
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
-
+        <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
           <p className="mx-3 mb-1.5 mt-5 text-[11px] font-semibold uppercase tracking-widest">
             General
           </p>
 
-          <NavLink
-            to="/"
-            className={linkClass}
-            onClick={cerrarMenu}
-          >
+          <NavLink to="/" className={linkClass} onClick={cerrarMenu}>
             <i className="bi bi-house"></i>
             Inicio
           </NavLink>
 
-          <NavLink
-            to="/admin"
-            end
-            className={linkClass}
-            onClick={cerrarMenu}
-          >
+          <NavLink to="/admin" end className={linkClass} onClick={cerrarMenu}>
             <i className="bi bi-grid"></i>
             Dashboard
           </NavLink>
@@ -101,11 +90,7 @@ function SideBar() {
             Reportes
           </NavLink>
 
-          <NavLink
-            to="/admin/mapa"
-            className={linkClass}
-            onClick={cerrarMenu}
-          >
+          <NavLink to="/admin/mapa" className={linkClass} onClick={cerrarMenu}>
             <i className="bi bi-map"></i>
             Mapa
           </NavLink>
@@ -132,7 +117,6 @@ function SideBar() {
             Testigos
           </NavLink>
 
-          {/* CRIMINALES: AHORA JUNTO A LOS DEMÁS */}
           <NavLink
             to="/admin/criminales"
             className={linkClass}
@@ -141,11 +125,10 @@ function SideBar() {
             <i className="bi bi-incognito"></i>
             Criminales
           </NavLink>
-
         </nav>
 
         {/* USUARIO Y CIERRE DE SESIÓN */}
-        <div className="mt-4 flex items-center gap-2.5 border-t border-line px-3 pt-4">
+        <div className="mt-4 flex shrink-0 items-center gap-2.5 border-t border-line px-3 pt-4">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white">
             A
           </div>
@@ -166,8 +149,8 @@ function SideBar() {
         </div>
       </aside>
 
-      {/* CONTENIDO */}
-      <main className="min-w-0 flex-1 bg-fondo p-4 text-white sm:p-6">
+      {/* CONTENIDO PRINCIPAL */}
+      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-fondo p-4 text-white sm:p-6">
         <Outlet />
       </main>
     </div>
