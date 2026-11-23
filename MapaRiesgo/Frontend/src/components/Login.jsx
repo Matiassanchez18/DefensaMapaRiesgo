@@ -23,7 +23,6 @@ function Login() {
     setError("");
 
     try {
-      //const respuesta = await fetch("http://localhost:3000/api/login", {
       const respuesta = await fetch("http://localhost:3000/api/login", {
         method: "POST",
         headers: {
@@ -34,14 +33,14 @@ function Login() {
 
       const data = await respuesta.json();
 
-      console.log("Respuesta del servidor:", data);
       if (!respuesta.ok) {
         setError(data.mensaje);
         return;
       }
 
-      login(data.usuario);
+      login(data.usuario, data.token);
 
+      // Solo funciona si el backend devuelve "rol" en el usuario
       if (data.usuario?.rol === "admin") {
        navigate("/admin");
        } else {
@@ -63,7 +62,6 @@ function Login() {
           <label className="login-label" htmlFor="email">
             Correo electrónico
           </label>
-
           <input
             id="email"
             type="email"
@@ -79,7 +77,6 @@ function Login() {
           <label className="login-label" htmlFor="password">
             Contraseña
           </label>
-
           <input
             id="password"
             type="password"
