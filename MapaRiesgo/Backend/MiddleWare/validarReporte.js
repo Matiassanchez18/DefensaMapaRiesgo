@@ -1,4 +1,3 @@
-
 const { z } = require("zod");
 
 const nombreSchema = z
@@ -25,11 +24,6 @@ const telefonoSchema = z
   }, "Ingresá un teléfono argentino válido");
 
 const reporteSchema = z.object({
-  id_usuario: z.coerce
-    .number()
-    .int("El ID del usuario debe ser un número entero")
-    .positive("El ID del usuario no es válido"),
-
   id_delito: z.coerce
     .number()
     .int("El ID del delito debe ser un número entero")

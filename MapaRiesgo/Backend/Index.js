@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config();
+
 
 const registerRoutes = require("./Routes/registerRoutes");
 const reporteRoutes = require("./Routes/reporteRoutes");

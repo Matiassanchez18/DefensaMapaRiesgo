@@ -12,8 +12,10 @@ const {
 } = require("../Controllers/reporteController");
 
 const validarReporte = require("../MiddleWare/validarReporte");
+const verificarToken = require("../MiddleWare/authToken"); // NUEVO
 
-router.post("/", validarReporte, agregarReporte);
+// CAMBIO: primero se verifica el token, después se validan los datos
+router.post("/", verificarToken, validarReporte, agregarReporte);
 
 router.get("/", obtenerReportes);
 router.get("/ultimo", obtenerUltimoReporte);

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { iniciarSesion } = require("../Controllers/loginController");
+const validarLogin = require("../MiddleWare/authLogin");
+router.post("/", validarLogin, iniciarSesion);
 
-router.post("/", iniciarSesion);
 module.exports = router;
