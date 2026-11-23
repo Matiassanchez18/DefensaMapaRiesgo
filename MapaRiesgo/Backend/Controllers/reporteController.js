@@ -266,7 +266,7 @@ const obtenerReportes = (req, res) => {
   });
 };
 
-const obtenerUltimoReporte = (req, res) => {
+const   obtenerUltimoReporte = (req, res) => {
   const sql = `
    SELECT
   r.id_reporte,
