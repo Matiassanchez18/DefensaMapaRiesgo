@@ -291,7 +291,7 @@ function Mapa() {
           </div>
         )}
 
-        <div className="mapa-container">
+        <div className="mapa-container  relative z-0">
           <div className="contendor-mapa">
             <MapContainer
               center={CENTRO_TUCUMAN}
@@ -398,13 +398,6 @@ function Mapa() {
               <i className="bi bi-crosshair text-xl"></i>
             </button>
 
-            <button
-              type="button"
-              aria-label="Agrandar mapa"
-              className="btn-zoom flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-[#032f5c] text-lg text-white shadow-lg transition hover:bg-[#064078] active:scale-95"
-            >
-              <i className="bi bi-arrows-angle-expand"></i>
-            </button>
           </div>
 
           {modal && ubicacion && inicioSesion && (

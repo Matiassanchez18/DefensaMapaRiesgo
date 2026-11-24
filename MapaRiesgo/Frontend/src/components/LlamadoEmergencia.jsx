@@ -112,7 +112,7 @@ function LlamadoEmergencia() {
   };
 
   return (
-    <div className="llamado-emergencia">
+    <div className="llamado-emergencia relative z-[1000]">
       <div className="llamado-emergencia-info">
         <i className="bi bi-person-plus-fill llamado-emergencia-icono"></i>
 

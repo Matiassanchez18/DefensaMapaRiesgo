@@ -153,27 +153,94 @@ const modificarUsuario = (req, res) => {
 const eliminarUsuario = (req, res) => {
   const { id } = req.params;
 
-  const sql = `
-        DELETE FROM usuario
-        WHERE id_usuario = ?
-    `;
-
-  db.query(sql, [id], (error, resultado) => {
+  db.getConnection((error, connection) => {
     if (error) {
       return res.status(500).json({
-        mensaje: "Error al eliminar el usuario",
+        mensaje: "Error al conectar con la base de datos",
         error: error.message,
       });
     }
 
-    if (resultado.affectedRows === 0) {
-      return res.status(404).json({
-        mensaje: "Usuario no encontrado",
-      });
-    }
+    // Iniciar transacción
+    connection.beginTransaction((error) => {
+      if (error) {
+        connection.release();
 
-    res.json({
-      mensaje: "Usuario eliminado correctamente",
+        return res.status(500).json({
+          mensaje: "Error al iniciar la transacción",
+          error: error.message,
+        });
+      }
+
+      // 1. Eliminar los reportes asociados al usuario
+      const sqlReportes = `
+                DELETE FROM reporte
+                WHERE id_usuario = ?
+            `;
+
+      connection.query(sqlReportes, [id], (error, resultadoReportes) => {
+        if (error) {
+          return connection.rollback(() => {
+            connection.release();
+
+            res.status(500).json({
+              mensaje: "Error al eliminar los reportes",
+              error: error.message,
+            });
+          });
+        }
+
+        // 2. Eliminar el usuario
+        const sqlUsuario = `
+                    DELETE FROM usuario
+                    WHERE id_usuario = ?
+                `;
+
+        connection.query(sqlUsuario, [id], (error, resultadoUsuario) => {
+          if (error) {
+            return connection.rollback(() => {
+              connection.release();
+
+              res.status(500).json({
+                mensaje: "Error al eliminar el usuario",
+                error: error.message,
+              });
+            });
+          }
+
+          // Verificar si existe el usuario
+          if (resultadoUsuario.affectedRows === 0) {
+            return connection.rollback(() => {
+              connection.release();
+
+              res.status(404).json({
+                mensaje: "Usuario no encontrado",
+              });
+            });
+          }
+
+          // 3. Confirmar cambios
+          connection.commit((error) => {
+            if (error) {
+              return connection.rollback(() => {
+                connection.release();
+
+                res.status(500).json({
+                  mensaje: "Error al confirmar la eliminación",
+                  error: error.message,
+                });
+              });
+            }
+
+            connection.release();
+
+            res.json({
+              mensaje: "Usuario y reportes eliminados correctamente",
+              reportesEliminados: resultadoReportes.affectedRows,
+            });
+          });
+        });
+      });
     });
   });
 };
