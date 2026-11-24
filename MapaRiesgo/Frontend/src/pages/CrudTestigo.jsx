@@ -279,7 +279,7 @@ function CrudTestigos() {
                 name="telefono"
                 value={formulario.telefono}
                 onChange={manejarCambio}
-                maxLength={20}
+                maxLength={10}
                 placeholder="Teléfono de contacto"
                 className="w-full rounded-md border border-line bg-black/20 p-2 text-sm outline-none focus:border-blue-500"
               />
