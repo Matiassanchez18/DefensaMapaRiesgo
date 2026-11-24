@@ -291,7 +291,7 @@ function Mapa() {
           </div>
         )}
 
-        <div className="mapa-container">
+        <div className="mapa-container  relative z-0">
           <div className="contendor-mapa">
             <MapContainer
               center={CENTRO_TUCUMAN}
