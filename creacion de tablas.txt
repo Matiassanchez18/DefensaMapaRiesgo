@@ -1,0 +1,182 @@
+insertar datos tablas
+
+orden de creación:
+1_usuario
+2_zona
+3_delito
+4_contacto_emergencia
+5_comisaria
+6_estadistica
+7_reporte
+
+CREATE TABLE comisaria (
+    id_comisaria INT(11) NOT NULL AUTO_INCREMENT,
+    nombre VARCHAR(100) DEFAULT NULL,
+    direccion VARCHAR(300) DEFAULT NULL,
+    telefono VARCHAR(20) DEFAULT NULL,
+    latitud DECIMAL(10,8) DEFAULT NULL,
+    longitud DECIMAL(11,8) DEFAULT NULL,
+    id_zona INT(11) DEFAULT NULL,
+    osm_id BIGINT(20) DEFAULT NULL,
+    osm_tipo VARCHAR(10) DEFAULT NULL,
+    tipo VARCHAR(50) DEFAULT 'Comisaría',
+    localidad VARCHAR(100) DEFAULT NULL,
+
+    PRIMARY KEY (id_comisaria),
+
+    INDEX (id_zona),
+    INDEX (osm_tipo),
+
+    CONSTRAINT fk_comisaria_zona
+        FOREIGN KEY (id_zona)
+        REFERENCES zona(id_zona)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+
+CREATE TABLE contacto_emergencia (
+    id_contacto INT(11) NOT NULL AUTO_INCREMENT,
+    id_usuario INT(11) NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    telefono VARCHAR(20) NOT NULL,
+    relacion VARCHAR(50) DEFAULT NULL,
+    PRIMARY KEY (id_contacto),
+    INDEX (id_usuario),
+    CONSTRAINT fk_contacto_usuario
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+
+CREATE TABLE criminal (
+    id_criminal INT(11) NOT NULL AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    fecha_nacimiento DATE,
+    orden_busqueda VARCHAR(100),
+    estado VARCHAR(30) DEFAULT 'Buscado',
+    foto VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id_criminal)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE delito (
+    id_delito INT(11) NOT NULL AUTO_INCREMENT,
+    nombre VARCHAR(50) DEFAULT NULL,
+    descripcion VARCHAR(500) DEFAULT NULL,
+    nivel_delito VARCHAR(45) DEFAULT NULL,
+    PRIMARY KEY (id_delito)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+CREATE TABLE estadistica (
+    id_estadistica INT(11) NOT NULL AUTO_INCREMENT,
+    id_zona INT(11) NOT NULL,
+    id_delito INT(11) NOT NULL,
+    cantidad_delitos INT(11) NOT NULL,
+    periodo VARCHAR(50) DEFAULT NULL,
+    fecha_actualizacion DATE DEFAULT NULL,
+    PRIMARY KEY (id_estadistica),
+    INDEX (id_zona),
+    INDEX (id_delito),
+    CONSTRAINT fk_estadistica_zona
+        FOREIGN KEY (id_zona)
+        REFERENCES zona(id_zona),
+    CONSTRAINT fk_estadistica_delito
+        FOREIGN KEY (id_delito)
+        REFERENCES delito(id_delito)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+
+CREATE TABLE reporte (
+    id_reporte INT(11) NOT NULL AUTO_INCREMENT,
+    id_usuario INT(11) NOT NULL,
+    id_delito INT(11) NOT NULL,
+    id_zona INT(11) NOT NULL,
+    fecha DATE NOT NULL,
+    hora TIME NOT NULL,
+    descripcion TEXT DEFAULT NULL,
+    latitud DECIMAL(10,8) DEFAULT NULL,
+    longitud DECIMAL(11,8) DEFAULT NULL,
+    estado VARCHAR(50) DEFAULT NULL,
+    testigos TINYINT(1) NOT NULL DEFAULT 0,
+    direccion VARCHAR(255) DEFAULT NULL,
+    PRIMARY KEY (id_reporte),
+    INDEX (id_usuario),
+    INDEX (id_delito),
+    INDEX (id_zona),
+    CONSTRAINT fk_reporte_usuario
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuario(id_usuario),
+    CONSTRAINT fk_reporte_delito
+        FOREIGN KEY (id_delito)
+        REFERENCES delito(id_delito),
+    CONSTRAINT fk_reporte_zona
+        FOREIGN KEY (id_zona)
+        REFERENCES zona(id_zona)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+
+CREATE TABLE testigo (
+    id_testigo INT(11) NOT NULL AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    telefono VARCHAR(20) DEFAULT NULL,
+    id_reporte INT(11) NOT NULL,
+    PRIMARY KEY (id_testigo),
+    INDEX (id_reporte),
+    CONSTRAINT fk_testigo_reporte
+        FOREIGN KEY (id_reporte)
+        REFERENCES reporte(id_reporte)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+
+
+CREATE TABLE usuario (
+    id_usuario INT(11) NOT NULL AUTO_INCREMENT,
+    nombre VARCHAR(50) NOT NULL,
+    apellido VARCHAR(50) DEFAULT NULL,
+    email VARCHAR(150) NOT NULL,
+    contraseña VARCHAR(255) NOT NULL,
+    telefono VARCHAR(20) DEFAULT NULL,
+    fecha_registro DATE DEFAULT NULL,
+    rol VARCHAR(30) NOT NULL DEFAULT 'usuario',
+    PRIMARY KEY (id_usuario),
+    UNIQUE (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+
+CREATE TABLE zona (
+    id_zona INT(11) NOT NULL AUTO_INCREMENT,
+    nombre VARCHAR(50) DEFAULT NULL,
+    descripcion VARCHAR(500) DEFAULT NULL,
+    nivel_riesgo VARCHAR(45) DEFAULT NULL,
+    latitud DECIMAL(10,8) DEFAULT NULL,
+    codigo_celda VARCHAR(80) NOT NULL,
+    longitud DECIMAL(11,8) DEFAULT NULL,
+    PRIMARY KEY (id_zona),
+    UNIQUE (codigo_celda)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+Relaciones
+1. Usuario – Reporte (1:N)
+2. Usuario – Contacto_emergencia (1:N)
+3. Delito – Reporte (1:N)
+4. Zona – Reporte (1:N)
+5. Zona – Estadística (1:N)
+6. Delito – Estadística (1:N)
+7. Reporte – Testigo (1:N)
+8. Zona – Comisaría (1:N)
