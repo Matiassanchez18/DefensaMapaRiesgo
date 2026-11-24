@@ -14,7 +14,7 @@ function InformacionMapa({ titulo, descripcion }) {
           {descripcion}
         </p>
 
-        <Link to="/mapa" className="informacion-mapa-boton">
+        <Link to="*" className="informacion-mapa-boton">
           Conocé más +
         </Link>
       </div>
