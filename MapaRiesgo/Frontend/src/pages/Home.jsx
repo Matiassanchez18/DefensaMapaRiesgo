@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import AccionesRapidas from "../components/AccionesRapidas";
 import InformacionMapa from "../components/InformacionMapa";
 import UltimoIncidente from "../components/UltimoIncidente";
+import CarruselCriminales from "../components/CarrouselCriminales";
 import Footer from "../components/Footer";
 
 function Home() {
@@ -53,6 +54,7 @@ function Home() {
         />
 
         <div className="mt-25">
+          <CarruselCriminales></CarruselCriminales>
           <Footer />
         </div>
       </main>
