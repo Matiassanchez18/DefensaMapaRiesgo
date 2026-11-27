@@ -1,8 +1,12 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import "../Style/Home.css";
 import LlamadoEmergencia from "./LlamadoEmergencia";
 import useAuthStore from "../store/Store";
+
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 function AccionesRapidas() {
   const usuario = useAuthStore((state) => state.usuario);
@@ -12,8 +16,17 @@ function AccionesRapidas() {
   const [cargando, setCargando] = useState(false);
   const [editando, setEditando] = useState(null);
   const [mensaje, setMensaje] = useState("");
+  const [eliminandoId, setEliminandoId] = useState(null);
 
   const API_URL = "http://localhost:3000/api/contactos-emergencia";
+
+  const configurarZIndexSwal = () => {
+    const contenedor = document.querySelector(".swal2-container");
+
+    if (contenedor) {
+      contenedor.style.zIndex = "100001";
+    }
+  };
 
   const obtenerContactos = async () => {
     if (!usuario?.id_usuario) return;
@@ -43,7 +56,6 @@ function AccionesRapidas() {
     obtenerContactos();
   };
 
-  // MODIFICAR CONTACTO
   const modificarContacto = async (contacto) => {
     const numero = String(contacto.telefono ?? "").replace(/\D/g, "");
 
@@ -73,21 +85,53 @@ function AccionesRapidas() {
       }
 
       setEditando(null);
-      setMensaje("Contacto modificado exitosamente.");
-      obtenerContactos();
+      await obtenerContactos();
+
+      Swal.fire({
+        title: "¡Contacto modificado!",
+        text: "Los datos se actualizaron correctamente.",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+        background: "#151e30",
+        color: "#ffffff",
+        confirmButtonColor: "#2563eb",
+        didOpen: configurarZIndexSwal,
+      });
     } catch (error) {
       console.error("Error:", error);
-      setMensaje(error.message);
+
+      Swal.fire({
+        title: "Error",
+        text: error.message || "No se pudo modificar el contacto.",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+        background: "#151e30",
+        color: "#ffffff",
+        confirmButtonColor: "#dc2626",
+        didOpen: configurarZIndexSwal,
+      });
     }
   };
 
-  // ELIMINAR CONTACTO
   const eliminarContacto = async (id_contacto) => {
-    const confirmar = window.confirm(
-      "¿Estás segura de que querés eliminar este contacto?",
-    );
+    const confirmar = await Swal.fire({
+      title: "¿Eliminar contacto?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      background: "#151e30",
+      color: "#ffffff",
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#475569",
+      reverseButtons: true,
+      didOpen: configurarZIndexSwal,
+    });
 
-    if (!confirmar) return;
+    if (!confirmar.isConfirmed) return;
+
+    setEliminandoId(id_contacto);
 
     try {
       const respuesta = await fetch(`${API_URL}/${id_contacto}`, {
@@ -106,15 +150,44 @@ function AccionesRapidas() {
         throw new Error(datos.mensaje || "No se pudo eliminar.");
       }
 
-      setMensaje("Contacto eliminado exitosamente.");
-      obtenerContactos();
+      setContactos((anteriores) =>
+        anteriores.filter(
+          (contacto) => contacto.id_contacto !== id_contacto
+        )
+      );
+
+      setMensaje("");
+
+      await Swal.fire({
+        title: "¡Contacto eliminado!",
+        text: "El contacto se eliminó correctamente.",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+        background: "#151e30",
+        color: "#ffffff",
+        confirmButtonColor: "#2563eb",
+        didOpen: configurarZIndexSwal,
+      });
+
     } catch (error) {
       console.error("Error:", error);
-      setMensaje(error.message);
+
+      Swal.fire({
+        title: "Error",
+        text: error.message || "No se pudo eliminar el contacto.",
+        icon: "error",
+        confirmButtonText: "Aceptar",
+        background: "#151e30",
+        color: "#ffffff",
+        confirmButtonColor: "#dc2626",
+        didOpen: configurarZIndexSwal,
+      });
+
+    } finally {
+      setEliminandoId(null);
     }
   };
 
-  // ACTUALIZAR CAMPOS DEL CONTACTO
   const actualizarCampo = (campo, valor) => {
     setEditando((anterior) => ({
       ...anterior,
@@ -149,20 +222,18 @@ function AccionesRapidas() {
         </button>
       )}
 
-      {/* MODAL DE CONTACTOS */}
       {mostrarModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 p-4"
           onClick={() => {
             setMostrarModal(false);
             setEditando(null);
           }}
         >
           <div
-            className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-[#52677a] bg-[#1b2b3a] p-5 text-white shadow-2xl"
+            className="relative z-[100000] max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-[#52677a] bg-[#1b2b3a] p-5 text-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ENCABEZADO */}
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
                 Mis contactos de emergencia
@@ -181,9 +252,8 @@ function AccionesRapidas() {
               </button>
             </div>
 
-            {/* MENSAJES */}
             {mensaje && (
-              <p className="mb-3 rounded-md border border-[#52677a] bg-[#263b4d] p-3 text-sm text-white">
+              <p className="mb-3 rounded-md border border-red-500 bg-red-500/10 p-3 text-sm text-red-300">
                 {mensaje}
               </p>
             )}
@@ -205,7 +275,6 @@ function AccionesRapidas() {
                   >
                     {editando?.id_contacto === contacto.id_contacto ? (
                       <div className="space-y-3">
-                        {/* NOMBRE */}
                         <label className="block text-sm font-medium text-white">
                           Nombre
                           <input
@@ -219,7 +288,6 @@ function AccionesRapidas() {
                           />
                         </label>
 
-                        {/* TELÉFONO CON VALIDACIÓN */}
                         <label className="block text-sm font-medium text-white">
                           Teléfono
                           <input
@@ -237,6 +305,7 @@ function AccionesRapidas() {
                             maxLength={10}
                             className="mt-1 w-full rounded-md border border-[#52677a] bg-[#1b2b3a] p-2 text-white placeholder-gray-300 outline-none focus:border-blue-500"
                           />
+
                           <span className="mt-1 block text-xs text-gray-300">
                             {String(editando.telefono ?? "").length}/10 números
                           </span>
@@ -297,9 +366,12 @@ function AccionesRapidas() {
                             onClick={() =>
                               eliminarContacto(contacto.id_contacto)
                             }
-                            className="rounded-md bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700"
+                            disabled={eliminandoId === contacto.id_contacto}
+                            className="rounded-md bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            Eliminar
+                            {eliminandoId === contacto.id_contacto
+                              ? "Eliminando..."
+                              : "Eliminar"}
                           </button>
                         </div>
                       </>
