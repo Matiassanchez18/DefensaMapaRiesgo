@@ -361,6 +361,7 @@ const actualizarReporte = (req, res) => {
   });
 };
 
+
 const eliminarReporte = (req, res) => {
   const { id } = req.params;
 
@@ -379,6 +380,7 @@ const eliminarReporte = (req, res) => {
 
       return res.status(500).json({
         mensaje: "Error al buscar el reporte.",
+        detalle: error.sqlMessage,
       });
     }
 
@@ -390,63 +392,81 @@ const eliminarReporte = (req, res) => {
 
     const reporte = reportes[0];
 
-    const sqlEliminar = `
-      DELETE FROM reporte
+    const sqlEliminarTestigos = `
+      DELETE FROM testigo
       WHERE id_reporte = ?
     `;
 
-    db.query(sqlEliminar, [id], (error) => {
+    db.query(sqlEliminarTestigos, [id], (error) => {
       if (error) {
-        console.error("Error al eliminar reporte:", error);
+        console.error("Error al eliminar testigos:", error);
 
         return res.status(500).json({
-          mensaje: "Error al eliminar el reporte.",
+          mensaje: "Error al eliminar los testigos del reporte.",
+          detalle: error.sqlMessage,
         });
       }
 
-      const sqlDescontar = `
-        UPDATE estadistica
-        SET
-          cantidad_delitos = cantidad_delitos - 1,
-          fecha_actualizacion = CURDATE()
-        WHERE id_zona = ?
-          AND id_delito = ?
-          AND periodo = ?
+      const sqlEliminarReporte = `
+        DELETE FROM reporte
+        WHERE id_reporte = ?
       `;
 
-      db.query(
-        sqlDescontar,
-        [reporte.id_zona, reporte.id_delito, reporte.periodo],
-        (error) => {
-          if (error) {
-            console.error("Error al descontar estadística:", error);
+      db.query(sqlEliminarReporte, [id], (error) => {
+        if (error) {
+          console.error("Error al eliminar reporte:", error);
 
-            return res.status(500).json({
-              mensaje:
-                "El reporte se eliminó, pero no se pudo actualizar la estadística.",
-              detalle: error.sqlMessage,
-            });
-          }
+          return res.status(500).json({
+            mensaje: "Error al eliminar el reporte.",
+            detalle: error.sqlMessage,
+          });
+        }
 
-          const sqlLimpiar = `
-            DELETE FROM estadistica
-            WHERE cantidad_delitos <= 0
-          `;
+        const sqlDescontar = `
+          UPDATE estadistica
+          SET
+            cantidad_delitos = cantidad_delitos - 1,
+            fecha_actualizacion = CURDATE()
+          WHERE id_zona = ?
+            AND id_delito = ?
+            AND periodo = ?
+        `;
 
-          db.query(sqlLimpiar, (error) => {
+        db.query(
+          sqlDescontar,
+          [reporte.id_zona, reporte.id_delito, reporte.periodo],
+          (error) => {
             if (error) {
-              console.error("Error al limpiar estadística:", error);
+              console.error("Error al descontar estadística:", error);
+
+              return res.status(500).json({
+                mensaje:
+                  "El reporte se eliminó, pero no se pudo actualizar la estadística.",
+                detalle: error.sqlMessage,
+              });
             }
 
-            res.status(200).json({
-              mensaje: "Reporte eliminado y estadística actualizada.",
+            const sqlLimpiar = `
+              DELETE FROM estadistica
+              WHERE cantidad_delitos <= 0
+            `;
+
+            db.query(sqlLimpiar, (error) => {
+              if (error) {
+                console.error("Error al limpiar estadísticas:", error);
+              }
+
+              return res.status(200).json({
+                mensaje: "Reporte eliminado y estadística actualizada.",
+              });
             });
-          });
-        },
-      );
+          }
+        );
+      });
     });
   });
 };
+
 
 module.exports = {
   agregarReporte,
