@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   MapContainer,
@@ -74,7 +73,7 @@ function Mapa() {
 
     if (!window.isSecureContext) {
       setErrorGPS(
-        "La ubicación requiere una conexión segura (HTTPS o localhost)."
+        "La ubicación requiere una conexión segura (HTTPS o localhost).",
       );
       return;
     }
@@ -108,7 +107,7 @@ function Mapa() {
         enableHighAccuracy: true,
         maximumAge: 0,
         timeout: 60000,
-      }
+      },
     );
 
     return () => {
@@ -158,7 +157,7 @@ function Mapa() {
       setResultados([]);
 
       const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=ar&q=${encodeURIComponent(
-        busqueda.trim()
+        busqueda.trim(),
       )}`;
 
       const respuesta = await fetch(url);
@@ -177,19 +176,14 @@ function Mapa() {
       setResultados(datos);
     } catch (error) {
       console.error("Error al buscar dirección:", error);
-      setErrorBusqueda(
-        "Ocurrió un error al buscar. Intentá nuevamente."
-      );
+      setErrorBusqueda("Ocurrió un error al buscar. Intentá nuevamente.");
     } finally {
       setCargandoBusqueda(false);
     }
   };
 
   const seleccionarResultado = (resultado) => {
-    const coordenadas = [
-      Number(resultado.lat),
-      Number(resultado.lon),
-    ];
+    const coordenadas = [Number(resultado.lat), Number(resultado.lon)];
 
     setPosicionBusqueda(coordenadas);
     setBusqueda(resultado.display_name);
@@ -222,6 +216,12 @@ function Mapa() {
   const seleccionarEnMapa = () => {
     setModal(false);
     setSeleccionandoUbicacion(true);
+  };
+
+  const actualizarUbicacion = (coordenadas) => {
+    setPosicionSeleccionada(coordenadas);
+    setPosicionBusqueda(coordenadas);
+    setSiguiendoUbicacion(false);
   };
 
   const finalizarSeleccion = (coordenadas) => {
@@ -310,18 +310,14 @@ function Mapa() {
               />
 
               <ControlSeguimiento
-                detenerSeguimiento={() =>
-                  setSiguiendoUbicacion(false)
-                }
+                detenerSeguimiento={() => setSiguiendoUbicacion(false)}
               />
 
               <Comisarias />
 
               <MoverMapa
                 posicion={posicionBusqueda}
-                detenerSeguimiento={() =>
-                  setSiguiendoUbicacion(false)
-                }
+                detenerSeguimiento={() => setSiguiendoUbicacion(false)}
               />
 
               {ubicacion && (
@@ -337,9 +333,7 @@ function Mapa() {
               />
 
               {seleccionandoUbicacion && (
-                <SeleccionarUbicacion
-                  finalizarSeleccion={finalizarSeleccion}
-                />
+                <SeleccionarUbicacion finalizarSeleccion={finalizarSeleccion} />
               )}
 
               {posicionSeleccionada && (
@@ -397,16 +391,16 @@ function Mapa() {
             >
               <i className="bi bi-crosshair text-xl"></i>
             </button>
-
           </div>
 
-          {modal && ubicacion && inicioSesion && (
-            <Formulario
-              darValor={darValor}
-              ubicacion={coordenadasReporte}
-              seleccionarEnMapa={seleccionarEnMapa}
-            />
-          )}
+          {modal && coordenadasReporte && inicioSesion && (
+  <Formulario
+    darValor={darValor}
+    ubicacion={coordenadasReporte}
+    seleccionarEnMapa={seleccionarEnMapa}
+    actualizarUbicacion={actualizarUbicacion}
+  />
+)}
 
           {seleccionandoUbicacion && (
             <div className="mx-auto mt-3 w-fit rounded-lg bg-white px-4 py-3 text-sm font-semibold text-gray-900 shadow-lg">
