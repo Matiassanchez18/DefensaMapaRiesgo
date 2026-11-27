@@ -1,5 +1,7 @@
 
 import { useEffect, useMemo, useState } from "react";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 const API = "http://localhost:3000/api/reportes";
 
@@ -188,75 +190,127 @@ function DashboardReportes() {
     setPaginaActual(1);
   }, [busqueda, filtroZona, filtroRiesgo, filtroEstado]);
 
-  const eliminar = async (id) => {
-    const confirmar = window.confirm(
-      "¿Estás seguro de que querés eliminar este reporte?"
+ const eliminar = async (id) => {
+  const confirmar = await Swal.fire({
+    title: "¿Eliminar reporte?",
+    text: `¿Estás seguro de que querés eliminar el reporte #${id}? Esta acción no se puede deshacer.`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#475569",
+    background: "#151e30",
+    color: "#ffffff",
+    reverseButtons: true,
+  });
+
+  if (!confirmar.isConfirmed) return;
+
+  try {
+    const respuesta = await fetch(`${API}/${id}`, {
+      method: "DELETE",
+    });
+
+    const datos = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos.mensaje || "No se pudo eliminar el reporte."
+      );
+    }
+
+    setReportes((prev) =>
+      prev.filter((reporte) => reporte.id !== id)
     );
 
-    if (!confirmar) return;
+    if (viendo?.id === id) setViendo(null);
+    if (editando?.id === id) setEditando(null);
 
-    try {
-      const respuesta = await fetch(`${API}/${id}`, {
-        method: "DELETE",
-      });
+    await Swal.fire({
+      icon: "success",
+      title: "¡Reporte eliminado!",
+      text: "El reporte fue eliminado correctamente.",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#2563eb",
+      background: "#151e30",
+      color: "#ffffff",
+    });
+  } catch (error) {
+    console.error(error);
 
-      const datos = await respuesta.json();
+    Swal.fire({
+      icon: "error",
+      title: "Error al eliminar",
+      text: error.message,
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#dc2626",
+      background: "#151e30",
+      color: "#ffffff",
+    });
+  }
+};
 
-      if (!respuesta.ok) {
-        throw new Error(datos.mensaje || "No se pudo eliminar el reporte.");
-      }
+ const guardar = async (e) => {
+  e.preventDefault();
 
-      setReportes((prev) =>
-        prev.filter((reporte) => reporte.id !== id)
+  try {
+    const respuesta = await fetch(`${API}/${editando.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        descripcion: editando.titulo,
+        estado: editando.estado,
+      }),
+    });
+
+    const datos = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos.mensaje || "No se pudo actualizar el reporte."
       );
-
-      if (viendo?.id === id) setViendo(null);
-      if (editando?.id === id) setEditando(null);
-    } catch (error) {
-      console.error(error);
-      alert(error.message);
     }
-  };
 
-  const guardar = async (e) => {
-    e.preventDefault();
+    setReportes((prev) =>
+      prev.map((reporte) =>
+        reporte.id === editando.id
+          ? {
+              ...reporte,
+              titulo: editando.titulo,
+              estado: editando.estado,
+            }
+          : reporte
+      )
+    );
 
-    try {
-      const respuesta = await fetch(`${API}/${editando.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          descripcion: editando.titulo,
-          estado: editando.estado,
-        }),
-      });
+    setEditando(null);
 
-      const datos = await respuesta.json();
+    await Swal.fire({
+      icon: "success",
+      title: "¡Reporte editado!",
+      text: "Los cambios del reporte se guardaron correctamente.",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#2563eb",
+      background: "#151e30",
+      color: "#ffffff",
+    });
+  } catch (error) {
+    console.error(error);
 
-      if (!respuesta.ok) {
-        throw new Error(datos.mensaje || "No se pudo actualizar el reporte.");
-      }
-
-      setReportes((prev) =>
-        prev.map((reporte) =>
-          reporte.id === editando.id
-            ? {
-                ...reporte,
-                titulo: editando.titulo,
-                estado: editando.estado,
-              }
-            : reporte
-        )
-      );
-
-      setEditando(null);
-    } catch (error) {
-      console.error(error);
-      alert(error.message);
-    }
-  };
+    Swal.fire({
+      icon: "error",
+      title: "Error al editar",
+      text: error.message,
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#dc2626",
+      background: "#151e30",
+      color: "#ffffff",
+    });
+  }
+};
 
   return (
     <div className="space-y-6">

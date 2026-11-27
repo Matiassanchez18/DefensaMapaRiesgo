@@ -1,5 +1,7 @@
 
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 const API_URL = "http://localhost:3000/api/usuarios";
 
@@ -35,66 +37,116 @@ function Usuarios() {
         obtenerUsuarios();
     }, []);
 
-    const eliminar = async (id) => {
-        if (!window.confirm("¿Seguro que querés eliminar este usuario?")) return;
+const eliminar = async (id) => {
+    const confirmar = await Swal.fire({
+        title: "¿Eliminar usuario?",
+        text: `¿Estás seguro de que querés eliminar al usuario #${id}? Esta acción no se puede deshacer.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#475569",
+        background: "#151e30",
+        color: "#ffffff",
+        reverseButtons: true,
+    });
 
-        try {
-            const respuesta = await fetch(`${API_URL}/${id}`, {
-                method: "DELETE"
-            });
+    if (!confirmar.isConfirmed) return;
 
-            const datos = await respuesta.json();
+    try {
+        const respuesta = await fetch(`${API_URL}/${id}`, {
+            method: "DELETE",
+        });
 
-            if (!respuesta.ok) {
-                throw new Error(datos.mensaje || "Error al eliminar usuario");
-            }
+        const datos = await respuesta.json();
 
-            setUsuarios((anteriores) =>
-                anteriores.filter((usuario) => usuario.id_usuario !== id)
-            );
-
-            alert("Usuario eliminado correctamente");
-
-        } catch (error) {
-            console.error("Error:", error);
-            alert(error.message);
+        if (!respuesta.ok) {
+            throw new Error(datos.mensaje || "Error al eliminar usuario");
         }
-    };
 
-    const guardar = async (e) => {
-        e.preventDefault();
+        setUsuarios((anteriores) =>
+            anteriores.filter((usuario) => usuario.id_usuario !== id)
+        );
 
-        try {
-            const respuesta = await fetch(`${API_URL}/${editando.id_usuario}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    nombre: editando.nombre,
-                    apellido: editando.apellido,
-                    email: editando.email,
-                    telefono: editando.telefono,
-                    rol: editando.rol
-                })
-            });
+        await Swal.fire({
+            icon: "success",
+            title: "¡Usuario eliminado!",
+            text: "El usuario fue eliminado correctamente.",
+            confirmButtonText: "Aceptar",
+            confirmButtonColor: "#2563eb",
+            background: "#151e30",
+            color: "#ffffff",
+        });
 
-            const datos = await respuesta.json();
+    } catch (error) {
+        console.error("Error:", error);
 
-            if (!respuesta.ok) {
-                throw new Error(datos.mensaje || "Error al modificar usuario");
-            }
+        Swal.fire({
+            icon: "error",
+            title: "Error al eliminar",
+            text: error.message,
+            confirmButtonText: "Aceptar",
+            confirmButtonColor: "#dc2626",
+            background: "#151e30",
+            color: "#ffffff",
+        });
+    }
+};
 
-            setEditando(null);
-            await obtenerUsuarios();
 
-            alert("Usuario modificado correctamente");
+  
+const guardar = async (e) => {
+    e.preventDefault();
 
-        } catch (error) {
-            console.error("Error:", error);
-            alert(error.message);
+    try {
+        const respuesta = await fetch(`${API_URL}/${editando.id_usuario}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                nombre: editando.nombre,
+                apellido: editando.apellido,
+                email: editando.email,
+                telefono: editando.telefono,
+                rol: editando.rol,
+            }),
+        });
+
+        const datos = await respuesta.json();
+
+        if (!respuesta.ok) {
+            throw new Error(datos.mensaje || "Error al modificar usuario");
         }
-    };
+
+        setEditando(null);
+        await obtenerUsuarios();
+
+        await Swal.fire({
+            icon: "success",
+            title: "¡Usuario modificado!",
+            text: "Los datos del usuario se actualizaron correctamente.",
+            confirmButtonText: "Aceptar",
+            confirmButtonColor: "#2563eb",
+            background: "#151e30",
+            color: "#ffffff",
+        });
+
+    } catch (error) {
+        console.error("Error:", error);
+
+        Swal.fire({
+            icon: "error",
+            title: "Error al modificar",
+            text: error.message,
+            confirmButtonText: "Aceptar",
+            confirmButtonColor: "#dc2626",
+            background: "#151e30",
+            color: "#ffffff",
+        });
+    }
+};
 
     const obtenerIniciales = (nombre, apellido) => {
         return `${nombre?.charAt(0) || ""}${apellido?.charAt(0) || ""}`.toUpperCase();

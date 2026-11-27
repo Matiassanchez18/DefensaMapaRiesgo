@@ -163,7 +163,7 @@ useEffect(() => {
 
   return (
     <div>
-      <footer className="fixed bottom-0 left-0 z-50 w-full bg-[#1b2b3a] text-[#f1f3f5]">
+      <footer className="fixed z-[99999] bottom-0 left-0 z-50 w-full bg-[#1b2b3a] text-[#f1f3f5]">
         <div className="border-b border-gray-600">
           <div className="grid grid-cols-3 text-center">
             <div className="border-r border-gray-600 py-2">
@@ -242,7 +242,7 @@ useEffect(() => {
             className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-xl border border-[#52677a] bg-[#1b2b3a] p-5 text-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-5 flex items-center justify-between">
+            <div className=" z-[99999] mb-5 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-white">
                   Contactos de emergencia

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../style/Login.css";
 import useAuthStore from "../store/Store";
+import Swal from "sweetalert2";
 
 function Login() {
   const [datos, setDatos] = useState({ email: "", password: "" });
@@ -40,11 +41,17 @@ function Login() {
 
       login(data.usuario, data.token);
 
-      // Solo funciona si el backend devuelve "rol" en el usuario
       if (data.usuario?.rol === "admin") {
-       navigate("/admin");
-       } else {
-         navigate("/");
+        navigate("/admin");
+
+        Swal.fire({
+          title: "¡Bienvenido, administrador!",
+          text: "Iniciaste sesión correctamente en el panel de administración.",
+          icon: "success",
+          confirmButtonText: "Continuar",
+        });
+      } else {
+        navigate("/");
       }
     } catch {
       setError("Error al conectar con el servidor.");
