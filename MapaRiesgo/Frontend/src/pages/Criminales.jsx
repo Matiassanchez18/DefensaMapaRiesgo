@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import CriminalCard from "../components/CriminalCard";
 import CriminalForm from "../components/CriminalForm";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 const API_URL = "http://localhost:3000/api/criminales";
 
@@ -12,7 +14,6 @@ function Criminales() {
   const [formAbierto, setFormAbierto] = useState(false);
   const [editando, setEditando] = useState(null); // null = se está creando uno nuevo
 
-  // READ
   const obtenerCriminales = async () => {
     try {
       setCargando(true);
@@ -35,7 +36,6 @@ function Criminales() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     obtenerCriminales();
   }, []);
 
@@ -54,79 +54,112 @@ function Criminales() {
     setEditando(null);
   };
 
-  // CREATE y UPDATE: el formulario llama a esta función con los datos ya validados.
-  // Devuelve null si salió bien, o { mensaje, errores } si el servidor lo rechazó.
-  const guardar = async (datos) => {
-    const esEdicion = Boolean(editando);
-    const url = esEdicion ? `${API_URL}/${editando.id_criminal}` : API_URL;
+const guardar = async (datos) => {
+  const esEdicion = Boolean(editando);
+  const url = esEdicion ? `${API_URL}/${editando.id_criminal}` : API_URL;
 
-    try {
-      const respuesta = await fetch(url, {
-        method: esEdicion ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(datos),
-      });
+  try {
+    const respuesta = await fetch(url, {
+      method: esEdicion ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(datos),
+    });
 
-      const resultado = await respuesta.json();
+    const resultado = await respuesta.json();
 
-      if (!respuesta.ok) {
-        return {
-          mensaje: resultado.mensaje || "Error al guardar el criminal",
-          errores: resultado.errores || [],
-        };
-      }
-
-      cerrarFormulario();
-      await obtenerCriminales();
-
-      alert(
-        esEdicion
-          ? "Criminal modificado correctamente"
-          : "Criminal agregado correctamente",
-      );
-      return null;
-    } catch (error) {
-      console.error("Error:", error);
+    if (!respuesta.ok) {
       return {
-        mensaje:
-          "No se pudo conectar con el servidor. Probá de nuevo en unos minutos.",
-        errores: [],
+        mensaje: resultado.mensaje || "Error al guardar el criminal",
+        errores: resultado.errores || [],
       };
     }
-  };
 
-  // DELETE
+    cerrarFormulario();
+    await obtenerCriminales();
+
+    await Swal.fire({
+      icon: "success",
+      title: esEdicion ? "¡Criminal modificado!" : "¡Criminal agregado!",
+      text: esEdicion
+        ? "Los datos se actualizaron correctamente."
+        : "El criminal fue agregado correctamente.",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#2563eb",
+      background: "#151e30",
+      color: "#ffffff",
+    });
+
+    return null;
+
+  } catch (error) {
+    console.error("Error:", error);
+
+    return {
+      mensaje:
+        "No se pudo conectar con el servidor. Probá de nuevo en unos minutos.",
+      errores: [],
+    };
+  }
+};
+
   const eliminar = async (criminal) => {
-    if (
-      !window.confirm(
-        `¿Seguro que querés eliminar a ${criminal.nombre} ${criminal.apellido}?`,
-      )
-    )
-      return;
+  const confirmar = await Swal.fire({
+    title: "¿Eliminar criminal?",
+    text: `¿Estás seguro de que querés eliminar a ${criminal.nombre} ${criminal.apellido}? Esta acción no se puede deshacer.`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#475569",
+    background: "#151e30",
+    color: "#ffffff",
+    reverseButtons: true,
+  });
 
-    try {
-      const respuesta = await fetch(`${API_URL}/${criminal.id_criminal}`, {
-        method: "DELETE",
-      });
+  if (!confirmar.isConfirmed) return;
 
-      const datos = await respuesta.json();
+  try {
+    const respuesta = await fetch(`${API_URL}/${criminal.id_criminal}`, {
+      method: "DELETE",
+    });
 
-      if (!respuesta.ok) {
-        throw new Error(datos.mensaje || "Error al eliminar el criminal");
-      }
+    const datos = await respuesta.json();
 
-      setCriminales((anteriores) =>
-        anteriores.filter((c) => c.id_criminal !== criminal.id_criminal),
-      );
-
-      alert("Criminal eliminado correctamente");
-    } catch (error) {
-      console.error("Error:", error);
-      alert(error.message);
+    if (!respuesta.ok) {
+      throw new Error(datos.mensaje || "Error al eliminar el criminal");
     }
-  };
+
+    setCriminales((anteriores) =>
+      anteriores.filter((c) => c.id_criminal !== criminal.id_criminal),
+    );
+
+    await Swal.fire({
+      icon: "success",
+      title: "¡Criminal eliminado!",
+      text: "El registro fue eliminado correctamente.",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#2563eb",
+      background: "#151e30",
+      color: "#ffffff",
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+
+    Swal.fire({
+      icon: "error",
+      title: "Error al eliminar",
+      text: error.message,
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#dc2626",
+      background: "#151e30",
+      color: "#ffffff",
+    });
+  }
+};
 
   const totalBuscados = criminales.filter((c) => c.estado === "Buscado").length;
   const totalCapturados = criminales.filter(
