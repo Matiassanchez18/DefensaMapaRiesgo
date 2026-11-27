@@ -11,7 +11,6 @@ function CrudTestigos() {
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
 
-  // Si el token venció o no es válido, se cierra la sesión y se vuelve al login
   const sesionVencida = (respuesta) => {
     if (respuesta.status !== 401) return false;
 
