@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/Store";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 const API_URL = "http://localhost:3000/api/testigos";
 
@@ -88,69 +90,88 @@ function CrudTestigos() {
     setIdEditar(null);
   };
 
-  const guardarTestigo = async (e) => {
-    e.preventDefault();
+const guardarTestigo = async (e) => {
+  e.preventDefault();
 
-    if (
-      !formulario.nombre.trim() ||
-      !formulario.apellido.trim() ||
-      !formulario.id_reporte
-    ) {
-      setError("Completá el nombre, apellido e ID del reporte.");
-      return;
+  if (
+    !formulario.nombre.trim() ||
+    !formulario.apellido.trim() ||
+    !formulario.id_reporte
+  ) {
+    setError("Completá el nombre, apellido e ID del reporte.");
+    return;
+  }
+
+  try {
+    setGuardando(true);
+    setError("");
+
+    const datos = {
+      nombre: formulario.nombre.trim(),
+      apellido: formulario.apellido.trim(),
+      telefono: formulario.telefono.trim() || null,
+      id_reporte: Number(formulario.id_reporte),
+    };
+
+    const url = idEditar
+      ? `${API_URL}/${idEditar}`
+      : API_URL;
+
+    const metodo = idEditar ? "PUT" : "POST";
+
+    const respuesta = await fetch(url, {
+      method: metodo,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(datos),
+    });
+
+    if (sesionVencida(respuesta)) return;
+
+    const resultado = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(
+        resultado.detalle ||
+        resultado.mensaje ||
+        "No se pudo guardar el testigo."
+      );
     }
 
-    try {
-      setGuardando(true);
-      setError("");
+    limpiarFormulario();
+    await obtenerTestigos();
 
-      const datos = {
-        nombre: formulario.nombre.trim(),
-        apellido: formulario.apellido.trim(),
-        telefono: formulario.telefono.trim() || null,
-        id_reporte: Number(formulario.id_reporte),
-      };
+    await Swal.fire({
+      icon: "success",
+      title: idEditar ? "¡Testigo modificado!" : "¡Testigo registrado!",
+      text: idEditar
+        ? "Los datos del testigo se actualizaron correctamente."
+        : "El testigo fue registrado correctamente.",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#2563eb",
+      background: "#151e30",
+      color: "#ffffff",
+    });
 
-      const url = idEditar
-        ? `${API_URL}/${idEditar}`
-        : API_URL;
+  } catch (error) {
+    console.error("Error al guardar testigo:", error);
 
-      const metodo = idEditar ? "PUT" : "POST";
+    Swal.fire({
+      icon: "error",
+      title: "Error al guardar",
+      text: error.message,
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#dc2626",
+      background: "#151e30",
+      color: "#ffffff",
+    });
 
-
-      console.log("Token:", token);
-
-      const respuesta = await fetch(url, {
-        method: metodo,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(datos),
-      });
-
-      if (sesionVencida(respuesta)) return;
-
-      const resultado = await respuesta.json();
-
-      if (!respuesta.ok) {
-        throw new Error(
-          resultado.detalle ||
-          resultado.mensaje ||
-          "No se pudo guardar el testigo."
-        );
-      }
-
-      limpiarFormulario();
-      await obtenerTestigos();
-    } catch (error) {
-      console.error("Error al guardar testigo:", error);
-      setError(error.message);
-    } finally {
-      setGuardando(false);
-    }
-  };
-
+  } finally {
+    setGuardando(false);
+  }
+};
   const editarTestigo = (testigo) => {
     setFormulario({
       nombre: testigo.nombre || "",
@@ -168,42 +189,71 @@ function CrudTestigos() {
     });
   };
 
-  const eliminarTestigo = async (id) => {
-    const confirmar = window.confirm(
-      "¿Estás seguro de que querés eliminar este testigo?"
-    );
+const eliminarTestigo = async (id) => {
+  const confirmar = await Swal.fire({
+    title: "¿Eliminar testigo?",
+    text: `¿Estás seguro de que querés eliminar al testigo #${id}? Esta acción no se puede deshacer.`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#475569",
+    background: "#151e30",
+    color: "#ffffff",
+    reverseButtons: true,
+  });
 
-    if (!confirmar) return;
+  if (!confirmar.isConfirmed) return;
 
-    try {
-      setError("");
+  try {
+    setError("");
 
-      console.log("Token:", token);
+    const respuesta = await fetch(`${API_URL}/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      const respuesta = await fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    if (sesionVencida(respuesta)) return;
 
-      if (sesionVencida(respuesta)) return;
+    const resultado = await respuesta.json();
 
-      if (!respuesta.ok) {
-        const resultado = await respuesta.json();
-
-        throw new Error(
-          resultado.detalle ||
-          resultado.mensaje ||
-          "No se pudo eliminar el testigo."
-        );
-      }
-
-      await obtenerTestigos();
-    } catch (error) {
-      console.error("Error al eliminar testigo:", error);
-      setError(error.message);
+    if (!respuesta.ok) {
+      throw new Error(
+        resultado.detalle ||
+        resultado.mensaje ||
+        "No se pudo eliminar el testigo."
+      );
     }
-  };
 
+    await obtenerTestigos();
+
+    await Swal.fire({
+      icon: "success",
+      title: "¡Testigo eliminado!",
+      text: "El testigo fue eliminado correctamente.",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#2563eb",
+      background: "#151e30",
+      color: "#ffffff",
+    });
+
+  } catch (error) {
+    console.error("Error al eliminar testigo:", error);
+
+    Swal.fire({
+      icon: "error",
+      title: "Error al eliminar",
+      text: error.message,
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#dc2626",
+      background: "#151e30",
+      color: "#ffffff",
+    });
+  }
+};
   const testigosFiltrados = testigos.filter((testigo) => {
     const texto = busqueda.toLowerCase();
 
