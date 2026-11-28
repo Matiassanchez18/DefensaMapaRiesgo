@@ -19,7 +19,7 @@ Mapa de Riesgo permite reportar hechos delictivos, visualizar incidentes y zonas
 
 | Parte | Tecnologías |
 |---|---|
-| **Frontend** | React 19, Vite 8, React Router 7, Tailwind CSS 4, Bootstrap 5, Bootstrap Icons, Leaflet, React-Leaflet, Zustand, Recharts |
+| **Frontend** | React 19, Vite 8, React Router 7, Tailwind CSS 4, Bootstrap 5, Bootstrap Icons, Leaflet, React-Leaflet, Zustand, Recharts , sweetalert2|
 | **Backend** | Node.js, Express 5, mysql2, bcrypt, jsonwebtoken, Zod, dotenv, cors |
 | **Base de datos** | MySQL 8 |
 
