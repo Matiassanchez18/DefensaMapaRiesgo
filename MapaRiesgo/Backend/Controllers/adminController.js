@@ -9,7 +9,8 @@ const obtenerDashboard = (req, res) => {
        WHERE nivel_riesgo = 'Alto') AS zonasRiesgoAlto,
       (SELECT COUNT(*) FROM reporte
        WHERE estado = 'Pendiente') AS pendientes,
-      (SELECT COUNT(*) FROM usuario) AS usuariosActivos
+      (SELECT COUNT(*) FROM usuario
+       WHERE activo = 1) AS usuariosActivos
   `;
 
   db.query(consultaEstadisticas, (error, estadisticas) => {
