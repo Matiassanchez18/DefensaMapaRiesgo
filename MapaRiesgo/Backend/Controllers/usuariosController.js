@@ -3,7 +3,7 @@ const db = require("../Config/db.js");
 const obtenerUsuarios = (req, res) => {
   const sql = `
         SELECT id_usuario, nombre, apellido, email,
-               telefono, rol, fecha_registro
+               telefono, rol, activo, fecha_registro
         FROM usuario
        ORDER BY
     CASE
@@ -30,7 +30,7 @@ const obtenerUsuarioPorId = (req, res) => {
 
   const sql = `
         SELECT id_usuario, nombre, apellido, email,
-               telefono, rol, fecha_registro
+               telefono, rol, activo, fecha_registro
         FROM usuario
         WHERE id_usuario = ?
     `;
@@ -149,6 +149,45 @@ const modificarUsuario = (req, res) => {
     },
   );
 };
+
+const cambiarEstadoUsuario = (req, res) => {
+  const { id } = req.params;
+  const { activo } = req.body; 
+
+  if (![0, 1].includes(activo)) {
+    return res.status(400).json({
+      mensaje: "El estado seleccionado no es válido",
+    });
+  }
+
+  const sql = `
+        UPDATE usuario
+        SET activo = ?
+        WHERE id_usuario = ?
+    `;
+
+  db.query(sql, [activo, id], (error, resultado) => {
+    if (error) {
+      return res.status(500).json({
+        mensaje: "Error al cambiar el estado del usuario",
+        error: error.message,
+      });
+    }
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({
+        mensaje: "Usuario no encontrado",
+      });
+    }
+
+    res.json({
+      mensaje: activo === 1
+        ? "Usuario activado correctamente"
+        : "Usuario desactivado correctamente",
+    });
+  });
+};
+
 const eliminarUsuario = (req, res) => {
   const { id } = req.params;
 
@@ -170,7 +209,6 @@ const eliminarUsuario = (req, res) => {
         });
       }
 
-      // 1. Eliminar los testigos de los reportes del usuario
       const sqlTestigos = `
         DELETE FROM testigo
         WHERE id_reporte IN (
@@ -270,5 +308,6 @@ module.exports = {
   obtenerUsuarioPorId,
   crearUsuario,
   modificarUsuario,
+  cambiarEstadoUsuario,
   eliminarUsuario,
 };
