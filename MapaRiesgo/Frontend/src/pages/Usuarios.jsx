@@ -1,5 +1,6 @@
-
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 const API_URL = "http://localhost:3000/api/usuarios";
 
@@ -35,12 +36,99 @@ function Usuarios() {
         obtenerUsuarios();
     }, []);
 
+    const estaActivo = (usuario) => Number(usuario.activo) === 1;
+
+    const cambiarEstado = async (usuario) => {
+        const nuevoEstado = estaActivo(usuario) ? 0 : 1;
+        const accion = nuevoEstado === 1 ? "activar" : "desactivar";
+
+        const confirmar = await Swal.fire({
+            title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} usuario?`,
+            text:
+                nuevoEstado === 0
+                    ? `${usuario.nombre} ${usuario.apellido} no va a poder iniciar sesión hasta que lo vuelvas a activar.`
+                    : `${usuario.nombre} ${usuario.apellido} va a poder iniciar sesión nuevamente.`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: `Sí, ${accion}`,
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: nuevoEstado === 0 ? "#d97706" : "#059669",
+            cancelButtonColor: "#475569",
+            background: "#151e30",
+            color: "#ffffff",
+            reverseButtons: true,
+        });
+
+        if (!confirmar.isConfirmed) return;
+
+        try {
+            const respuesta = await fetch(`${API_URL}/${usuario.id_usuario}/estado`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ activo: nuevoEstado }),
+            });
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                throw new Error(datos.mensaje || "Error al cambiar el estado");
+            }
+
+            setUsuarios((anteriores) =>
+                anteriores.map((u) =>
+                    u.id_usuario === usuario.id_usuario
+                        ? { ...u, activo: nuevoEstado }
+                        : u
+                )
+            );
+
+            await Swal.fire({
+                icon: "success",
+                title: nuevoEstado === 1 ? "¡Usuario activado!" : "¡Usuario desactivado!",
+                text: datos.mensaje,
+                confirmButtonText: "Aceptar",
+                confirmButtonColor: "#2563eb",
+                background: "#151e30",
+                color: "#ffffff",
+            });
+
+        } catch (error) {
+            console.error("Error:", error);
+
+            Swal.fire({
+                icon: "error",
+                title: "Error al cambiar el estado",
+                text: error.message,
+                confirmButtonText: "Aceptar",
+                confirmButtonColor: "#dc2626",
+                background: "#151e30",
+                color: "#ffffff",
+            });
+        }
+    };
+
     const eliminar = async (id) => {
-        if (!window.confirm("¿Seguro que querés eliminar este usuario?")) return;
+        const confirmar = await Swal.fire({
+            title: "¿Eliminar usuario?",
+            text: `¿Estás seguro de que querés eliminar al usuario #${id}? Esta acción no se puede deshacer.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#dc2626",
+            cancelButtonColor: "#475569",
+            background: "#151e30",
+            color: "#ffffff",
+            reverseButtons: true,
+        });
+
+        if (!confirmar.isConfirmed) return;
 
         try {
             const respuesta = await fetch(`${API_URL}/${id}`, {
-                method: "DELETE"
+                method: "DELETE",
             });
 
             const datos = await respuesta.json();
@@ -53,11 +141,28 @@ function Usuarios() {
                 anteriores.filter((usuario) => usuario.id_usuario !== id)
             );
 
-            alert("Usuario eliminado correctamente");
+            await Swal.fire({
+                icon: "success",
+                title: "¡Usuario eliminado!",
+                text: "El usuario fue eliminado correctamente.",
+                confirmButtonText: "Aceptar",
+                confirmButtonColor: "#2563eb",
+                background: "#151e30",
+                color: "#ffffff",
+            });
 
         } catch (error) {
             console.error("Error:", error);
-            alert(error.message);
+
+            Swal.fire({
+                icon: "error",
+                title: "Error al eliminar",
+                text: error.message,
+                confirmButtonText: "Aceptar",
+                confirmButtonColor: "#dc2626",
+                background: "#151e30",
+                color: "#ffffff",
+            });
         }
     };
 
@@ -68,15 +173,15 @@ function Usuarios() {
             const respuesta = await fetch(`${API_URL}/${editando.id_usuario}`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     nombre: editando.nombre,
                     apellido: editando.apellido,
                     email: editando.email,
                     telefono: editando.telefono,
-                    rol: editando.rol
-                })
+                    rol: editando.rol,
+                }),
             });
 
             const datos = await respuesta.json();
@@ -88,11 +193,28 @@ function Usuarios() {
             setEditando(null);
             await obtenerUsuarios();
 
-            alert("Usuario modificado correctamente");
+            await Swal.fire({
+                icon: "success",
+                title: "¡Usuario modificado!",
+                text: "Los datos del usuario se actualizaron correctamente.",
+                confirmButtonText: "Aceptar",
+                confirmButtonColor: "#2563eb",
+                background: "#151e30",
+                color: "#ffffff",
+            });
 
         } catch (error) {
             console.error("Error:", error);
-            alert(error.message);
+
+            Swal.fire({
+                icon: "error",
+                title: "Error al modificar",
+                text: error.message,
+                confirmButtonText: "Aceptar",
+                confirmButtonColor: "#dc2626",
+                background: "#151e30",
+                color: "#ffffff",
+            });
         }
     };
 
@@ -107,6 +229,7 @@ function Usuarios() {
 
     const totalAdmins = usuarios.filter((u) => u.rol === "admin").length;
     const totalUsuarios = usuarios.filter((u) => u.rol === "usuario").length;
+    const totalActivos = usuarios.filter((u) => estaActivo(u)).length;
 
     return (
         <div className="space-y-6">
@@ -129,10 +252,10 @@ function Usuarios() {
                     </p>
                 </div>
 
-                
+
             </div>
 
-            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
                 <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-blue-500/30">
                     <div className="flex items-center justify-between">
@@ -178,7 +301,7 @@ function Usuarios() {
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-emerald-500/30 sm:col-span-2 xl:col-span-1">
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-emerald-500/30">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-xs font-medium text-slate-400">
@@ -196,6 +319,31 @@ function Usuarios() {
 
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 text-xl text-emerald-400">
                             <i className="bi bi-person-fill"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-amber-500/30">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs font-medium text-slate-400">
+                                Cuentas activas
+                            </p>
+
+                            <h2 className="mt-2 text-3xl font-bold text-white">
+                                {totalActivos}
+                                <span className="text-base font-medium text-slate-500">
+                                    {" "}/ {usuarios.length}
+                                </span>
+                            </h2>
+
+                            <p className="mt-1 text-[11px] text-slate-500">
+                                Pueden iniciar sesión
+                            </p>
+                        </div>
+
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-xl text-amber-400">
+                            <i className="bi bi-toggle-on"></i>
                         </div>
                     </div>
                 </div>
@@ -252,7 +400,7 @@ function Usuarios() {
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[850px] text-left text-xs">
+                        <table className="w-full min-w-[950px] text-left text-xs">
 
                             <thead className="bg-white/[0.03]">
                                 <tr className="text-[10px] uppercase tracking-wider text-slate-500">
@@ -260,6 +408,7 @@ function Usuarios() {
                                     <th className="px-4 py-4 font-semibold">Correo electrónico</th>
                                     <th className="px-4 py-4 font-semibold">Teléfono</th>
                                     <th className="px-4 py-4 font-semibold">Rol</th>
+                                    <th className="px-4 py-4 font-semibold">Estado</th>
                                     <th className="px-4 py-4 font-semibold">Registro</th>
                                     <th className="px-5 py-4 text-right font-semibold">Acciones</th>
                                 </tr>
@@ -269,7 +418,9 @@ function Usuarios() {
                                 {usuarios.map((usuario) => (
                                     <tr
                                         key={usuario.id_usuario}
-                                        className="border-t border-white/[0.06] transition hover:bg-white/[0.025]"
+                                        className={`border-t border-white/[0.06] transition hover:bg-white/[0.025] ${
+                                            estaActivo(usuario) ? "" : "opacity-60"
+                                        }`}
                                     >
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
@@ -315,6 +466,20 @@ function Usuarios() {
                                             )}
                                         </td>
 
+                                        <td className="px-4 py-4">
+                                            {estaActivo(usuario) ? (
+                                                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                                                    <i className="bi bi-check-circle-fill"></i>
+                                                    Activo
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-400/20 bg-slate-500/10 px-2.5 py-1 text-[10px] font-semibold text-slate-300">
+                                                    <i className="bi bi-slash-circle-fill"></i>
+                                                    Inactivo
+                                                </span>
+                                            )}
+                                        </td>
+
                                         <td className="px-4 py-4 text-slate-400">
                                             {formatearFecha(usuario.fecha_registro)}
                                         </td>
@@ -328,6 +493,19 @@ function Usuarios() {
                                                     title="Editar usuario"
                                                 >
                                                     <i className="bi bi-pencil"></i>
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => cambiarEstado(usuario)}
+                                                    className={`flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition ${
+                                                        estaActivo(usuario)
+                                                            ? "hover:border-amber-400/30 hover:bg-amber-500/10 hover:text-amber-400"
+                                                            : "hover:border-emerald-400/30 hover:bg-emerald-500/10 hover:text-emerald-400"
+                                                    }`}
+                                                    title={estaActivo(usuario) ? "Desactivar usuario" : "Activar usuario"}
+                                                >
+                                                    <i className={`bi ${estaActivo(usuario) ? "bi-toggle-on" : "bi-toggle-off"}`}></i>
                                                 </button>
 
                                                 <button

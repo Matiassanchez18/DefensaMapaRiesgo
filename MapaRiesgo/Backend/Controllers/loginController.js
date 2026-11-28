@@ -1,4 +1,3 @@
-
 const db = require("../Config/db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -7,7 +6,7 @@ const iniciarSesion = (req, res) => {
   const { email, password } = req.body;
 
   const sql = `
-    SELECT id_usuario, nombre, apellido, email, rol,
+    SELECT id_usuario, nombre, apellido, email, rol, activo,
            \`contraseña\` AS passwordGuardada
     FROM usuario
     WHERE email = ?
@@ -43,7 +42,12 @@ const iniciarSesion = (req, res) => {
       });
     }
 
-    // Generar JWT
+    if (usuario.activo === 0) {
+      return res.status(403).json({
+        mensaje: "Tu cuenta está inactiva. Contactá a un administrador."
+      });
+    }
+
     const token = jwt.sign(
       {
         id_usuario: usuario.id_usuario,
@@ -54,7 +58,6 @@ const iniciarSesion = (req, res) => {
       { expiresIn: "1d" }
     );
 
-    // Devolver usuario y token
     res.status(200).json({
       mensaje: "Inicio de sesión correcto.",
       usuario,
